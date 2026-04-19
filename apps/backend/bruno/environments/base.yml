@@ -1,0 +1,4 @@
+name: base
+variables:
+  - secret: true
+    name: baseUrl
