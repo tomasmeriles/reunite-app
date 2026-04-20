@@ -7,7 +7,7 @@ import env from '~/env';
 export default function AuthLayout() {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-20">
-      {/* Animated background blobs */}
+      {/* Background layer blobs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
           className="absolute -left-32 -top-32 h-96 w-96 animate-blob-1 rounded-full opacity-30 blur-3xl"
