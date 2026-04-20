@@ -4,15 +4,6 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { Button } from '~/components/ui/button';
 import { Separator } from '~/components/ui/separator';
-import { Input } from '~/components/ui/input';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '~/components/ui/form';
 import {
   Card,
   CardContent,
@@ -20,6 +11,11 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card';
+import {
+  FormContainer,
+  FormTextField,
+  FormPasswordField,
+} from '~/components/forms';
 import { useRegister } from '~/hooks/api/use-auth';
 import {
   registerSchema,
@@ -61,82 +57,39 @@ export default function RegisterPage() {
             or
           </span>
         </div>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Full name</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="John Doe"
-                      autoComplete="name"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="you@example.com"
-                      autoComplete="email"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="username"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Username</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="yourhandle"
-                      autoComplete="username"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      autoComplete="new-password"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" className="w-full" disabled={isPending}>
-              {isPending ? 'Creating account…' : 'Create account'}
-            </Button>
-          </form>
-        </Form>
+        <FormContainer form={form} onSubmit={onSubmit}>
+          <FormTextField
+            control={form.control}
+            name="name"
+            label="Full name"
+            placeholder="John Doe"
+            autoComplete="name"
+          />
+          <FormTextField
+            control={form.control}
+            name="email"
+            label="Email"
+            type="email"
+            placeholder="you@example.com"
+            autoComplete="email"
+          />
+          <FormTextField
+            control={form.control}
+            name="username"
+            label="Username"
+            placeholder="yourhandle"
+            autoComplete="username"
+          />
+          <FormPasswordField
+            control={form.control}
+            name="password"
+            label="Password"
+            autoComplete="new-password"
+          />
+          <Button type="submit" className="w-full" disabled={isPending}>
+            {isPending ? 'Creating account…' : 'Create account'}
+          </Button>
+        </FormContainer>
         <p className="mt-4 text-center text-sm text-muted-foreground">
           Already have an account?{' '}
           <Link

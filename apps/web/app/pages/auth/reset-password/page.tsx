@@ -3,15 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { Button } from '~/components/ui/button';
-import { Input } from '~/components/ui/input';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '~/components/ui/form';
+import { FormContainer, FormPasswordField } from '~/components/forms';
 import {
   Card,
   CardContent,
@@ -48,47 +40,23 @@ export default function ResetPasswordPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>New password</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      autoComplete="new-password"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="confirmPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirm password</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      autoComplete="new-password"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" className="w-full">
-              Reset password
-            </Button>
-          </form>
-        </Form>
+        <FormContainer form={form} onSubmit={onSubmit}>
+          <FormPasswordField
+            control={form.control}
+            name="password"
+            label="New password"
+            autoComplete="new-password"
+          />
+          <FormPasswordField
+            control={form.control}
+            name="confirmPassword"
+            label="Confirm password"
+            autoComplete="new-password"
+          />
+          <Button type="submit" className="w-full">
+            Reset password
+          </Button>
+        </FormContainer>
         <p className="mt-4 text-center text-sm text-muted-foreground">
           <Link
             to="/login"

@@ -11,16 +11,12 @@ import {
 } from '~/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { Button } from '~/components/ui/button';
-import { Input } from '~/components/ui/input';
 import { Separator } from '~/components/ui/separator';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '~/components/ui/form';
+  FormContainer,
+  FormTextField,
+  FormPasswordField,
+} from '~/components/forms';
 import { useLogin, useRegister } from '~/hooks/api/use-auth';
 import {
   loginSchema,
@@ -56,48 +52,25 @@ function LoginForm({ onSuccess }: LoginFormProps) {
 
   return (
     <div className="space-y-4">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="you@example.com"
-                    autoComplete="email"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Password</FormLabel>
-                <FormControl>
-                  <Input
-                    type="password"
-                    autoComplete="current-password"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button type="submit" className="w-full" disabled={isPending}>
-            {isPending ? 'Signing in…' : 'Sign in'}
-          </Button>
-        </form>
-      </Form>
+      <FormContainer form={form} onSubmit={onSubmit}>
+        <FormTextField
+          control={form.control}
+          name="email"
+          label="Email"
+          type="email"
+          placeholder="you@example.com"
+          autoComplete="email"
+        />
+        <FormPasswordField
+          control={form.control}
+          name="password"
+          label="Password"
+          autoComplete="current-password"
+        />
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending ? 'Signing in…' : 'Sign in'}
+        </Button>
+      </FormContainer>
       <div className="relative">
         <Separator />
         <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-popover px-2 text-xs text-muted-foreground">
@@ -133,82 +106,39 @@ function RegisterForm({ onSuccess }: RegisterFormProps) {
 
   return (
     <div className="space-y-4">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Full name</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="John Doe"
-                    autoComplete="name"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="you@example.com"
-                    autoComplete="email"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="username"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Username</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="yourhandle"
-                    autoComplete="username"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Password</FormLabel>
-                <FormControl>
-                  <Input
-                    type="password"
-                    autoComplete="new-password"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button type="submit" className="w-full" disabled={isPending}>
-            {isPending ? 'Creating account…' : 'Create account'}
-          </Button>
-        </form>
-      </Form>
+      <FormContainer form={form} onSubmit={onSubmit}>
+        <FormTextField
+          control={form.control}
+          name="name"
+          label="Full name"
+          placeholder="John Doe"
+          autoComplete="name"
+        />
+        <FormTextField
+          control={form.control}
+          name="email"
+          label="Email"
+          type="email"
+          placeholder="you@example.com"
+          autoComplete="email"
+        />
+        <FormTextField
+          control={form.control}
+          name="username"
+          label="Username"
+          placeholder="yourhandle"
+          autoComplete="username"
+        />
+        <FormPasswordField
+          control={form.control}
+          name="password"
+          label="Password"
+          autoComplete="new-password"
+        />
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending ? 'Creating account…' : 'Create account'}
+        </Button>
+      </FormContainer>
       <div className="relative">
         <Separator />
         <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-popover px-2 text-xs text-muted-foreground">

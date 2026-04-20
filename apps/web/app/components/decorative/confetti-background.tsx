@@ -31,7 +31,7 @@ function createPiece(canvasWidth: number, canvasHeight: number): Piece {
     rotationSpeed: (Math.random() - 0.5) * 0.02,
     speedY: Math.random() * 0.6 + 0.3,
     speedX: (Math.random() - 0.5) * 0.4,
-    opacity: Math.random() * 0.25 + 0.08,
+    opacity: Math.random() * 0.25 + 0.3,
   };
 }
 

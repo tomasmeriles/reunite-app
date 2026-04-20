@@ -12,6 +12,7 @@ export function useMe() {
     queryFn: () => authApi.getMe(),
     retry: false,
     staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 }
 

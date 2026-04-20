@@ -3,15 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { Button } from '~/components/ui/button';
-import { Input } from '~/components/ui/input';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '~/components/ui/form';
+import { FormContainer, FormTextField } from '~/components/forms';
 import {
   Card,
   CardContent,
@@ -49,31 +41,19 @@ export default function ForgotPasswordPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="you@example.com"
-                      autoComplete="email"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" className="w-full">
-              Send reset link
-            </Button>
-          </form>
-        </Form>
+        <FormContainer form={form} onSubmit={onSubmit}>
+          <FormTextField
+            control={form.control}
+            name="email"
+            label="Email"
+            type="email"
+            placeholder="you@example.com"
+            autoComplete="email"
+          />
+          <Button type="submit" className="w-full">
+            Send reset link
+          </Button>
+        </FormContainer>
         <p className="mt-4 text-center text-sm text-muted-foreground">
           Remember your password?{' '}
           <Link

@@ -10,6 +10,7 @@ import {
   Sparkles,
   Users,
   Share2,
+  PartyPopper,
 } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { SectionHeader } from '~/components/ui/section-header';
@@ -128,8 +129,8 @@ function HeroSection() {
       {/* Content */}
       <div className="relative z-10 max-w-3xl space-y-6">
         <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/70 px-4 py-1.5 text-sm font-medium text-muted-foreground backdrop-blur-sm">
-          <Sparkles className="h-3.5 w-3.5 text-primary" />
-          Create unforgettable events
+          <PartyPopper className="h-3.5 w-3.5 text-primary" />
+          Turn plans into memories
         </div>
 
         <h1 className="text-5xl font-bold leading-tight tracking-tight sm:text-6xl lg:text-7xl">

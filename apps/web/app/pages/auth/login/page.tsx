@@ -11,7 +11,11 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card';
-import { FormContainer, FormTextField } from '~/components/forms';
+import {
+  FormContainer,
+  FormTextField,
+  FormPasswordField,
+} from '~/components/forms';
 import { GoogleButton } from '~/components/buttons';
 import { useLogin } from '~/hooks/api/use-auth';
 import { loginSchema, type LoginFormValues } from '~/lib/schemas/auth.schema';
@@ -54,11 +58,10 @@ export default function LoginPage() {
             placeholder="you@example.com"
             autoComplete="email"
           />
-          <FormTextField
+          <FormPasswordField
             control={form.control}
             name="password"
             label="Password"
-            type="password"
             autoComplete="current-password"
           />
           <Button type="submit" className="w-full" disabled={isPending}>
