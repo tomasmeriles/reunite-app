@@ -43,9 +43,11 @@ export default function LoginPage() {
   };
 
   return (
-    <Card>
+    <Card className="border-border/60 bg-card/70 shadow-xl backdrop-blur-sm">
       <CardHeader>
-        <CardTitle>Sign in</CardTitle>
+        <CardTitle className="text-2xl font-semibold bg-linear-to-r from-primary via-[oklch(0.88_0.14_84)] to-secondary bg-clip-text text-transparent">
+          Sign in
+        </CardTitle>
         <CardDescription>
           Enter your credentials to access your account
         </CardDescription>
@@ -95,7 +97,7 @@ export default function LoginPage() {
         </Form>
         <div className="relative my-4">
           <Separator />
-          <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
+          <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card/70 px-2 text-xs text-muted-foreground">
             or
           </span>
         </div>

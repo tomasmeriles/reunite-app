@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
@@ -38,9 +38,11 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <Card>
+    <Card className="border-border/60 bg-card/70 shadow-xl backdrop-blur-sm">
       <CardHeader>
-        <CardTitle>Set new password</CardTitle>
+        <CardTitle className="text-2xl font-semibold bg-linear-to-r from-primary via-[oklch(0.88_0.14_84)] to-secondary bg-clip-text text-transparent">
+          Set new password
+        </CardTitle>
         <CardDescription>
           Choose a strong password for your account.
         </CardDescription>
@@ -87,6 +89,14 @@ export default function ResetPasswordPage() {
             </Button>
           </form>
         </Form>
+        <p className="mt-4 text-center text-sm text-muted-foreground">
+          <Link
+            to="/login"
+            className="font-medium text-foreground underline-offset-4 hover:underline"
+          >
+            ← Back to sign in
+          </Link>
+        </p>
       </CardContent>
     </Card>
   );

@@ -39,9 +39,11 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <Card>
+    <Card className="border-border/60 bg-card/70 shadow-xl backdrop-blur-sm">
       <CardHeader>
-        <CardTitle>Reset your password</CardTitle>
+        <CardTitle className="text-2xl font-semibold bg-linear-to-r from-primary via-[oklch(0.88_0.14_84)] to-secondary bg-clip-text text-transparent">
+          Reset your password
+        </CardTitle>
         <CardDescription>
           Enter your email address and we'll send you a reset link.
         </CardDescription>

@@ -16,6 +16,7 @@ import { SectionHeader } from '~/components/ui/section-header';
 import { IconCard } from '~/components/ui/icon-card';
 import { StepList, StepItem } from '~/components/ui/step-list';
 import { DotGrid } from '~/components/decorative/dot-grid';
+import { ConfettiBackground } from '~/components/decorative/confetti-background';
 import { GradientBanner } from '~/components/marketing/gradient-banner';
 import { ThemeToggle } from '~/components/theme-toggle';
 import { useAuth } from '~/contexts/auth';
@@ -88,33 +89,36 @@ function HeroSection() {
   return (
     <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 text-center">
       {/* Background blobs */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {/* <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
           className="absolute -left-32 -top-32 h-125 w-125 animate-blob-1 rounded-full opacity-30 blur-3xl"
-          style={{ background: 'oklch(0.61 0.23 5)' }} /* primary pink */
+          style={{ background: 'oklch(0.61 0.23 5)' }}
         />
         <div
           className="absolute -bottom-48 left-1/3 h-150 w-150 animate-blob-2 rounded-full opacity-20 blur-3xl"
           style={{
             background: 'oklch(0.78 0.18 165)',
             animationDelay: '4s',
-          }} /* secondary mint */
+          }}
         />
         <div
           className="absolute -right-32 top-1/4 h-112.5 w-112.5 animate-blob-3 rounded-full opacity-25 blur-3xl"
           style={{
             background: 'oklch(0.88 0.14 84)',
             animationDelay: '2s',
-          }} /* yellow */
+          }}
         />
         <div
           className="absolute left-1/2 top-1/2 h-75 w-75 animate-blob-4 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-15 blur-2xl"
           style={{
             background: 'oklch(0.55 0.11 222)',
             animationDelay: '6s',
-          }} /* blue */
+          }}
         />
-      </div>
+      </div> */}
+
+      {/* Confetti */}
+      <ConfettiBackground />
 
       {/* Dot grid */}
       <div className="pointer-events-none absolute inset-0 text-foreground">
