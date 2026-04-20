@@ -6,7 +6,20 @@ export type TenantRole = 'OWNER' | 'ADMIN' | 'MEMBER';
 // ─── CASL ─────────────────────────────────────────────────────────────────────
 
 export type Action = 'manage' | 'create' | 'read' | 'update' | 'delete';
-export type Subject = 'User' | 'Tenant' | 'TenantMember' | 'AuditLog' | 'all';
+export type Subject =
+  | 'User'
+  | 'Tenant'
+  | 'TenantMember'
+  | 'AuditLog'
+  | 'Event'
+  | 'EventConfig'
+  | 'InviteLink'
+  | 'EventWhitelistEntry'
+  | 'EventAttendee'
+  | 'ChatMessage'
+  | 'MediaItem'
+  | 'Prize'
+  | 'all';
 
 export interface PackedAbility {
   action: Action | Action[];
@@ -21,6 +34,7 @@ export interface SafeUser {
   id: string;
   email: string;
   name: string | null;
+  username: string;
   avatar: string | null;
   globalRole: GlobalRole;
   emailVerifiedAt: string | null;

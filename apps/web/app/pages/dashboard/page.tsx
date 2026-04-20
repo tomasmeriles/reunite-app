@@ -2,12 +2,7 @@ import { useAuth } from '~/contexts/auth';
 import { formatDate } from '~/lib/datetime';
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Badge } from '~/components/ui/badge';
-
-const roleColors: Record<string, string> = {
-  SUPER_ADMIN: 'bg-destructive text-destructive-foreground',
-  TENANT_MANAGER: 'bg-warning text-warning-foreground',
-  MEMBER: 'bg-secondary text-secondary-foreground',
-};
+import { GLOBAL_ROLE_COLORS } from '~/lib/colors';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -25,7 +20,7 @@ export default function DashboardPage() {
 
       <div className="flex items-center gap-2">
         <span className="text-sm text-muted-foreground">Your role:</span>
-        <Badge className={roleColors[user?.globalRole ?? 'MEMBER']}>
+        <Badge className={GLOBAL_ROLE_COLORS[user?.globalRole ?? 'MEMBER']}>
           {user?.globalRole?.replace('_', ' ')}
         </Badge>
       </div>

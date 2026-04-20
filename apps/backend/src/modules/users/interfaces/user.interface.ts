@@ -19,6 +19,7 @@ export type UserWithMemberships = SafeUser & { memberships: TenantMember[] };
 
 export interface CreateLocalUserInput {
   email: string;
+  username: string;
   name: string;
   passwordHash: string;
 }

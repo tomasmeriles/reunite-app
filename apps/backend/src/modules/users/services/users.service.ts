@@ -91,18 +91,32 @@ export class UsersService extends TransactionalService {
    * Creates a new user with a hashed password (local auth).
    * Throws ConflictException if the email already exists.
    */
+  findByUsername(username: string): Promise<SafeUser | null> {
+    return this.db.user.findUnique({ where: { username }, select: userSelect });
+  }
+
   @Transactional()
   async createLocalUser(input: CreateLocalUserInput): Promise<SafeUser> {
-    const existing = await this.db.user.findUnique({
-      where: { email: input.email },
-      select: { id: true },
-    });
-    if (existing) {
+    const [existingEmail, existingUsername] = await Promise.all([
+      this.db.user.findUnique({
+        where: { email: input.email },
+        select: { id: true },
+      }),
+      this.db.user.findUnique({
+        where: { username: input.username },
+        select: { id: true },
+      }),
+    ]);
+    if (existingEmail) {
       throw new ConflictException('Email already in use');
+    }
+    if (existingUsername) {
+      throw new ConflictException('Username already taken');
     }
     return this.db.user.create({
       data: {
         email: input.email,
+        username: input.username,
         name: input.name,
         passwordHash: input.passwordHash,
       },
@@ -133,7 +147,19 @@ export class UsersService extends TransactionalService {
 
     const user = await this.db.user.upsert({
       where: { email },
-      create: { email, name, avatar, emailVerifiedAt: new Date() },
+      create: {
+        email,
+        name,
+        avatar,
+        emailVerifiedAt: new Date(),
+        username:
+          (email.split('@')[0] ?? 'user')
+            .toLowerCase()
+            .replace(/[^a-z0-9_]/g, '_')
+            .slice(0, 28) +
+          '_' +
+          Math.random().toString(36).slice(2, 6),
+      },
       update: defined({
         name,
         avatar,

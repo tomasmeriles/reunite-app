@@ -63,6 +63,47 @@ export class CaslAbilityFactory {
               subject: 'User',
               conditions: { 'memberships.tenantId': tenantId },
             });
+            // Event ownership: full control over the event and all its sub-resources
+            rules.push({
+              action: 'manage',
+              subject: 'Event',
+              conditions: { tenantId },
+            });
+            rules.push({
+              action: 'manage',
+              subject: 'EventConfig',
+              conditions: { 'event.tenantId': tenantId },
+            });
+            rules.push({
+              action: 'manage',
+              subject: 'InviteLink',
+              conditions: { 'event.tenantId': tenantId },
+            });
+            rules.push({
+              action: 'manage',
+              subject: 'EventWhitelistEntry',
+              conditions: { 'event.tenantId': tenantId },
+            });
+            rules.push({
+              action: 'manage',
+              subject: 'EventAttendee',
+              conditions: { 'event.tenantId': tenantId },
+            });
+            rules.push({
+              action: 'manage',
+              subject: 'ChatMessage',
+              conditions: { 'event.tenantId': tenantId },
+            });
+            rules.push({
+              action: 'manage',
+              subject: 'MediaItem',
+              conditions: { 'event.tenantId': tenantId },
+            });
+            rules.push({
+              action: 'manage',
+              subject: 'Prize',
+              conditions: { 'event.tenantId': tenantId },
+            });
             break;
 
           case TenantRole.ADMIN:
@@ -90,6 +131,52 @@ export class CaslAbilityFactory {
               action: 'read',
               subject: 'User',
               conditions: { 'memberships.tenantId': tenantId },
+            });
+            // Organizer: manage attendees, modules, prizes but not event settings
+            rules.push({
+              action: 'read',
+              subject: 'Event',
+              conditions: { tenantId },
+            });
+            rules.push({
+              action: 'update',
+              subject: 'Event',
+              conditions: { tenantId },
+            });
+            rules.push({
+              action: 'manage',
+              subject: 'InviteLink',
+              conditions: { 'event.tenantId': tenantId },
+            });
+            rules.push({
+              action: 'manage',
+              subject: 'EventWhitelistEntry',
+              conditions: { 'event.tenantId': tenantId },
+            });
+            rules.push({
+              action: 'manage',
+              subject: 'EventAttendee',
+              conditions: { 'event.tenantId': tenantId },
+            });
+            rules.push({
+              action: 'create',
+              subject: 'ChatMessage',
+              conditions: { 'event.tenantId': tenantId },
+            });
+            rules.push({
+              action: 'read',
+              subject: 'ChatMessage',
+              conditions: { 'event.tenantId': tenantId },
+            });
+            rules.push({
+              action: 'manage',
+              subject: 'MediaItem',
+              conditions: { 'event.tenantId': tenantId },
+            });
+            rules.push({
+              action: 'manage',
+              subject: 'Prize',
+              conditions: { 'event.tenantId': tenantId },
             });
             break;
 

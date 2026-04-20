@@ -57,6 +57,7 @@ export class AuthService extends TransactionalService {
     const passwordHash = await this.password.hash(dto.password);
     const user = await this.users.createLocalUser({
       email: dto.email,
+      username: dto.username,
       name: dto.name,
       passwordHash,
     });

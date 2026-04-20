@@ -16,7 +16,7 @@ const TanStackRouterDevtools = import.meta.env.PROD
     );
 import AuthLayout from '~/layouts/auth-layout';
 import AppLayout from '~/layouts/app-layout';
-import IndexPage from '~/pages/index/page';
+const LandingPage = lazy(() => import('~/pages/landing/page'));
 import LoginPage from '~/pages/auth/login/page';
 import RegisterPage from '~/pages/auth/register/page';
 import ForgotPasswordPage from '~/pages/auth/forgot-password/page';
@@ -28,6 +28,11 @@ import UserDetailPage from '~/pages/users/[id]/page';
 import AuditLogsPage from '~/pages/audit/logs/page';
 import ForbiddenPage from '~/pages/forbidden/page';
 import NotFoundPage from '~/pages/not-found/page';
+// Event pages (lazy-loaded)
+const EventCreatePage = lazy(() => import('~/pages/events/create/page'));
+const EventDetailPage = lazy(() => import('~/pages/events/[id]/page'));
+const EventManagePage = lazy(() => import('~/pages/events/[id]/manage/page'));
+const JoinPage = lazy(() => import('~/pages/join/[token]/page'));
 import type { AuthContextValue } from '~/contexts/auth';
 
 interface RouterContext {
@@ -51,7 +56,7 @@ const rootRoute = createRootRouteWithContext<RouterContext>()({
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: IndexPage,
+  component: LandingPage,
 });
 
 // ─── Auth layout (public) ─────────────────────────────────────────────────────
@@ -150,6 +155,34 @@ const forbiddenRoute = createRoute({
   component: ForbiddenPage,
 });
 
+// ─── Event routes (protected) ─────────────────────────────────────────────────
+
+const eventCreateRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/events/create',
+  component: EventCreatePage,
+});
+
+const eventDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/events/$id',
+  component: EventDetailPage,
+});
+
+const eventManageRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/events/$id/manage',
+  component: EventManagePage,
+});
+
+// ─── Join route (public) ──────────────────────────────────────────────────────
+
+const joinRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/join/$token',
+  component: JoinPage,
+});
+
 // ─── Route tree ───────────────────────────────────────────────────────────────
 
 const routeTree = rootRoute.addChildren([
@@ -167,7 +200,11 @@ const routeTree = rootRoute.addChildren([
     userDetailRoute,
     auditLogsRoute,
     forbiddenRoute,
+    eventCreateRoute,
+    eventManageRoute,
   ]),
+  eventDetailRoute,
+  joinRoute,
 ]);
 
 // ─── Router ───────────────────────────────────────────────────────────────────

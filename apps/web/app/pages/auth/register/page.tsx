@@ -32,7 +32,7 @@ export default function RegisterPage() {
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { email: '', name: '', password: '' },
+    defaultValues: { email: '', name: '', username: '', password: '' },
   });
 
   const onSubmit = (values: RegisterFormValues) => {
@@ -80,6 +80,23 @@ export default function RegisterPage() {
                       type="email"
                       placeholder="you@example.com"
                       autoComplete="email"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="username"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Username</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="yourhandle"
+                      autoComplete="username"
                       {...field}
                     />
                   </FormControl>

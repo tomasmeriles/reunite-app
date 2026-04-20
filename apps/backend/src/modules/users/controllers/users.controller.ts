@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  NotFoundException,
   Param,
   Patch,
   Query,
@@ -27,6 +28,15 @@ export class UsersController {
   @CheckPolicies((ability) => ability.can('manage', 'User'))
   getUsers(@Query() query: UsersQueryDto): Promise<Page<SafeUser>> {
     return this.users.findMany(query);
+  }
+
+  @Get('by-username/:username')
+  async getUserByUsername(
+    @Param('username') username: string,
+  ): Promise<SafeUser> {
+    const user = await this.users.findByUsername(username);
+    if (!user) throw new NotFoundException('User not found');
+    return user;
   }
 
   @Patch(':id')
