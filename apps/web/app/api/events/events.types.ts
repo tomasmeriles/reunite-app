@@ -37,13 +37,10 @@ export interface Event {
 export interface CreateEventDto {
   title: string;
   description?: string;
-  type: EventType;
+  eventType?: EventType;
   location?: string;
-  address?: string;
-  startDate: string;
-  endDate?: string;
-  timezone: string;
-  config?: Partial<EventConfig>;
+  startAt: string;
+  endAt?: string;
 }
 
 export interface UpdateEventDto {

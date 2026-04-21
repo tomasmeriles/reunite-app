@@ -1,271 +1,283 @@
-import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
+import type { FieldPath } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { toast } from 'sonner';
-import { Button } from '~/components/ui/button';
-import { Input } from '~/components/ui/input';
-import { Textarea } from '~/components/ui/textarea';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '~/components/ui/form';
+  CalendarDays,
+  MapPin,
+  Globe,
+  Link,
+  Users,
+  Ticket,
+  TicketPlus,
+} from 'lucide-react';
+import { Card, CardContent } from '~/components/ui/card';
+import { Stepper } from '~/components/ui/stepper';
+import type { StepDef } from '~/components/ui/stepper';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '~/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
+  FormContainer,
+  FormTextField,
+  FormTextareaField,
+  FormDateTimeField,
+  FormCardSelectField,
+  StepActions,
+} from '~/components/forms';
+import type { CardSelectOption } from '~/components/forms';
 import { useCreateEvent } from '~/hooks/api/use-events';
+import { useSteppedForm } from '~/hooks/use-stepped-form';
+import { useDateRangeDisabled } from '~/hooks/use-date-range-disabled';
 import { getApiErrorMessage } from '~/lib/axios';
+import { formatDateTime, getSystemTimezone, DateTime } from '~/lib/datetime';
+import {
+  createEventSchema,
+  type CreateEventFormValues,
+} from '~/lib/schemas/event.schema';
 import type { EventType } from '~/api/events/events.types';
 
-const createEventSchema = z.object({
-  title: z.string().min(3, 'Title must be at least 3 characters'),
-  description: z.string().optional(),
-  type: z.enum(['PUBLIC', 'INVITE_LINK', 'INVITE_ACCOUNT'] as const),
-  location: z.string().optional(),
-  address: z.string().optional(),
-  startDate: z.string().min(1, 'Start date is required'),
-  endDate: z.string().optional(),
-  timezone: z
-    .string()
-    .default(Intl.DateTimeFormat().resolvedOptions().timeZone),
-});
+function toApiPayload(values: CreateEventFormValues) {
+  const toISO = (date: string) =>
+    DateTime.fromISO(date, { zone: values.timezone }).toISO() ?? date;
 
-type CreateEventFormValues = z.infer<typeof createEventSchema>;
+  const { timezone, startAt, endAt, ...rest } = values;
+  void timezone;
+  return {
+    ...rest,
+    startAt: toISO(startAt),
+    endAt: endAt ? toISO(endAt) : undefined,
+  };
+}
 
-const EVENT_TYPE_LABELS: Record<
-  EventType,
-  { label: string; description: string }
-> = {
-  PUBLIC: {
+const EVENT_TYPE_OPTIONS: CardSelectOption<EventType>[] = [
+  {
+    value: 'PUBLIC',
     label: 'Public',
-    description: 'Anyone can join without an account',
+    description: 'Anyone can join',
+    icon: Globe,
   },
-  INVITE_LINK: {
-    label: 'Invite Link',
-    description: 'Guests need a link to register',
+  {
+    value: 'INVITE_LINK',
+    label: 'Invite link',
+    description: 'Guests need a link to join',
+    icon: Link,
   },
-  INVITE_ACCOUNT: {
-    label: 'Guest List',
-    description: 'Only pre-approved @usernames can attend',
+  {
+    value: 'INVITE_ACCOUNT',
+    label: 'Guest list',
+    description: 'Pre-approved accounts only',
+    icon: Users,
   },
-};
+];
+
+// Fields validated per step (0-indexed)
+const STEP_FIELDS: FieldPath<CreateEventFormValues>[][] = [
+  ['title', 'description', 'eventType'],
+  ['startAt', 'endAt'],
+  ['location'],
+];
+
+const STEPS: StepDef[] = [
+  {
+    icon: Ticket,
+    title: 'About & Access',
+    description: 'Name, description and who can join',
+  },
+  {
+    icon: CalendarDays,
+    title: 'When',
+    description: 'Start and end date & time',
+  },
+  {
+    icon: MapPin,
+    title: 'Where',
+    description: 'Location name and address',
+  },
+];
 
 export default function EventCreatePage() {
   const navigate = useNavigate();
   const { mutate: createEvent, isPending } = useCreateEvent();
-  const [coverFile, setCoverFile] = useState<File | null>(null);
 
   const form = useForm<CreateEventFormValues>({
     resolver: zodResolver(createEventSchema),
     defaultValues: {
       title: '',
       description: '',
-      type: 'PUBLIC',
+      eventType: 'PUBLIC',
       location: '',
-      address: '',
-      startDate: '',
-      endDate: '',
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      startAt: '',
+      endAt: '',
+      timezone: getSystemTimezone(),
     },
   });
 
   const onSubmit = (values: CreateEventFormValues) => {
-    createEvent(
-      {
-        ...values,
-        startDate: new Date(values.startDate).toISOString(),
-        endDate: values.endDate
-          ? new Date(values.endDate).toISOString()
-          : undefined,
+    createEvent(toApiPayload(values), {
+      onSuccess: (event) => {
+        toast.success('Event created!');
+        void navigate({ to: '/events/$id/manage', params: { id: event.id } });
       },
-      {
-        onSuccess: (event) => {
-          toast.success('Event created!');
-          navigate({ to: '/events/$id/manage', params: { id: event.id } });
-        },
-        onError: (err) =>
-          toast.error(getApiErrorMessage(err, 'Failed to create event')),
-      },
-    );
+      onError: (err) =>
+        toast.error(getApiErrorMessage(err, 'Failed to create event')),
+    });
   };
 
+  // ── Live values for step summaries ──
+  const watched = form.watch();
+
+  const { startDisabled, endDisabled } = useDateRangeDisabled(
+    watched.startAt,
+    watched.endAt,
+    { disablePast: true },
+  );
+
+  const activeTypeOption = EVENT_TYPE_OPTIONS.find(
+    (o) => o.value === watched.eventType,
+  );
+  const typeLabel = activeTypeOption?.label ?? '';
+  const TypeIcon = activeTypeOption?.icon ?? Globe;
+
+  const stepSchemas = [
+    createEventSchema.pick({ title: true }),
+    createEventSchema.pick({ startAt: true }),
+  ];
+
+  const { currentStep, handleNext, handleBack, goToStep } = useSteppedForm({
+    form,
+    stepFields: STEP_FIELDS,
+    onSubmit,
+    isStepValid: (step) =>
+      stepSchemas[step]?.safeParse(watched).success ?? true,
+  });
+
+  const summaries = [
+    // Step 1 — About & Access
+    watched.title ? (
+      <div className="space-y-1">
+        <p className="text-sm font-medium text-foreground leading-tight">
+          {watched.title}
+        </p>
+        {watched.description && (
+          <p className="text-xs text-muted-foreground line-clamp-1">
+            {watched.description}
+          </p>
+        )}
+        <span className="inline-flex items-center gap-1 text-[10px] font-medium leading-none text-primary/80">
+          <TypeIcon className="h-3 w-3" />
+          {typeLabel}
+        </span>
+      </div>
+    ) : null,
+
+    // Step 2 — When
+    watched.startAt ? (
+      <div className="space-y-0.5 text-xs text-muted-foreground">
+        <p>
+          <span className="font-medium text-foreground">From</span>{' '}
+          {formatDateTime(watched.startAt)}
+        </p>
+        {watched.endAt && (
+          <p>
+            <span className="font-medium text-foreground">To</span>{' '}
+            {formatDateTime(watched.endAt)}
+          </p>
+        )}
+      </div>
+    ) : null,
+
+    // Step 3 — Where
+    watched.location ? (
+      <div className="space-y-0.5 text-xs text-muted-foreground">
+        <p className="font-medium text-foreground">{watched.location}</p>
+      </div>
+    ) : null,
+  ];
+
   return (
-    <div className="mx-auto max-w-2xl space-y-6 py-8">
+    <div className="mx-auto max-w-lg space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Create an Event</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Create an event
+        </h1>
         <p className="text-muted-foreground">
-          Set up your birthday event and invite your guests.
+          Fill in the details below to get your event live.
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Event Details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Event title</FormLabel>
-                    <FormControl>
-                      <Input placeholder="My Birthday Party 🎂" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Tell your guests what to expect…"
-                        rows={3}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Access type</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select access type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {(
-                          Object.entries(EVENT_TYPE_LABELS) as [
-                            EventType,
-                            { label: string; description: string },
-                          ][]
-                        ).map(([value, { label, description }]) => (
-                          <SelectItem key={value} value={value}>
-                            <span className="font-medium">{label}</span>
-                            <span className="ml-2 text-xs text-muted-foreground">
-                              — {description}
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
+      <Card className="overflow-visible">
+        <CardContent className="pt-6">
+          <FormContainer form={form} onSubmit={onSubmit}>
+            <Stepper
+              vertical
+              steps={STEPS}
+              currentStep={currentStep}
+              onStepClick={goToStep}
+              summaries={summaries}
+            >
+              {/* ── Step 1: About & Access ── */}
+              <div className="space-y-4">
+                <FormTextField
                   control={form.control}
-                  name="startDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Start date & time</FormLabel>
-                      <FormControl>
-                        <Input type="datetime-local" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  name="title"
+                  label="Event title"
+                  placeholder="My Birthday Party 🎂"
                 />
-                <FormField
+                <FormTextareaField
                   control={form.control}
-                  name="endDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>End date & time</FormLabel>
-                      <FormControl>
-                        <Input type="datetime-local" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  name="description"
+                  label="Description"
+                  placeholder="Tell your guests what to expect…"
+                  rows={3}
+                  optional
                 />
+                <FormCardSelectField
+                  control={form.control}
+                  name="eventType"
+                  label="Access type"
+                  options={EVENT_TYPE_OPTIONS}
+                />
+                <StepActions onNext={handleNext} />
               </div>
 
-              <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Location name</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Rooftop Bar, City Center"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Address</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="123 Main St, New York, NY 10001"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div>
-                <FormLabel>Cover image (optional)</FormLabel>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  className="mt-1.5"
-                  onChange={(e) => setCoverFile(e.target.files?.[0] ?? null)}
-                />
-                {coverFile && (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {coverFile.name} — you can upload this after saving
-                  </p>
-                )}
+              {/* ── Step 2: When ── */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <FormDateTimeField
+                    control={form.control}
+                    name="startAt"
+                    label="Start date & time"
+                    disabled={startDisabled}
+                  />
+                  <FormDateTimeField
+                    control={form.control}
+                    name="endAt"
+                    label="End date & time"
+                    optional
+                    disabled={endDisabled}
+                  />
+                </div>
+                <StepActions onNext={handleNext} onBack={handleBack} />
               </div>
 
-              <Button type="submit" className="w-full" disabled={isPending}>
-                {isPending ? 'Creating…' : 'Create Event'}
-              </Button>
-            </form>
-          </Form>
+              {/* ── Step 3: Where ── */}
+              <div className="space-y-4">
+                <FormTextField
+                  control={form.control}
+                  name="location"
+                  label="Location"
+                  placeholder="Rooftop Bar, 123 Main St, New York"
+                  optional
+                />
+                <StepActions
+                  onBack={handleBack}
+                  isSubmit
+                  submitLabel="Create Event"
+                  submitIcon={TicketPlus}
+                  isPending={isPending}
+                />
+              </div>
+            </Stepper>
+          </FormContainer>
         </CardContent>
       </Card>
     </div>
