@@ -61,7 +61,7 @@ const PUBLISHABLE_STATUSES: EventStatus[] = [
 ];
 
 export default function EventManagePage() {
-  const { id } = useParams({ from: '/events/$id/manage' });
+  const { id } = useParams({ from: '/app/events/$id/manage' });
   const navigate = useNavigate();
   const { data: event, isLoading } = useEvent(id);
   const { data: inviteLinks } = useInviteLinks(id);

@@ -22,7 +22,7 @@ import RegisterPage from '~/pages/auth/register/page';
 import ForgotPasswordPage from '~/pages/auth/forgot-password/page';
 import ResetPasswordPage from '~/pages/auth/reset-password/page';
 import DashboardPage from '~/pages/dashboard/page';
-import ProfilePage from '~/pages/profile/page';
+const EventsPage = lazy(() => import('~/pages/events/page'));
 import UsersPage from '~/pages/users/page';
 import UserDetailPage from '~/pages/users/[id]/page';
 import AuditLogsPage from '~/pages/audit/logs/page';
@@ -115,10 +115,10 @@ const dashboardRoute = createRoute({
   component: DashboardPage,
 });
 
-const profileRoute = createRoute({
+const eventsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
-  path: '/profile',
-  component: ProfilePage,
+  path: '/events',
+  component: EventsPage,
 });
 
 const usersRoute = createRoute({
@@ -195,7 +195,7 @@ const routeTree = rootRoute.addChildren([
   ]),
   appLayoutRoute.addChildren([
     dashboardRoute,
-    profileRoute,
+    eventsRoute,
     usersRoute,
     userDetailRoute,
     auditLogsRoute,

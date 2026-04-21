@@ -19,6 +19,7 @@ interface FormTextFieldProps<
   control: Control<TFieldValues>;
   name: TName;
   label: string;
+  optional?: boolean;
 }
 
 export function FormTextField<
@@ -28,6 +29,7 @@ export function FormTextField<
   control,
   name,
   label,
+  optional,
   ...inputProps
 }: FormTextFieldProps<TFieldValues, TName>) {
   return (
@@ -36,7 +38,14 @@ export function FormTextField<
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{label}</FormLabel>
+          <FormLabel>
+            {label}
+            {optional && (
+              <span className="text-[11px] font-normal text-muted-foreground/60 tracking-wide">
+                optional
+              </span>
+            )}
+          </FormLabel>
           <FormControl>
             <Input {...inputProps} {...field} />
           </FormControl>
