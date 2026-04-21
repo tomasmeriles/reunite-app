@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -7,6 +6,7 @@ import {
 import { EventStatus, TenantRole, TenantType } from '@prisma/client';
 import { TransactionalService } from '../../../common/base/transactional-service.base';
 import { Transactional } from '../../../common/decorators/transactional.decorator';
+import { defined } from '../../../common/helpers/prisma.helpers';
 import type { SafeUser } from '../../users/selects/user.select';
 import type { CreateEventDto } from '../dto/create-event.dto';
 import type { UpdateEventDto } from '../dto/update-event.dto';
@@ -32,15 +32,13 @@ export class EventsService extends TransactionalService {
       data: {
         tenantId: tenant.id,
         title: dto.title,
-        description: dto.description,
-        location: dto.location,
         startAt: new Date(dto.startAt),
-        endAt: dto.endAt ? new Date(dto.endAt) : undefined,
-        maxAttendees: dto.maxAttendees,
-        eventType: dto.eventType,
-        preEventText: dto.preEventText,
-        postEventText: dto.postEventText,
-        previousEventId: dto.previousEventId,
+        ...defined({
+          description: dto.description,
+          location: dto.location,
+          endAt: dto.endAt ? new Date(dto.endAt) : undefined,
+          eventType: dto.eventType,
+        }),
         config: {
           create: {
             attendeesPublic: true,

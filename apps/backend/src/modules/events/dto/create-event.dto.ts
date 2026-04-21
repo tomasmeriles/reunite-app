@@ -1,13 +1,8 @@
-import {
-  IsDateString,
-  IsEnum,
-  IsInt,
-  IsOptional,
-  IsString,
-  Min,
-} from 'class-validator';
+import { IsDateString, IsEnum, IsOptional, IsString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { EventType } from '@prisma/client';
+import { IsAfterField } from '../../../common/decorators/is-after-field.decorator';
+import { EmptyToUndefined } from '../../../common/decorators/empty-to-undefined.decorator';
 
 export class CreateEventDto {
   @ApiPropertyOptional()
@@ -17,26 +12,8 @@ export class CreateEventDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  @EmptyToUndefined()
   description?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  location?: string;
-
-  @IsDateString()
-  startAt!: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsDateString()
-  endAt?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  maxAttendees?: number;
 
   @ApiPropertyOptional({ enum: EventType })
   @IsOptional()
@@ -46,15 +23,15 @@ export class CreateEventDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  preEventText?: string;
+  @EmptyToUndefined()
+  location?: string;
+
+  @IsDateString()
+  startAt!: string;
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsString()
-  postEventText?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  previousEventId?: string;
+  @IsDateString()
+  @IsAfterField('startAt', { message: 'End date must be after start date' })
+  endAt?: string;
 }
