@@ -5,14 +5,15 @@ info:
 
 http:
   method: POST
-  url: '{{baseUrl}}/auth/register'
+  url: "{{baseUrl}}/auth/register"
   body:
     type: json
     data: |-
       {
         "email": {{email}},
         "password": {{password}},
-        "name": "Test Name"
+        "name": "Test Name",
+        "username": "test_username1"
       }
 
 settings:

@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: "{{baseUrl}}/auth/login"
+  url: '{{baseUrl}}/auth/login'
   body:
     type: json
     data: |-
@@ -14,6 +14,14 @@ http:
         "password": {{password}}
       }
   auth: inherit
+
+script:
+  res: |
+    const csrfToken = res.body.csrfToken;
+    if (csrfToken) {
+      bru.setEnvVar('csrfToken', csrfToken);
+      bru.setVar('csrfToken', csrfToken);
+    }
 
 settings:
   encodeUrl: true

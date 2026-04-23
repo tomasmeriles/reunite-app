@@ -8,6 +8,14 @@ http:
   url: '{{baseUrl}}/auth/refresh'
   auth: none
 
+script:
+  res: |
+    const csrfToken = res.body.csrfToken;
+    if (csrfToken) {
+      bru.setEnvVar('csrfToken', csrfToken);
+      bru.setVar('csrfToken', csrfToken);
+    }
+
 settings:
   encodeUrl: true
   timeout: 0

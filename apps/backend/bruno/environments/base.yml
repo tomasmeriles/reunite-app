@@ -2,3 +2,5 @@ name: base
 variables:
   - secret: true
     name: baseUrl
+  - secret: true
+    name: csrfToken

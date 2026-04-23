@@ -1,0 +1,4 @@
+name: development
+variables:
+  - secret: true
+    name: eventId
