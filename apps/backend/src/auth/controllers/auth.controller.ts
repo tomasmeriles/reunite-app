@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  Headers,
   HttpCode,
   HttpStatus,
   Post,
@@ -249,9 +248,8 @@ export class AuthController {
   @SkipThrottle()
   getMe(
     @CurrentUser() user: SafeUser,
-    @Headers('x-tenant-id') tenantId: string | undefined,
   ): Promise<{ user: SafeUser; abilities: PackedAbility[] }> {
-    return this.auth.getMe(user, tenantId ?? null);
+    return this.auth.getMe(user);
   }
 
   /** Revokes the refresh token and clears both cookies */

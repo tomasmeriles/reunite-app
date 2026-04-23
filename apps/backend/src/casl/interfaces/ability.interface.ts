@@ -15,8 +15,7 @@ export type Action = 'manage' | 'create' | 'read' | 'update' | 'delete';
 
 type SubjectStr =
   | 'User'
-  | 'Tenant'
-  | 'TenantMember'
+  | 'EventStaff'
   | 'AuditLog'
   | 'Event'
   | 'EventConfig'

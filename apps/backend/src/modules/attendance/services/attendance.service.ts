@@ -84,6 +84,22 @@ export class AttendanceService extends TransactionalService {
     });
   }
 
+  async findMyAttendance(
+    eventId: string,
+    user?: SafeUser,
+    guestToken?: string,
+  ) {
+    if (user) {
+      return this.db.eventAttendee.findUnique({
+        where: { eventId_userId: { eventId, userId: user.id } },
+      });
+    }
+    if (guestToken) {
+      return this.db.eventAttendee.findUnique({ where: { guestToken } });
+    }
+    return null;
+  }
+
   // ---------------------------------------------------------------------------
   // Private registration flows
   // ---------------------------------------------------------------------------

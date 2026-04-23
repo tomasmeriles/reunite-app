@@ -9,9 +9,11 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
+import type { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CurrentUser } from '../../../auth/decorators/current-user.decorator';
 import type { SafeUser } from '../../users/selects/user.select';
@@ -22,7 +24,19 @@ import { CreateEventDto } from '../dto/create-event.dto';
 import { UpdateEventDto } from '../dto/update-event.dto';
 import { UpdateEventConfigDto } from '../dto/update-event-config.dto';
 import { UpdateEventStatusDto } from '../dto/update-event-status.dto';
+import { Throttle } from '@nestjs/throttler';
+import { AuditAction, AuditResource } from '@prisma/client';
 import { Public } from '../../../auth/decorators/public.decorator';
+import { THROTTLE } from '../../../common/constants/throttle.constants';
+import { Audit } from '../../audit/decorators/audit.decorator';
+import { CheckPolicies } from '../../../casl/decorators/check-policies.decorator';
+import { subject } from '../../../casl/factories/casl-ability.factory';
+import {
+  type EventDetailPayload,
+  type EventListPayload,
+  type EventPublicPayload,
+  type EventWithMembersPayload,
+} from '../selects/event.select';
 import { randomUUID } from 'crypto';
 
 @Controller('events')
@@ -34,31 +48,47 @@ export class EventsController {
   ) {}
 
   @Post()
-  createEvent(@Body() dto: CreateEventDto, @CurrentUser() user: SafeUser) {
-    return this.events.createEvent(dto, user);
+  @Throttle({ default: THROTTLE.WRITE })
+  @Audit(AuditAction.EVENT_CREATED, AuditResource.EVENT)
+  @CheckPolicies((ability) => ability.can('create', 'Event'))
+  create(
+    @Body() dto: CreateEventDto,
+    @CurrentUser() user: SafeUser,
+  ): Promise<EventWithMembersPayload> {
+    return this.events.create(dto, user);
   }
 
   @Get('mine')
-  getMyEvents(@CurrentUser() user: SafeUser) {
+  getMine(@CurrentUser() user: SafeUser): Promise<EventListPayload[]> {
     return this.events.findMine(user.id);
   }
 
   @Public()
   @Get(':id')
-  getEvent(@Param('id') id: string) {
+  getOne(@Param('id') id: string): Promise<EventPublicPayload> {
     return this.events.findPublic(id);
   }
 
   @Patch(':id')
-  updateEvent(
+  @Throttle({ default: THROTTLE.WRITE })
+  @Audit(AuditAction.EVENT_UPDATED, AuditResource.EVENT)
+  @CheckPolicies((ability, req: Request) =>
+    ability.can('update', subject('Event', { id: req.params['id'] })),
+  )
+  update(
     @Param('id') id: string,
     @Body() dto: UpdateEventDto,
     @CurrentUser() user: SafeUser,
-  ) {
-    return this.events.updateEvent(id, dto, user.id);
+  ): Promise<EventDetailPayload> {
+    return this.events.update(id, dto, user.id);
   }
 
   @Patch(':id/status')
+  @Throttle({ default: THROTTLE.WRITE })
+  @Audit(AuditAction.EVENT_UPDATED, AuditResource.EVENT)
+  @CheckPolicies((ability, req: Request) =>
+    ability.can('update', subject('Event', { id: req.params['id'] })),
+  )
   updateStatus(
     @Param('id') id: string,
     @Body() dto: UpdateEventStatusDto,
@@ -68,6 +98,11 @@ export class EventsController {
   }
 
   @Patch(':id/config')
+  @Throttle({ default: THROTTLE.WRITE })
+  @Audit(AuditAction.EVENT_UPDATED, AuditResource.EVENT)
+  @CheckPolicies((ability, req: Request) =>
+    ability.can('manage', subject('EventConfig', { eventId: req.params['id'] })),
+  )
   updateConfig(
     @Param('id') id: string,
     @Body() dto: UpdateEventConfigDto,
@@ -77,6 +112,11 @@ export class EventsController {
   }
 
   @Post(':id/cover')
+  @Throttle({ default: THROTTLE.UPLOAD })
+  @Audit(AuditAction.EVENT_UPDATED, AuditResource.EVENT)
+  @CheckPolicies((ability, req: Request) =>
+    ability.can('update', subject('Event', { id: req.params['id'] })),
+  )
   @UseInterceptors(FileInterceptor('file'))
   async uploadCover(
     @Param('id') id: string,
@@ -95,7 +135,15 @@ export class EventsController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteEvent(@Param('id') id: string, @CurrentUser() user: SafeUser) {
-    return this.events.deleteEvent(id, user.id);
+  @Throttle({ default: THROTTLE.WRITE })
+  @Audit(AuditAction.DELETE, AuditResource.EVENT)
+  @CheckPolicies((ability, req: Request) =>
+    ability.can('delete', subject('Event', { id: req.params['id'] })),
+  )
+  remove(
+    @Param('id') id: string,
+    @CurrentUser() user: SafeUser,
+  ): Promise<void> {
+    return this.events.delete(id, user.id);
   }
 }

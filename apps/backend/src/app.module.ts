@@ -26,6 +26,7 @@ import { ChatModule } from './modules/chat/chat.module';
 import { MediaModule } from './modules/media/media.module';
 import { PrizesModule } from './modules/prizes/prizes.module';
 import { RtcModule } from './rtc/rtc.module';
+import { GeoModule } from './modules/geo/geo.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { RtcModule } from './rtc/rtc.module';
     QueueModule,
     HealthModule,
     RtcModule,
+    GeoModule,
     EventsModule,
     AttendanceModule,
     InviteLinksModule,

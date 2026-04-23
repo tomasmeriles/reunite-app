@@ -1,0 +1,40 @@
+import { AttendeeStatus, Prisma } from '@prisma/client';
+
+export const eventListInclude = {
+  config: true,
+  _count: { select: { attendees: true } },
+} satisfies Prisma.EventInclude;
+
+export type EventListPayload = Prisma.EventGetPayload<{
+  include: typeof eventListInclude;
+}>;
+
+export const eventDetailInclude = {
+  config: true,
+  rules: true,
+} satisfies Prisma.EventInclude;
+
+export type EventDetailPayload = Prisma.EventGetPayload<{
+  include: typeof eventDetailInclude;
+}>;
+
+export const eventPublicInclude = {
+  config: true,
+  rules: true,
+  _count: {
+    select: { attendees: { where: { status: AttendeeStatus.CONFIRMED } } },
+  },
+} satisfies Prisma.EventInclude;
+
+export type EventPublicPayload = Prisma.EventGetPayload<{
+  include: typeof eventPublicInclude;
+}>;
+
+export const eventWithMembersInclude = {
+  config: true,
+  staff: true,
+} satisfies Prisma.EventInclude;
+
+export type EventWithMembersPayload = Prisma.EventGetPayload<{
+  include: typeof eventWithMembersInclude;
+}>;

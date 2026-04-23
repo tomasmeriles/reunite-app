@@ -44,8 +44,11 @@ export class UsersService extends TransactionalService {
   findWithMemberships(id: string): Promise<UserWithMemberships | null> {
     return this.db.user.findUnique({
       where: { id },
-      select: { ...userSelect, memberships: true },
-    });
+      select: {
+        ...userSelect,
+        memberships: { include: { event: { select: { config: true } } } },
+      },
+    }) as Promise<UserWithMemberships | null>;
   }
 
   findMany(query: UsersQueryDto): Promise<Page<SafeUser>> {

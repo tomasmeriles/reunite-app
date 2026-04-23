@@ -11,13 +11,17 @@ export class IsAfterFieldConstraint implements ValidatorConstraintInterface {
     const [siblingField] = args.constraints as [string];
     const sibling = (args.object as Record<string, unknown>)[siblingField];
 
-    // Only validate when both values are strings — let @IsDateString handle format errors.
-    if (typeof sibling !== 'string' || typeof value !== 'string') return true;
+    const toDateTime = (v: unknown): DateTime | null => {
+      if (v instanceof Date) return DateTime.fromJSDate(v);
+      if (typeof v === 'string') return DateTime.fromISO(v);
+      return null;
+    };
 
-    const siblingDt = DateTime.fromISO(sibling);
-    const valueDt = DateTime.fromISO(value);
+    const siblingDt = toDateTime(sibling);
+    const valueDt = toDateTime(value);
 
-    if (!siblingDt.isValid || !valueDt.isValid) return true;
+    // Skip when either value is missing or invalid — let @IsDate/@IsDateString report that.
+    if (!siblingDt?.isValid || !valueDt?.isValid) return true;
 
     return valueDt > siblingDt;
   }

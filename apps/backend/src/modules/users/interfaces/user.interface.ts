@@ -1,4 +1,8 @@
-import { OAuthProvider, type TenantMember } from '@prisma/client';
+import {
+  OAuthProvider,
+  type EventConfig,
+  type EventStaff,
+} from '@prisma/client';
 import type { SafeUser } from '../selects/user.select';
 
 export interface UpsertOAuthUserInput {
@@ -15,7 +19,13 @@ export interface UpsertOAuthUserInput {
   idToken?: string;
 }
 
-export type UserWithMemberships = SafeUser & { memberships: TenantMember[] };
+export type MembershipWithConfig = EventStaff & {
+  event: { config: EventConfig | null };
+};
+
+export type UserWithMemberships = SafeUser & {
+  memberships: MembershipWithConfig[];
+};
 
 export interface CreateLocalUserInput {
   email: string;

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { createMongoAbility, subject } from '@casl/ability';
-import { GlobalRole, TenantRole } from '@prisma/client';
+import { EventRole, GlobalRole } from '@prisma/client';
 import type {
   AppAbility,
   PackedAbility,
@@ -10,13 +10,15 @@ import type { UserWithMemberships } from '../../modules/users/interfaces/user.in
 @Injectable()
 export class CaslAbilityFactory {
   /**
-   * Builds the ability set for a user in the context of a specific tenant.
-   * If tenantId is null, only global abilities (SUPER_ADMIN) are applied.
+   * Builds the full ability set for a user across ALL their event memberships.
+   * Rules carry conditions (e.g. { id: eventId }) so CASL evaluates them when
+   * the caller passes a tagged subject: ability.can('update', subject('Event', { id })).
+   *
+   * Config-gated rules (chat, media, prizes) are only added when the event
+   * has the corresponding module enabled, so toggling EventConfig automatically
+   * changes what organizers are allowed to do after the cache expires.
    */
-  buildAbilities(
-    user: UserWithMemberships,
-    tenantId: string | null,
-  ): AppAbility {
+  buildAbilities(user: UserWithMemberships): AppAbility {
     const rules: PackedAbility[] = [];
 
     // SUPER_ADMIN can do everything everywhere
@@ -25,10 +27,10 @@ export class CaslAbilityFactory {
       return createMongoAbility<AppAbility>(rules);
     }
 
-    // TENANT_MANAGER can manage all tenants and their members, nothing else
-    if (user.globalRole === GlobalRole.TENANT_MANAGER) {
-      rules.push({ action: 'manage', subject: 'Tenant' });
-      rules.push({ action: 'manage', subject: 'TenantMember' });
+    // MODERATOR can manage all events and their staff, nothing else
+    if (user.globalRole === GlobalRole.MODERATOR) {
+      rules.push({ action: 'manage', subject: 'Event' });
+      rules.push({ action: 'manage', subject: 'EventStaff' });
       rules.push({
         action: 'read',
         subject: 'User',
@@ -42,162 +44,139 @@ export class CaslAbilityFactory {
       return createMongoAbility<AppAbility>(rules);
     }
 
-    if (tenantId) {
-      const membership = user.memberships.find((m) => m.tenantId === tenantId);
+    for (const membership of user.memberships) {
+      const { eventId, role, event } = membership;
+      const config = event.config;
 
-      if (membership) {
-        switch (membership.role) {
-          case TenantRole.OWNER:
-            rules.push({
-              action: 'manage',
-              subject: 'Tenant',
-              conditions: { id: tenantId },
-            });
-            rules.push({
-              action: 'manage',
-              subject: 'TenantMember',
-              conditions: { tenantId },
-            });
-            rules.push({
-              action: 'read',
-              subject: 'User',
-              conditions: { 'memberships.tenantId': tenantId },
-            });
-            // Event ownership: full control over the event and all its sub-resources
-            rules.push({
-              action: 'manage',
-              subject: 'Event',
-              conditions: { tenantId },
-            });
-            rules.push({
-              action: 'manage',
-              subject: 'EventConfig',
-              conditions: { 'event.tenantId': tenantId },
-            });
-            rules.push({
-              action: 'manage',
-              subject: 'InviteLink',
-              conditions: { 'event.tenantId': tenantId },
-            });
-            rules.push({
-              action: 'manage',
-              subject: 'EventWhitelistEntry',
-              conditions: { 'event.tenantId': tenantId },
-            });
-            rules.push({
-              action: 'manage',
-              subject: 'EventAttendee',
-              conditions: { 'event.tenantId': tenantId },
-            });
-            rules.push({
-              action: 'manage',
-              subject: 'ChatMessage',
-              conditions: { 'event.tenantId': tenantId },
-            });
-            rules.push({
-              action: 'manage',
-              subject: 'MediaItem',
-              conditions: { 'event.tenantId': tenantId },
-            });
-            rules.push({
-              action: 'manage',
-              subject: 'Prize',
-              conditions: { 'event.tenantId': tenantId },
-            });
-            break;
+      switch (role) {
+        case EventRole.OWNER:
+          // Full control regardless of config — owner can always re-enable modules
+          rules.push({
+            action: 'manage',
+            subject: 'Event',
+            conditions: { id: eventId },
+          });
+          rules.push({
+            action: 'manage',
+            subject: 'EventStaff',
+            conditions: { eventId },
+          });
+          rules.push({
+            action: 'read',
+            subject: 'User',
+            conditions: { 'memberships.eventId': eventId },
+          });
+          rules.push({
+            action: 'manage',
+            subject: 'EventConfig',
+            conditions: { eventId },
+          });
+          rules.push({
+            action: 'manage',
+            subject: 'InviteLink',
+            conditions: { eventId },
+          });
+          rules.push({
+            action: 'manage',
+            subject: 'EventWhitelistEntry',
+            conditions: { eventId },
+          });
+          rules.push({
+            action: 'manage',
+            subject: 'EventAttendee',
+            conditions: { eventId },
+          });
+          rules.push({
+            action: 'manage',
+            subject: 'ChatMessage',
+            conditions: { eventId },
+          });
+          rules.push({
+            action: 'manage',
+            subject: 'MediaItem',
+            conditions: { eventId },
+          });
+          rules.push({
+            action: 'manage',
+            subject: 'Prize',
+            conditions: { eventId },
+          });
+          break;
 
-          case TenantRole.ADMIN:
-            rules.push({
-              action: 'read',
-              subject: 'Tenant',
-              conditions: { id: tenantId },
-            });
-            rules.push({
-              action: 'create',
-              subject: 'TenantMember',
-              conditions: { tenantId },
-            });
-            rules.push({
-              action: 'read',
-              subject: 'TenantMember',
-              conditions: { tenantId },
-            });
-            rules.push({
-              action: 'update',
-              subject: 'TenantMember',
-              conditions: { tenantId },
-            });
-            rules.push({
-              action: 'read',
-              subject: 'User',
-              conditions: { 'memberships.tenantId': tenantId },
-            });
-            // Organizer: manage attendees, modules, prizes but not event settings
-            rules.push({
-              action: 'read',
-              subject: 'Event',
-              conditions: { tenantId },
-            });
-            rules.push({
-              action: 'update',
-              subject: 'Event',
-              conditions: { tenantId },
-            });
-            rules.push({
-              action: 'manage',
-              subject: 'InviteLink',
-              conditions: { 'event.tenantId': tenantId },
-            });
-            rules.push({
-              action: 'manage',
-              subject: 'EventWhitelistEntry',
-              conditions: { 'event.tenantId': tenantId },
-            });
-            rules.push({
-              action: 'manage',
-              subject: 'EventAttendee',
-              conditions: { 'event.tenantId': tenantId },
-            });
+        case EventRole.ORGANIZER:
+          // Base rules — always available
+          rules.push({
+            action: 'read',
+            subject: 'Event',
+            conditions: { id: eventId },
+          });
+          rules.push({
+            action: 'update',
+            subject: 'Event',
+            conditions: { id: eventId },
+          });
+          rules.push({
+            action: 'create',
+            subject: 'EventStaff',
+            conditions: { eventId },
+          });
+          rules.push({
+            action: 'read',
+            subject: 'EventStaff',
+            conditions: { eventId },
+          });
+          rules.push({
+            action: 'read',
+            subject: 'User',
+            conditions: { 'memberships.eventId': eventId },
+          });
+          rules.push({
+            action: 'manage',
+            subject: 'InviteLink',
+            conditions: { eventId },
+          });
+          rules.push({
+            action: 'manage',
+            subject: 'EventWhitelistEntry',
+            conditions: { eventId },
+          });
+          rules.push({
+            action: 'manage',
+            subject: 'EventAttendee',
+            conditions: { eventId },
+          });
+          // Config-gated module rules
+          if (config?.chatEnabled) {
             rules.push({
               action: 'create',
               subject: 'ChatMessage',
-              conditions: { 'event.tenantId': tenantId },
+              conditions: { eventId },
             });
             rules.push({
               action: 'read',
               subject: 'ChatMessage',
-              conditions: { 'event.tenantId': tenantId },
+              conditions: { eventId },
             });
+          }
+          if (config?.mediaEnabled) {
             rules.push({
               action: 'manage',
               subject: 'MediaItem',
-              conditions: { 'event.tenantId': tenantId },
+              conditions: { eventId },
             });
+          }
+          if (config?.prizesEnabled) {
             rules.push({
               action: 'manage',
               subject: 'Prize',
-              conditions: { 'event.tenantId': tenantId },
+              conditions: { eventId },
             });
-            break;
-
-          case TenantRole.MEMBER:
-          default:
-            rules.push({
-              action: 'read',
-              subject: 'Tenant',
-              conditions: { id: tenantId },
-            });
-            rules.push({
-              action: 'read',
-              subject: 'TenantMember',
-              conditions: { tenantId },
-            });
-            break;
-        }
+          }
+          break;
       }
     }
 
-    // Every authenticated user can read/update their own profile
+    // Every authenticated user can read/update their own profile and create events
     rules.push({
       action: 'read',
       subject: 'User',
@@ -208,6 +187,7 @@ export class CaslAbilityFactory {
       subject: 'User',
       conditions: { id: user.id },
     });
+    rules.push({ action: 'create', subject: 'Event' });
 
     return createMongoAbility<AppAbility>(rules);
   }

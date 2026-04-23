@@ -41,6 +41,16 @@ export class AttendanceController {
   }
 
   @Public()
+  @Get('me')
+  getMyAttendance(
+    @Param('eventId') eventId: string,
+    @CurrentUser() user?: SafeUser,
+    @Headers('x-guest-token') guestToken?: string,
+  ) {
+    return this.attendance.findMyAttendance(eventId, user, guestToken);
+  }
+
+  @Public()
   @Get()
   getAttendees(@Param('eventId') eventId: string) {
     return this.attendance.findAttendees(eventId);

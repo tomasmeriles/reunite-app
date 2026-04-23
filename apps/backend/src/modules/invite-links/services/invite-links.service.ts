@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { TenantRole } from '@prisma/client';
+import { EventRole } from '@prisma/client';
 import { TransactionalService } from '../../../common/base/transactional-service.base';
 import { Transactional } from '../../../common/decorators/transactional.decorator';
 import type { CreateInviteLinkDto } from '../dto/create-invite-link.dto';
@@ -69,11 +69,11 @@ export class InviteLinksService extends TransactionalService {
   }
 
   private async assertOrganizer(eventId: string, userId: string) {
-    const member = await this.db.tenantMember.findFirst({
+    const member = await this.db.eventStaff.findFirst({
       where: {
         userId,
-        tenant: { event: { id: eventId } },
-        role: { in: [TenantRole.OWNER, TenantRole.ADMIN] },
+        eventId,
+        role: { in: [EventRole.OWNER, EventRole.ORGANIZER] },
       },
     });
     if (!member) throw new ForbiddenException('Not an organizer of this event');

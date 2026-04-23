@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { AttendeeStatus, TenantRole } from '@prisma/client';
+import { AttendeeStatus, EventRole } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../../prisma/services/prisma.service';
 import { StorageService } from '../../../storage/services/storage.service';
@@ -104,11 +104,11 @@ export class MediaService {
   }
 
   private async assertOrganizer(eventId: string, userId: string) {
-    const member = await this.prisma.tenantMember.findFirst({
+    const member = await this.prisma.eventStaff.findFirst({
       where: {
         userId,
-        tenant: { event: { id: eventId } },
-        role: { in: [TenantRole.OWNER, TenantRole.ADMIN] },
+        eventId,
+        role: { in: [EventRole.OWNER, EventRole.ORGANIZER] },
       },
     });
     if (!member) throw new ForbiddenException('Not an organizer of this event');

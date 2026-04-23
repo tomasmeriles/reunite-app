@@ -8,7 +8,7 @@ datasource db {
 }
 
 /// Represents a platform user. Auth supports both OAuth and local email/password.
-/// globalRole controls platform-level access; tenant-level access is managed via TenantMember.
+/// globalRole controls platform-level access; event-level access is managed via EventStaff.
 model User {
   id              String     @id @default(cuid())
   email           String     @unique
@@ -24,7 +24,7 @@ model User {
   oauthAccounts    OAuthAccount[]
   refreshTokens    RefreshToken[]
   auditLogs        AuditLog[]
-  memberships      TenantMember[] // which tenants this user belongs to
+  memberships      EventStaff[] // which events this user is an organizer of
   whitelistEntries EventWhitelistEntry[]
 
   @@map("users")
@@ -140,87 +140,49 @@ model AuditLog {
 //
 // Tier 1 – GlobalRole: platform-wide, stored on User.
 //   SUPER_ADMIN     -> unrestricted access to everything (CASL: manage all)
-//   TENANT_MANAGER  -> can create, update, and delete any Tenant and its members,
+//   MODERATOR       -> can create, update, and delete any Event and its members,
 //                      but has no special access to other resources
-//   MEMBER          -> access determined entirely by TenantMember roles
+//   MEMBER          -> access determined entirely by EventStaff roles
 //
-// Tier 2 – TenantRole: scoped to a single Tenant, stored on TenantMember.
-//   OWNER  -> full control over the tenant and its members
-//   ADMIN  -> can manage members but cannot delete the tenant
-//   MEMBER -> read-only access to tenant data
+// Tier 2 – EventRole: scoped to a single Event, stored on EventStaff.
+//   OWNER     -> event creator / full control
+//   ORGANIZER -> co-organizer / manage attendees, modules, prizes (cannot delete event)
 // ---------------------------------------------------------------------------
 
 enum GlobalRole {
   SUPER_ADMIN
-  TENANT_MANAGER
+  MODERATOR
   MEMBER
 }
 
 // ---------------------------------------------------------------------------
-// Tenant + TenantMember - multi-tenancy (infrastructure layer)
-//
-// A Tenant is the top-level isolation boundary.
-//
-// Domain-specific data should be stored in
-// a separate 1-to-1 profile model rather than here, so
-// this table stays generic and auth/permission code never needs to change.
-//
-// Future sub-resource permissions should follow the
-// same pattern: a ResourceMember join table with (userId, tenantId, resourceType,
-// resourceId, role) rather than nesting more columns here.
+// EventStaff - RBAC join table between User and Event
 // ---------------------------------------------------------------------------
 
-enum TenantRole {
-  OWNER // full control: manage tenant settings, members, and sub-resources
-  ADMIN // manage members; cannot delete the tenant itself
-  MEMBER // read-only access to tenant data
+enum EventRole {
+  OWNER // full control: manage event settings, members, and sub-resources
+  ORGANIZER // manage attendees, modules, prizes; cannot delete the event
 }
 
-/// Distinguishes the purpose of a Tenant record.
-enum TenantType {
-  ORGANIZATION // standard multi-tenant org
-  EVENT // auto-created when a user creates an event
-}
-
-// Top-level isolation unit. Represents an organization or an event.
-// Name is display-only; use a separate profile model for domain-specific fields.
-model Tenant {
-  id        String     @id @default(cuid())
-  name      String
-  type      TenantType @default(ORGANIZATION)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-
-  members TenantMember[]
-  event   Event? // only set when type = EVENT
-
-  @@map("tenants")
-}
-
-/// Join table between User and Tenant. One row = one membership with a specific role.
-/// A user can belong to multiple tenants simultaneously (different rows, different roles).
-model TenantMember {
-  id       String     @id @default(cuid())
+/// Join table between User and Event. One row = one organizer membership.
+/// Attendees are tracked separately in EventAttendee.
+model EventStaff {
+  id       String    @id @default(cuid())
+  eventId  String
   userId   String
-  tenantId String
-  role     TenantRole @default(MEMBER)
-  joinedAt DateTime   @default(now())
+  role     EventRole @default(ORGANIZER)
+  joinedAt DateTime  @default(now())
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, tenantId]) // a user can only have one role per tenant
-  @@index([tenantId])
-  @@map("tenant_members")
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@map("event_staff")
 }
 
 // ---------------------------------------------------------------------------
-// Events - domain layer built on top of the Tenant/TenantMember RBAC system.
-//
-// Every Event owns a Tenant (type = EVENT). TenantMember rows provide RBAC:
-//   OWNER  -> event creator / full control
-//   ADMIN  -> organizer / manage attendees, modules, prizes
-//   MEMBER -> (unused at event level; attendees are tracked via EventAttendee)
+// Events
 // ---------------------------------------------------------------------------
 
 /// Controls who can register for an event.
@@ -254,14 +216,16 @@ enum AttendeeStatus {
   WAITLISTED
 }
 
-/// The main event record. Linked 1-to-1 to a Tenant for RBAC.
+/// The main event record. Organizers are tracked in EventStaff.
 model Event {
   id              String      @id @default(cuid())
-  tenantId        String      @unique
   title           String
   description     String?
   coverImage      String? // S3 key or public URL
   location        String?
+  latitude        Float? // WGS-84 decimal degrees
+  longitude       Float? // WGS-84 decimal degrees
+  timezone        String // IANA timezone, e.g. "America/New_York"
   startAt         DateTime
   endAt           DateTime?
   maxAttendees    Int? // null = unlimited
@@ -273,7 +237,7 @@ model Event {
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
-  tenant        Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  staff         EventStaff[]
   previousEvent Event?                @relation("EventChain", fields: [previousEventId], references: [id])
   nextEvents    Event[]               @relation("EventChain")
   config        EventConfig?
