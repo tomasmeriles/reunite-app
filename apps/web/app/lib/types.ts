@@ -1,15 +1,14 @@
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
-export type GlobalRole = 'SUPER_ADMIN' | 'TENANT_MANAGER' | 'MEMBER';
-export type TenantRole = 'OWNER' | 'ADMIN' | 'MEMBER';
+export type GlobalRole = 'SUPER_ADMIN' | 'MODERATOR' | 'MEMBER';
+export type EventRole = 'OWNER' | 'ORGANIZER';
 
 // ─── CASL ─────────────────────────────────────────────────────────────────────
 
 export type Action = 'manage' | 'create' | 'read' | 'update' | 'delete';
 export type Subject =
   | 'User'
-  | 'Tenant'
-  | 'TenantMember'
+  | 'EventStaff'
   | 'AuditLog'
   | 'Event'
   | 'EventConfig'

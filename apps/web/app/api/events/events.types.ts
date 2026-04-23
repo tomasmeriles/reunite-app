@@ -9,26 +9,31 @@ export type EventStatus =
 export type AttendeeStatus = 'CONFIRMED' | 'CANCELLED' | 'WAITLISTED';
 
 export interface EventConfig {
-  maxAttendees: number | null;
-  allowPlusOne: boolean;
-  requireApproval: boolean;
-  showGuestList: boolean;
-  showCountdown: boolean;
+  id: string;
+  eventId: string;
+  attendeesPublic: boolean;
+  chatEnabled: boolean;
+  mediaEnabled: boolean;
+  prizesEnabled: boolean;
 }
 
 export interface Event {
   id: string;
-  tenantId: string;
   title: string;
   description: string | null;
-  type: EventType;
+  eventType: EventType;
   status: EventStatus;
   coverImage: string | null;
   location: string | null;
-  address: string | null;
-  startDate: string;
-  endDate: string | null;
-  timezone: string;
+  latitude: number | null;
+  longitude: number | null;
+  timezone: string | null;
+  startAt: string;
+  endAt: string | null;
+  maxAttendees: number | null;
+  preEventText: string | null;
+  postEventText: string | null;
+  previousEventId: string | null;
   createdAt: string;
   updatedAt: string;
   config?: EventConfig;
@@ -39,6 +44,9 @@ export interface CreateEventDto {
   description?: string;
   eventType?: EventType;
   location?: string;
+  latitude?: number;
+  longitude?: number;
+  timezone?: string;
   startAt: string;
   endAt?: string;
 }
@@ -46,11 +54,17 @@ export interface CreateEventDto {
 export interface UpdateEventDto {
   title?: string;
   description?: string;
+  eventType?: EventType;
   location?: string;
-  address?: string;
-  startDate?: string;
-  endDate?: string;
+  latitude?: number;
+  longitude?: number;
   timezone?: string;
+  startAt?: string;
+  endAt?: string;
+  maxAttendees?: number | null;
+  preEventText?: string;
+  postEventText?: string;
+  previousEventId?: string;
 }
 
 export interface UpdateEventStatusDto {

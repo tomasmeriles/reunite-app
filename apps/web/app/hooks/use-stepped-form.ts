@@ -78,14 +78,12 @@ export function useSteppedForm<T extends FieldValues>({
   useHotkeys('enter', advance, {
     enableOnFormTags: ['INPUT', 'SELECT'],
     preventDefault: true,
-    enabled: isCurrentStepValid,
   });
 
   // Mod+Enter (Ctrl on Win/Linux, Cmd on Mac) anywhere incl. textarea
   useHotkeys('mod+enter', advance, {
     enableOnFormTags: ['INPUT', 'TEXTAREA', 'SELECT'],
     preventDefault: true,
-    enabled: isCurrentStepValid,
   });
 
   // Escape → go back one step

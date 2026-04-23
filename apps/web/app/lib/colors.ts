@@ -8,7 +8,7 @@
  */
 
 import type { EventStatus, AttendeeStatus } from '~/api/events/events.types';
-import type { GlobalRole, TenantRole } from '~/lib/types';
+import type { GlobalRole, EventRole } from '~/lib/types';
 import type { AuditAction } from '~/api/audit/audit.types';
 
 // ─── Badge classes (background + foreground) ──────────────────────────────────
@@ -30,14 +30,13 @@ export const ATTENDEE_STATUS_COLORS: Record<AttendeeStatus, string> = {
 
 export const GLOBAL_ROLE_COLORS: Record<GlobalRole, string> = {
   SUPER_ADMIN: 'bg-destructive text-destructive-foreground',
-  TENANT_MANAGER: 'bg-warning text-warning-foreground',
+  MODERATOR: 'bg-warning text-warning-foreground',
   MEMBER: 'bg-secondary text-secondary-foreground',
 };
 
-export const TENANT_ROLE_COLORS: Record<TenantRole, string> = {
+export const EVENT_ROLE_COLORS: Record<EventRole, string> = {
   OWNER: 'bg-info text-info-foreground',
-  ADMIN: 'bg-warning text-warning-foreground',
-  MEMBER: 'bg-secondary text-secondary-foreground',
+  ORGANIZER: 'bg-warning text-warning-foreground',
 };
 
 export const AUDIT_ACTION_COLORS: Record<AuditAction, string> = {

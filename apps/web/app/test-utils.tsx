@@ -1,5 +1,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, type RenderOptions } from '@testing-library/react';
+import {
+  render,
+  type RenderOptions,
+  type RenderResult,
+} from '@testing-library/react';
 import { ThemeProvider } from '~/contexts/theme';
 
 function createTestQueryClient() {
@@ -23,7 +27,7 @@ function AllProviders({ children }: { children: React.ReactNode }) {
 function customRender(
   ui: React.ReactElement,
   options?: Omit<RenderOptions, 'wrapper'>,
-) {
+): RenderResult {
   return render(ui, { wrapper: AllProviders, ...options });
 }
 

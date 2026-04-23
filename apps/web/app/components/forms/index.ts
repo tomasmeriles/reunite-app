@@ -7,5 +7,6 @@ export type { SelectOption } from './form-select-field';
 export { FormDateTimeField } from './form-datetime-field';
 export { FormCardSelectField } from './form-card-select-field';
 export type { CardSelectOption } from './form-card-select-field';
+export { FormLocationField } from './form-location-field';
 export { StepActions } from './step-actions';
 export type { StepActionsProps } from './step-actions';

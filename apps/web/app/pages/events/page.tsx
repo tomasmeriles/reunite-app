@@ -36,7 +36,7 @@ function EventCard({ event }: { event: Event }) {
 
         <div className="flex items-center gap-1.5 mt-2 text-sm text-muted-foreground">
           <CalendarDays className="h-3.5 w-3.5 shrink-0" />
-          <span>{formatDate(event.startDate)}</span>
+          <span>{formatDate(event.startAt)}</span>
         </div>
 
         {event.location && (

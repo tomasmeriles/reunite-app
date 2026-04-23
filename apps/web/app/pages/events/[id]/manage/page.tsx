@@ -193,10 +193,10 @@ export default function EventManagePage() {
         <Tabs defaultValue="overview">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            {event.type === 'INVITE_LINK' && (
+            {event.eventType === 'INVITE_LINK' && (
               <TabsTrigger value="links">Invite Links</TabsTrigger>
             )}
-            {event.type === 'INVITE_ACCOUNT' && (
+            {event.eventType === 'INVITE_ACCOUNT' && (
               <TabsTrigger value="whitelist">Whitelist</TabsTrigger>
             )}
             <TabsTrigger value="attendees">Attendees</TabsTrigger>
@@ -272,7 +272,7 @@ export default function EventManagePage() {
           </TabsContent>
 
           {/* ── Invite Links ── */}
-          {event.type === 'INVITE_LINK' && (
+          {event.eventType === 'INVITE_LINK' && (
             <TabsContent value="links" className="mt-4 space-y-4">
               <Card>
                 <CardHeader>
@@ -333,7 +333,7 @@ export default function EventManagePage() {
           )}
 
           {/* ── Whitelist ── */}
-          {event.type === 'INVITE_ACCOUNT' && (
+          {event.eventType === 'INVITE_ACCOUNT' && (
             <TabsContent value="whitelist" className="mt-4 space-y-4">
               <Card>
                 <CardHeader>

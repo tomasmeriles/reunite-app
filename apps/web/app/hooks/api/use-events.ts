@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { eventsApi } from '~/api/events/events.api';
+import { authKeys } from '~/hooks/api/use-auth';
 import type {
+  Event,
   CreateEventDto,
   UpdateEventDto,
   UpdateEventStatusDto,
@@ -42,6 +44,7 @@ export function useCreateEvent() {
     mutationFn: (dto: CreateEventDto) => eventsApi.create(dto),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: eventKeys.mine() });
+      queryClient.invalidateQueries({ queryKey: authKeys.me() });
     },
   });
 }
@@ -72,7 +75,10 @@ export function useUpdateEventConfig(id: string) {
   return useMutation({
     mutationFn: (dto: UpdateEventConfigDto) => eventsApi.updateConfig(id, dto),
     onSuccess: () => {
+      // Invalidate the event so attendee config-gated permissions update
       queryClient.invalidateQueries({ queryKey: eventKeys.detail(id) });
+      // Invalidate /auth/me so CASL abilities rebuild with new config gates
+      queryClient.invalidateQueries({ queryKey: authKeys.me() });
     },
   });
 }

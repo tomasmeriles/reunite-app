@@ -60,9 +60,10 @@ function PickerInput({
       placeholder={placeholder}
       value={display}
       onChange={(e) => setDraft(e.target.value.replace(/\D/g, ''))}
-      onFocus={() => {
+      onFocus={(e) => {
         setDraft(value !== undefined ? String(value) : '');
         setFocused(true);
+        requestAnimationFrame(() => e.target.select());
       }}
       onBlur={() => {
         setFocused(false);
@@ -83,11 +84,13 @@ function DateTimePicker({
   onChange,
   onClear,
   disabled,
+  disablePast = false,
 }: {
   value: string;
   onChange: (v: string) => void;
   onClear?: () => void;
   disabled?: Matcher | Matcher[];
+  disablePast?: boolean;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -98,14 +101,31 @@ function DateTimePicker({
   const minute = isValid ? dt!.minute : undefined;
   const selected = isValid ? dt!.toJSDate() : undefined;
 
+  const now = DateTime.now();
+  const isToday = isValid && dt!.hasSame(now, 'day');
+  const minHour = disablePast && isToday ? now.hour : 0;
+  const minMinute =
+    disablePast && isToday && hour === now.hour ? now.minute : 0;
+
   function handleDaySelect(day: Date | undefined) {
     if (!day) return;
-    const picked = DateTime.fromJSDate(day).set({
-      hour: hour ?? 0,
-      minute: minute ?? 0,
-      second: 0,
-      millisecond: 0,
-    });
+    const dayDt = DateTime.fromJSDate(day);
+    let h = hour ?? 0;
+    let m = minute ?? 0;
+    // If today is picked and the stored time is already past, snap to now
+    if (disablePast && dayDt.hasSame(now, 'day')) {
+      const candidate = dayDt.set({
+        hour: h,
+        minute: m,
+        second: 0,
+        millisecond: 0,
+      });
+      if (candidate < now) {
+        h = now.hour;
+        m = now.minute;
+      }
+    }
+    const picked = dayDt.set({ hour: h, minute: m, second: 0, millisecond: 0 });
     onChange(
       picked.toISO({ suppressSeconds: true, includeOffset: false }) ?? '',
     );
@@ -114,7 +134,11 @@ function DateTimePicker({
 
   function patchTime(fields: { hour?: number; minute?: number }) {
     if (!isValid) return;
-    const next = dt!.set(fields);
+    let next = dt!.set({ ...fields, second: 0, millisecond: 0 });
+    // Clamp to now if the result would be in the past
+    if (disablePast && next < now) {
+      next = now.set({ second: 0, millisecond: 0 });
+    }
     onChange(next.toISO({ suppressSeconds: true, includeOffset: false }) ?? '');
   }
 
@@ -180,7 +204,7 @@ function DateTimePicker({
           <div className="flex items-center gap-1">
             <PickerInput
               value={hour}
-              min={0}
+              min={minHour}
               max={23}
               placeholder="HH"
               className="w-12"
@@ -189,7 +213,7 @@ function DateTimePicker({
             <span className="px-0.5 font-bold text-muted-foreground">:</span>
             <PickerInput
               value={minute}
-              min={0}
+              min={minMinute}
               max={59}
               placeholder="MM"
               className="w-12"
@@ -213,6 +237,7 @@ interface FormDateTimeFieldProps<
   label: string;
   optional?: boolean;
   disabled?: Matcher | Matcher[];
+  disablePast?: boolean;
 }
 
 export function FormDateTimeField<
@@ -224,6 +249,7 @@ export function FormDateTimeField<
   label,
   optional,
   disabled,
+  disablePast,
 }: FormDateTimeFieldProps<TFieldValues, TName>) {
   return (
     <FormField
@@ -245,6 +271,7 @@ export function FormDateTimeField<
               onChange={field.onChange}
               onClear={optional ? () => field.onChange('') : undefined}
               disabled={disabled}
+              disablePast={disablePast}
             />
           </FormControl>
           <FormMessage />

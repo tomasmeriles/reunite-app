@@ -40,21 +40,15 @@ function drainQueue(error: unknown) {
 }
 
 // ─── Request interceptor ──────────────────────────────────────────────────────
-// 1. Forwards tenantId as a header when provided in config.
-// 2. Injects the CSRF token for state-changing requests.
-// 3. Injects x-guest-token for event-scoped guest identity.
+// 1. Injects the CSRF token for state-changing requests.
+// 2. Injects x-guest-token for event-scoped guest identity.
 
 const SAFE_METHODS = new Set(['get', 'head', 'options']);
 
 apiClient.interceptors.request.use((config) => {
   const extended = config as InternalAxiosRequestConfig & {
-    tenantId?: string;
     eventId?: string;
   };
-
-  if (extended.tenantId) {
-    config.headers['x-tenant-id'] = extended.tenantId;
-  }
 
   // Attach guest token for event-scoped routes
   if (extended.eventId) {

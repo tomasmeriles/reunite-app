@@ -36,7 +36,7 @@ function EventCard({ event }: { event: Event }) {
           <p className="font-semibold text-sm line-clamp-1">{event.title}</p>
           <div className="flex items-center gap-1 mt-1.5 text-xs text-muted-foreground">
             <CalendarDays className="h-3 w-3 shrink-0" />
-            <span>{formatDate(event.startDate)}</span>
+            <span>{formatDate(event.startAt)}</span>
           </div>
           {event.location && (
             <div className="flex items-center gap-1 mt-0.5 text-xs text-muted-foreground">
@@ -59,11 +59,9 @@ export default function DashboardPage() {
     ? events
         .filter(
           (e) =>
-            e.startDate > now &&
-            e.status !== 'CANCELLED' &&
-            e.status !== 'ENDED',
+            e.startAt > now && e.status !== 'CANCELLED' && e.status !== 'ENDED',
         )
-        .sort((a, b) => a.startDate.localeCompare(b.startDate))
+        .sort((a, b) => a.startAt.localeCompare(b.startAt))
         .slice(0, 4)
     : [];
 
@@ -71,7 +69,7 @@ export default function DashboardPage() {
   const upcomingCount = events
     ? events.filter(
         (e) =>
-          e.startDate > now && e.status !== 'CANCELLED' && e.status !== 'ENDED',
+          e.startAt > now && e.status !== 'CANCELLED' && e.status !== 'ENDED',
       ).length
     : 0;
 

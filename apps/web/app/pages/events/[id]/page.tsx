@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, Link } from '@tanstack/react-router';
 import { Helmet } from 'react-helmet-async';
 import { toast } from 'sonner';
@@ -82,7 +82,7 @@ export default function EventDetailPage() {
     );
   }
 
-  const startDate = new Date(event.startDate);
+  const startDate = new Date(event.startAt);
 
   return (
     <>
@@ -140,7 +140,6 @@ export default function EventDetailPage() {
             {event.location && (
               <p className="text-sm text-muted-foreground">
                 📍 {event.location}
-                {event.address && ` · ${event.address}`}
               </p>
             )}
           </div>
@@ -220,7 +219,7 @@ export default function EventDetailPage() {
       <RsvpDialog
         open={showRsvpDialog}
         onOpenChange={setShowRsvpDialog}
-        eventType={event.type}
+        eventType={event.eventType}
         onSubmit={handleRsvp}
         isLoading={registering}
       />

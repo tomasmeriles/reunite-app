@@ -1,6 +1,7 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import type { FieldPath } from 'react-hook-form';
+import { useLocationPicker } from '~/hooks/use-location-picker';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import {
@@ -11,8 +12,10 @@ import {
   Users,
   Ticket,
   TicketPlus,
+  Clock,
 } from 'lucide-react';
 import { Card, CardContent } from '~/components/ui/card';
+import { GoogleMap } from '~/components/ui/google-map';
 import { Stepper } from '~/components/ui/stepper';
 import type { StepDef } from '~/components/ui/stepper';
 import {
@@ -21,6 +24,7 @@ import {
   FormTextareaField,
   FormDateTimeField,
   FormCardSelectField,
+  FormLocationField,
   StepActions,
 } from '~/components/forms';
 import type { CardSelectOption } from '~/components/forms';
@@ -31,6 +35,7 @@ import { getApiErrorMessage } from '~/lib/axios';
 import { formatDateTime, getSystemTimezone, DateTime } from '~/lib/datetime';
 import {
   createEventSchema,
+  createEventBaseSchema,
   type CreateEventFormValues,
 } from '~/lib/schemas/event.schema';
 import type { EventType } from '~/api/events/events.types';
@@ -39,8 +44,7 @@ function toApiPayload(values: CreateEventFormValues) {
   const toISO = (date: string) =>
     DateTime.fromISO(date, { zone: values.timezone }).toISO() ?? date;
 
-  const { timezone, startAt, endAt, ...rest } = values;
-  void timezone;
+  const { startAt, endAt, ...rest } = values;
   return {
     ...rest,
     startAt: toISO(startAt),
@@ -97,6 +101,7 @@ const STEPS: StepDef[] = [
 export default function EventCreatePage() {
   const navigate = useNavigate();
   const { mutate: createEvent, isPending } = useCreateEvent();
+  const picker = useLocationPicker();
 
   const form = useForm<CreateEventFormValues>({
     resolver: zodResolver(createEventSchema),
@@ -105,6 +110,8 @@ export default function EventCreatePage() {
       description: '',
       eventType: 'PUBLIC',
       location: '',
+      latitude: undefined,
+      longitude: undefined,
       startAt: '',
       endAt: '',
       timezone: getSystemTimezone(),
@@ -138,8 +145,8 @@ export default function EventCreatePage() {
   const TypeIcon = activeTypeOption?.icon ?? Globe;
 
   const stepSchemas = [
-    createEventSchema.pick({ title: true }),
-    createEventSchema.pick({ startAt: true }),
+    createEventBaseSchema.pick({ title: true }),
+    createEventBaseSchema.pick({ startAt: true }),
   ];
 
   const { currentStep, handleNext, handleBack, goToStep } = useSteppedForm({
@@ -247,6 +254,7 @@ export default function EventCreatePage() {
                     name="startAt"
                     label="Start date & time"
                     disabled={startDisabled}
+                    disablePast
                   />
                   <FormDateTimeField
                     control={form.control}
@@ -254,6 +262,7 @@ export default function EventCreatePage() {
                     label="End date & time"
                     optional
                     disabled={endDisabled}
+                    disablePast
                   />
                 </div>
                 <StepActions onNext={handleNext} onBack={handleBack} />
@@ -261,13 +270,41 @@ export default function EventCreatePage() {
 
               {/* ── Step 3: Where ── */}
               <div className="space-y-4">
-                <FormTextField
+                <FormLocationField
                   control={form.control}
                   name="location"
+                  picker={picker}
+                  latName="latitude"
+                  lngName="longitude"
+                  timezoneName="timezone"
                   label="Location"
-                  placeholder="Rooftop Bar, 123 Main St, New York"
                   optional
                 />
+                {picker.selected && (
+                  <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <MapPin className="h-3.5 w-3.5 shrink-0" />
+                    {[
+                      picker.selected.city,
+                      picker.selected.state,
+                      picker.selected.country,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </p>
+                )}
+                {watched.timezone && (
+                  <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Clock className="h-3.5 w-3.5" />
+                    {watched.timezone}
+                  </p>
+                )}
+                {picker.selected && (
+                  <GoogleMap
+                    lat={picker.selected.lat}
+                    lng={picker.selected.lng}
+                    className="h-36 rounded-lg overflow-hidden"
+                  />
+                )}
                 <StepActions
                   onBack={handleBack}
                   isSubmit
