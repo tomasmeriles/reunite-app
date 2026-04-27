@@ -9,7 +9,6 @@ import {
   Param,
   Patch,
   Post,
-  Req,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -78,9 +77,8 @@ export class EventsController {
   update(
     @Param('id') id: string,
     @Body() dto: UpdateEventDto,
-    @CurrentUser() user: SafeUser,
   ): Promise<EventDetailPayload> {
-    return this.events.update(id, dto, user.id);
+    return this.events.update(id, dto);
   }
 
   @Patch(':id/status')
@@ -89,26 +87,21 @@ export class EventsController {
   @CheckPolicies((ability, req: Request) =>
     ability.can('update', subject('Event', { id: req.params['id'] })),
   )
-  updateStatus(
-    @Param('id') id: string,
-    @Body() dto: UpdateEventStatusDto,
-    @CurrentUser() user: SafeUser,
-  ) {
-    return this.events.updateStatus(id, dto, user.id);
+  updateStatus(@Param('id') id: string, @Body() dto: UpdateEventStatusDto) {
+    return this.events.updateStatus(id, dto);
   }
 
   @Patch(':id/config')
   @Throttle({ default: THROTTLE.WRITE })
   @Audit(AuditAction.EVENT_UPDATED, AuditResource.EVENT)
   @CheckPolicies((ability, req: Request) =>
-    ability.can('manage', subject('EventConfig', { eventId: req.params['id'] })),
+    ability.can(
+      'manage',
+      subject('EventConfig', { eventId: req.params['id'] }),
+    ),
   )
-  updateConfig(
-    @Param('id') id: string,
-    @Body() dto: UpdateEventConfigDto,
-    @CurrentUser() user: SafeUser,
-  ) {
-    return this.events.updateConfig(id, dto, user.id);
+  updateConfig(@Param('id') id: string, @Body() dto: UpdateEventConfigDto) {
+    return this.events.updateConfig(id, dto);
   }
 
   @Post(':id/cover')
@@ -121,8 +114,8 @@ export class EventsController {
   async uploadCover(
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File | undefined,
-    @CurrentUser() user: SafeUser,
   ) {
+    // TODO: Check this logic
     if (!file) throw new BadRequestException('No file provided');
     const processed = await this.imageProcessing.toWebP(file.buffer, {
       width: 1920,
@@ -130,7 +123,7 @@ export class EventsController {
     });
     const key = `events/${id}/cover/${randomUUID()}`;
     await this.storage.upload(key, processed, { contentType: 'image/webp' });
-    return this.events.setCoverImage(id, key, user.id);
+    return this.events.setCoverImage(id, key);
   }
 
   @Delete(':id')
@@ -140,10 +133,7 @@ export class EventsController {
   @CheckPolicies((ability, req: Request) =>
     ability.can('delete', subject('Event', { id: req.params['id'] })),
   )
-  remove(
-    @Param('id') id: string,
-    @CurrentUser() user: SafeUser,
-  ): Promise<void> {
-    return this.events.delete(id, user.id);
+  remove(@Param('id') id: string): Promise<void> {
+    return this.events.delete(id);
   }
 }

@@ -11,9 +11,9 @@ import {
 import { IsIANATimezone } from '../../../common/decorators/is-iana-timezone.decorator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { EventType } from '@prisma/client';
-import { IsAfterField } from '../../../common/decorators/is-after-field.decorator';
 import { ToDate } from '../../../common/decorators/to-date.decorator';
 import { Type } from 'class-transformer';
+import { IsAfterNow } from '../../../common/decorators/is-after-now.decorator';
 
 export class UpdateEventDto {
   @ApiPropertyOptional()
@@ -61,14 +61,15 @@ export class UpdateEventDto {
   @IsOptional()
   @IsDate()
   @ToDate()
+  @IsAfterNow({ message: 'Start date must be in the future' })
   startAt?: Date;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'Duration in minutes', example: 60 })
   @IsOptional()
-  @IsDate()
-  @ToDate()
-  @IsAfterField('startAt', { message: 'End date must be after start date' })
-  endAt?: Date;
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  duration?: number;
 
   @ApiPropertyOptional()
   @IsOptional()

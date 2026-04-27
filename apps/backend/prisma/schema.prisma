@@ -227,7 +227,10 @@ model Event {
   longitude       Float? // WGS-84 decimal degrees
   timezone        String // IANA timezone, e.g. "America/New_York"
   startAt         DateTime
-  endAt           DateTime?
+  endAt           DateTime // always set by service as startAt + duration
+  duration        Int       @default(60) // minutes
+  startedAt       DateTime? // actual activation time (set when status → ACTIVE)
+  endedAt         DateTime? // actual end time (set when status → ENDED)
   maxAttendees    Int? // null = unlimited
   eventType       EventType   @default(PUBLIC)
   status          EventStatus @default(DRAFT)

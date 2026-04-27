@@ -1,4 +1,4 @@
-import { IsEnum, IsString } from 'class-validator';
+import { IsEnum } from 'class-validator';
 import { EventStatus } from '@prisma/client';
 
 export class UpdateEventStatusDto {
