@@ -8,5 +8,6 @@ export { FormDateTimeField } from './form-datetime-field';
 export { FormCardSelectField } from './form-card-select-field';
 export type { CardSelectOption } from './form-card-select-field';
 export { FormLocationField } from './form-location-field';
+export { FormTimeField } from './form-time-field';
 export { StepActions } from './step-actions';
 export type { StepActionsProps } from './step-actions';

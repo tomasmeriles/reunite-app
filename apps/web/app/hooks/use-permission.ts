@@ -46,14 +46,20 @@ export interface EventAccess {
   canManageStaff: boolean;
 
   // ── Merged actions (staff OR attendee depending on config) ─────────────────
-  /** Organizers always; attendees only when chatEnabled */
+  /** Only during ACTIVE; organizers always, attendees only when chatEnabled */
   canChat: boolean;
-  /** Organizers always; attendees only when mediaEnabled */
+  /** Only during ACTIVE; organizers always, attendees only when mediaEnabled */
   canUploadMedia: boolean;
   /** Organizers always; attendees only when prizesEnabled */
   canSeePrizes: boolean;
   /** Organizers always; attendees when attendeesPublic OR confirmed */
   canSeeAttendees: boolean;
+
+  // ── Archival access (ACTIVE and ENDED) ────────────────────────────────────
+  /** Can read chat history: ACTIVE or ENDED */
+  canReadChatHistory: boolean;
+  /** Can view media gallery: ACTIVE or ENDED */
+  canViewMedia: boolean;
 }
 
 /**
@@ -108,20 +114,33 @@ export function useEventAccess(eventId: string): EventAccess {
     subject('EventAttendee', { eventId }),
   );
 
-  return {
-    canEdit,
-    canDelete,
-    canManageAttendees,
-    canManageInvites,
-    canManageConfig,
-    canManageStaff,
+  const status = event?.status;
+  const isLive = status === 'ACTIVE';
+  const isEnded = status === 'ENDED';
+  const isEditable =
+    status === 'DRAFT' || status === 'PUBLISHED' || status === 'RESCHEDULED';
 
-    canChat: staffCanChat || (isConfirmedAttendee && !!config?.chatEnabled),
+  return {
+    canEdit: canEdit && isEditable,
+    canDelete: canDelete && (status === 'DRAFT' || status === 'CANCELLED'),
+    canManageAttendees:
+      canManageAttendees && !isEnded && status !== 'CANCELLED',
+    canManageInvites: canManageInvites && isEditable,
+    canManageConfig: canManageConfig && !isEnded,
+    canManageStaff: canManageStaff && !isEnded && status !== 'CANCELLED',
+
+    canChat:
+      (staffCanChat || (isConfirmedAttendee && !!config?.chatEnabled)) && isLive,
     canUploadMedia:
-      staffCanMedia || (isConfirmedAttendee && !!config?.mediaEnabled),
+      (staffCanMedia || (isConfirmedAttendee && !!config?.mediaEnabled)) &&
+      isLive,
     canSeePrizes:
-      staffCanPrizes || (isConfirmedAttendee && !!config?.prizesEnabled),
+      (staffCanPrizes || (isConfirmedAttendee && !!config?.prizesEnabled)) &&
+      (isEditable || isLive || isEnded),
     canSeeAttendees:
       staffCanSeeAttendees || !!config?.attendeesPublic || isConfirmedAttendee,
+
+    canReadChatHistory: isLive || isEnded,
+    canViewMedia: isLive || isEnded,
   };
 }

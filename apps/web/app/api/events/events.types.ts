@@ -29,7 +29,10 @@ export interface Event {
   longitude: number | null;
   timezone: string | null;
   startAt: string;
-  endAt: string | null;
+  endAt: string;
+  duration: number;
+  startedAt: string | null;
+  endedAt: string | null;
   maxAttendees: number | null;
   preEventText: string | null;
   postEventText: string | null;
@@ -48,7 +51,7 @@ export interface CreateEventDto {
   longitude?: number;
   timezone?: string;
   startAt: string;
-  endAt?: string;
+  duration: number;
 }
 
 export interface UpdateEventDto {
@@ -60,7 +63,7 @@ export interface UpdateEventDto {
   longitude?: number;
   timezone?: string;
   startAt?: string;
-  endAt?: string;
+  duration?: number;
   maxAttendees?: number | null;
   preEventText?: string;
   postEventText?: string;
@@ -72,9 +75,8 @@ export interface UpdateEventStatusDto {
 }
 
 export interface UpdateEventConfigDto {
-  maxAttendees?: number | null;
-  allowPlusOne?: boolean;
-  requireApproval?: boolean;
-  showGuestList?: boolean;
-  showCountdown?: boolean;
+  attendeesPublic?: boolean;
+  chatEnabled?: boolean;
+  mediaEnabled?: boolean;
+  prizesEnabled?: boolean;
 }

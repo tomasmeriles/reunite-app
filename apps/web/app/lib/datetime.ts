@@ -22,7 +22,7 @@ export function formatDate(
  */
 export function formatDateTime(
   date: string | Date,
-  format = 'DD, t',
+  format = 'd LLL yyyy, HH:mm',
   timezone = getSystemTimezone(),
 ): string {
   return formatDate(date, format, timezone);
@@ -38,6 +38,10 @@ export function fromNow(
       : DateTime.fromJSDate(date, { zone: timezone });
 
   return dt.toRelative() ?? '';
+}
+
+export function toLocalDateTime(isoUtc: string, tz: string): string {
+  return DateTime.fromISO(isoUtc).setZone(tz).toISO({ includeOffset: false }) ?? isoUtc;
 }
 
 export { DateTime };

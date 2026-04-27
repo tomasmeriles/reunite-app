@@ -6,7 +6,8 @@ import { Button } from '~/components/ui/button';
 import { Badge } from '~/components/ui/badge';
 import { Card, CardContent } from '~/components/ui/card';
 import { Skeleton } from '~/components/ui/skeleton';
-import { GLOBAL_ROLE_COLORS, EVENT_STATUS_COLORS } from '~/lib/colors';
+import { GLOBAL_ROLE_COLORS } from '~/lib/colors';
+import { STATUS_META } from '~/lib/event-state-machine';
 import { formatDate } from '~/lib/datetime';
 import type { Event } from '~/api/events/events.types';
 
@@ -27,9 +28,9 @@ function EventCard({ event }: { event: Event }) {
             </div>
           )}
           <Badge
-            className={`absolute top-2 right-2 text-xs ${EVENT_STATUS_COLORS[event.status]}`}
+            className={`absolute top-2 right-2 text-xs ${STATUS_META[event.status].colorClass}`}
           >
-            {event.status}
+            {STATUS_META[event.status].label}
           </Badge>
         </div>
         <CardContent className="p-3">

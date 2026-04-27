@@ -5,8 +5,8 @@ import { Button } from '~/components/ui/button';
 import { Badge } from '~/components/ui/badge';
 import { Card, CardContent } from '~/components/ui/card';
 import { Skeleton } from '~/components/ui/skeleton';
-import { EVENT_STATUS_COLORS } from '~/lib/colors';
-import { formatDate } from '~/lib/datetime';
+import { STATUS_META } from '~/lib/event-state-machine';
+import { formatDate, formatDateTime } from '~/lib/datetime';
 import type { Event } from '~/api/events/events.types';
 
 function EventCard({ event }: { event: Event }) {
@@ -25,9 +25,9 @@ function EventCard({ event }: { event: Event }) {
           </div>
         )}
         <Badge
-          className={`absolute top-2 right-2 text-xs ${EVENT_STATUS_COLORS[event.status]}`}
+          className={`absolute top-2 right-2 text-xs ${STATUS_META[event.status].colorClass}`}
         >
-          {event.status}
+          {STATUS_META[event.status].label}
         </Badge>
       </div>
 
@@ -36,7 +36,7 @@ function EventCard({ event }: { event: Event }) {
 
         <div className="flex items-center gap-1.5 mt-2 text-sm text-muted-foreground">
           <CalendarDays className="h-3.5 w-3.5 shrink-0" />
-          <span>{formatDate(event.startAt)}</span>
+          <span>{formatDateTime(event.startAt)}</span>
         </div>
 
         {event.location && (

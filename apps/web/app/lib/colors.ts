@@ -7,20 +7,11 @@
  *  - To change a color, update `app.css`. To change a mapping, update this file.
  */
 
-import type { EventStatus, AttendeeStatus } from '~/api/events/events.types';
+import type { AttendeeStatus } from '~/api/events/events.types';
 import type { GlobalRole, EventRole } from '~/lib/types';
 import type { AuditAction } from '~/api/audit/audit.types';
 
 // ─── Badge classes (background + foreground) ──────────────────────────────────
-
-export const EVENT_STATUS_COLORS: Record<EventStatus, string> = {
-  DRAFT: 'bg-muted text-muted-foreground',
-  PUBLISHED: 'bg-info text-info-foreground',
-  ACTIVE: 'bg-success text-success-foreground',
-  RESCHEDULED: 'bg-warning text-warning-foreground',
-  ENDED: 'bg-secondary text-secondary-foreground',
-  CANCELLED: 'bg-destructive text-destructive-foreground',
-};
 
 export const ATTENDEE_STATUS_COLORS: Record<AttendeeStatus, string> = {
   CONFIRMED: 'bg-success text-success-foreground',
@@ -48,13 +39,3 @@ export const AUDIT_ACTION_COLORS: Record<AuditAction, string> = {
   DELETE: 'bg-destructive text-destructive-foreground',
 };
 
-// ─── Indicator dot classes (background only) ──────────────────────────────────
-
-export const EVENT_STATUS_DOT: Record<EventStatus, string> = {
-  DRAFT: 'bg-muted-foreground',
-  PUBLISHED: 'bg-info',
-  ACTIVE: 'bg-success',
-  RESCHEDULED: 'bg-warning',
-  ENDED: 'bg-muted-foreground',
-  CANCELLED: 'bg-destructive',
-};

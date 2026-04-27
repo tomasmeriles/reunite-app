@@ -5,6 +5,7 @@ import {
   Outlet,
   redirect,
 } from '@tanstack/react-router';
+import { z } from 'zod';
 import { lazy } from 'react';
 
 const TanStackRouterDevtools = import.meta.env.PROD
@@ -173,6 +174,9 @@ const eventManageRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/events/$id/manage',
   component: EventManagePage,
+  validateSearch: z.object({
+    tab: z.string().optional(),
+  }),
 });
 
 // ─── Join route (public) ──────────────────────────────────────────────────────

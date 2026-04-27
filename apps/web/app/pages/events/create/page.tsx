@@ -15,6 +15,14 @@ import {
   Clock,
 } from 'lucide-react';
 import { Card, CardContent } from '~/components/ui/card';
+import { Input } from '~/components/ui/input';
+import {
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from '~/components/ui/form';
 import { GoogleMap } from '~/components/ui/google-map';
 import { Stepper } from '~/components/ui/stepper';
 import type { StepDef } from '~/components/ui/stepper';
@@ -25,32 +33,21 @@ import {
   FormDateTimeField,
   FormCardSelectField,
   FormLocationField,
+  FormTimeField,
   StepActions,
 } from '~/components/forms';
 import type { CardSelectOption } from '~/components/forms';
 import { useCreateEvent } from '~/hooks/api/use-events';
 import { useSteppedForm } from '~/hooks/use-stepped-form';
-import { useDateRangeDisabled } from '~/hooks/use-date-range-disabled';
 import { getApiErrorMessage } from '~/lib/axios';
 import { formatDateTime, getSystemTimezone, DateTime } from '~/lib/datetime';
 import {
   createEventSchema,
   createEventBaseSchema,
+  toApiPayload,
   type CreateEventFormValues,
 } from '~/lib/schemas/event.schema';
 import type { EventType } from '~/api/events/events.types';
-
-function toApiPayload(values: CreateEventFormValues) {
-  const toISO = (date: string) =>
-    DateTime.fromISO(date, { zone: values.timezone }).toISO() ?? date;
-
-  const { startAt, endAt, ...rest } = values;
-  return {
-    ...rest,
-    startAt: toISO(startAt),
-    endAt: endAt ? toISO(endAt) : undefined,
-  };
-}
 
 const EVENT_TYPE_OPTIONS: CardSelectOption<EventType>[] = [
   {
@@ -75,8 +72,8 @@ const EVENT_TYPE_OPTIONS: CardSelectOption<EventType>[] = [
 
 // Fields validated per step (0-indexed)
 const STEP_FIELDS: FieldPath<CreateEventFormValues>[][] = [
-  ['title', 'description', 'eventType'],
-  ['startAt', 'endAt'],
+  ['title', 'description', 'eventType', 'maxAttendees'],
+  ['startAt', 'duration'],
   ['location'],
 ];
 
@@ -113,8 +110,9 @@ export default function EventCreatePage() {
       latitude: undefined,
       longitude: undefined,
       startAt: '',
-      endAt: '',
+      duration: '01:00',
       timezone: getSystemTimezone(),
+      maxAttendees: undefined,
     },
   });
 
@@ -132,12 +130,6 @@ export default function EventCreatePage() {
   // ── Live values for step summaries ──
   const watched = form.watch();
 
-  const { startDisabled, endDisabled } = useDateRangeDisabled(
-    watched.startAt,
-    watched.endAt,
-    { disablePast: true },
-  );
-
   const activeTypeOption = EVENT_TYPE_OPTIONS.find(
     (o) => o.value === watched.eventType,
   );
@@ -146,7 +138,7 @@ export default function EventCreatePage() {
 
   const stepSchemas = [
     createEventBaseSchema.pick({ title: true }),
-    createEventBaseSchema.pick({ startAt: true }),
+    createEventBaseSchema.pick({ startAt: true, duration: true }),
   ];
 
   const { currentStep, handleNext, handleBack, goToStep } = useSteppedForm({
@@ -183,10 +175,12 @@ export default function EventCreatePage() {
           <span className="font-medium text-foreground">From</span>{' '}
           {formatDateTime(watched.startAt)}
         </p>
-        {watched.endAt && (
+        {watched.duration && (
           <p>
-            <span className="font-medium text-foreground">To</span>{' '}
-            {formatDateTime(watched.endAt)}
+            <span className="font-medium text-foreground">Duration</span>{' '}
+            {watched.duration >= 60
+              ? `${Math.floor(watched.duration / 60)}h${watched.duration % 60 > 0 ? ` ${watched.duration % 60}m` : ''}`
+              : `${watched.duration}m`}
           </p>
         )}
       </div>
@@ -243,6 +237,37 @@ export default function EventCreatePage() {
                   label="Access type"
                   options={EVENT_TYPE_OPTIONS}
                 />
+                <FormField
+                  control={form.control}
+                  name="maxAttendees"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Max attendees{' '}
+                        <span className="text-[11px] font-normal text-muted-foreground/60 tracking-wide">
+                          optional
+                        </span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={1}
+                          placeholder="Unlimited"
+                          value={field.value ?? ''}
+                          onBlur={field.onBlur}
+                          onChange={(e) =>
+                            field.onChange(
+                              e.target.value === ''
+                                ? undefined
+                                : parseInt(e.target.value, 10),
+                            )
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <StepActions onNext={handleNext} />
               </div>
 
@@ -253,16 +278,13 @@ export default function EventCreatePage() {
                     control={form.control}
                     name="startAt"
                     label="Start date & time"
-                    disabled={startDisabled}
                     disablePast
                   />
-                  <FormDateTimeField
+                  <FormTimeField
                     control={form.control}
-                    name="endAt"
-                    label="End date & time"
-                    optional
-                    disabled={endDisabled}
-                    disablePast
+                    name="duration"
+                    label="Duration"
+                    maxHours={99}
                   />
                 </div>
                 <StepActions onNext={handleNext} onBack={handleBack} />

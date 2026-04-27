@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DateTime } from 'luxon';
 import { CalendarIcon, X } from 'lucide-react';
 import type { Matcher } from 'react-day-picker';
@@ -48,6 +48,11 @@ function PickerInput({
   const [draft, setDraft] = useState('');
   const [focused, setFocused] = useState(false);
 
+  function commit() {
+    const n = parseInt(draft, 10);
+    if (!isNaN(n)) onCommit(Math.min(max, Math.max(min, n)));
+  }
+
   const display = focused
     ? draft
     : value !== undefined
@@ -60,6 +65,12 @@ function PickerInput({
       placeholder={placeholder}
       value={display}
       onChange={(e) => setDraft(e.target.value.replace(/\D/g, ''))}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.stopPropagation();
+          commit();
+        }
+      }}
       onFocus={(e) => {
         setDraft(value !== undefined ? String(value) : '');
         setFocused(true);
@@ -67,10 +78,7 @@ function PickerInput({
       }}
       onBlur={() => {
         setFocused(false);
-        const n = parseInt(draft, 10);
-        if (!isNaN(n)) {
-          onCommit(Math.min(max, Math.max(min, n)));
-        }
+        commit();
       }}
       className={cn('text-center', className)}
     />
@@ -85,13 +93,23 @@ function DateTimePicker({
   onClear,
   disabled,
   disablePast = false,
+  disableFuture = false,
 }: {
   value: string;
   onChange: (v: string) => void;
   onClear?: () => void;
   disabled?: Matcher | Matcher[];
   disablePast?: boolean;
+  disableFuture?: boolean;
 }) {
+  useEffect(() => {
+    if (disablePast && disableFuture) {
+      console.warn(
+        '[FormDateTimeField] disablePast and disableFuture are both true — no date will be selectable.',
+      );
+    }
+  }, [disablePast, disableFuture]);
+
   const [open, setOpen] = useState(false);
 
   const dt = value ? DateTime.fromISO(value) : null;
@@ -106,21 +124,36 @@ function DateTimePicker({
   const minHour = disablePast && isToday ? now.hour : 0;
   const minMinute =
     disablePast && isToday && hour === now.hour ? now.minute : 0;
+  const maxHour = disableFuture && isToday ? now.hour : 23;
+  const maxMinute =
+    disableFuture && isToday && hour === now.hour ? now.minute : 59;
+
+  const extraMatchers = Array.isArray(disabled)
+    ? disabled
+    : disabled
+      ? [disabled]
+      : [];
+  const calendarDisabled: Matcher[] = [
+    ...(disablePast ? [{ before: now.startOf('day').toJSDate() }] : []),
+    ...(disableFuture ? [{ after: now.endOf('day').toJSDate() }] : []),
+    ...extraMatchers,
+  ];
 
   function handleDaySelect(day: Date | undefined) {
     if (!day) return;
     const dayDt = DateTime.fromJSDate(day);
     let h = hour ?? 0;
     let m = minute ?? 0;
-    // If today is picked and the stored time is already past, snap to now
     if (disablePast && dayDt.hasSame(now, 'day')) {
-      const candidate = dayDt.set({
-        hour: h,
-        minute: m,
-        second: 0,
-        millisecond: 0,
-      });
+      const candidate = dayDt.set({ hour: h, minute: m, second: 0, millisecond: 0 });
       if (candidate < now) {
+        h = now.hour;
+        m = now.minute;
+      }
+    }
+    if (disableFuture && dayDt.hasSame(now, 'day')) {
+      const candidate = dayDt.set({ hour: h, minute: m, second: 0, millisecond: 0 });
+      if (candidate > now) {
         h = now.hour;
         m = now.minute;
       }
@@ -129,14 +162,15 @@ function DateTimePicker({
     onChange(
       picked.toISO({ suppressSeconds: true, includeOffset: false }) ?? '',
     );
-    // Keep popover open so user can adjust time
   }
 
   function patchTime(fields: { hour?: number; minute?: number }) {
     if (!isValid) return;
     let next = dt!.set({ ...fields, second: 0, millisecond: 0 });
-    // Clamp to now if the result would be in the past
     if (disablePast && next < now) {
+      next = now.set({ second: 0, millisecond: 0 });
+    }
+    if (disableFuture && next > now) {
       next = now.set({ second: 0, millisecond: 0 });
     }
     onChange(next.toISO({ suppressSeconds: true, includeOffset: false }) ?? '');
@@ -178,6 +212,7 @@ function DateTimePicker({
       <PopoverContent
         className="w-auto p-0"
         align="start"
+        collisionPadding={8}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === 'Escape') {
             e.preventDefault();
@@ -190,7 +225,7 @@ function DateTimePicker({
           mode="single"
           selected={selected}
           onSelect={handleDaySelect}
-          disabled={disabled}
+          disabled={calendarDisabled}
           autoFocus
         />
 
@@ -205,7 +240,7 @@ function DateTimePicker({
             <PickerInput
               value={hour}
               min={minHour}
-              max={23}
+              max={maxHour}
               placeholder="HH"
               className="w-12"
               onCommit={(v) => patchTime({ hour: v })}
@@ -214,7 +249,7 @@ function DateTimePicker({
             <PickerInput
               value={minute}
               min={minMinute}
-              max={59}
+              max={maxMinute}
               placeholder="MM"
               className="w-12"
               onCommit={(v) => patchTime({ minute: v })}
@@ -238,6 +273,7 @@ interface FormDateTimeFieldProps<
   optional?: boolean;
   disabled?: Matcher | Matcher[];
   disablePast?: boolean;
+  disableFuture?: boolean;
 }
 
 export function FormDateTimeField<
@@ -250,6 +286,7 @@ export function FormDateTimeField<
   optional,
   disabled,
   disablePast,
+  disableFuture,
 }: FormDateTimeFieldProps<TFieldValues, TName>) {
   return (
     <FormField
@@ -272,6 +309,7 @@ export function FormDateTimeField<
               onClear={optional ? () => field.onChange('') : undefined}
               disabled={disabled}
               disablePast={disablePast}
+              disableFuture={disableFuture}
             />
           </FormControl>
           <FormMessage />

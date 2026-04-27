@@ -3,13 +3,14 @@ import { useParams, Link } from '@tanstack/react-router';
 import { Helmet } from 'react-helmet-async';
 import { toast } from 'sonner';
 import { Button } from '~/components/ui/button';
-import { Badge } from '~/components/ui/badge';
+import { Badge, badgeVariants } from '~/components/ui/badge';
 import { Separator } from '~/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { Skeleton } from '~/components/ui/skeleton';
 import { useEvent } from '~/hooks/api/use-events';
 import { useRegisterAttendee, useAttendees } from '~/hooks/api/use-attendance';
 import { useAuth } from '~/contexts/auth';
+import { useEventAccess } from '~/hooks/use-permission';
 import { getApiErrorMessage } from '~/lib/axios';
 import { ChatPanel } from '~/components/events/chat-panel';
 import { ImageGallery } from '~/components/events/image-gallery';
@@ -17,8 +18,13 @@ import { PrizeList } from '~/components/events/prize-list';
 import { AttendeeList } from '~/components/events/attendee-list';
 import { RsvpDialog } from '~/components/events/rsvp-dialog';
 import { ConfettiOverlay } from '~/components/events/confetti-overlay';
+import type { VariantProps } from 'class-variance-authority';
+import type { EventStatus } from '~/api/events/events.types';
 
-const STATUS_BADGE: Record<string, string> = {
+const STATUS_BADGE: Record<
+  EventStatus,
+  NonNullable<VariantProps<typeof badgeVariants>['variant']>
+> = {
   DRAFT: 'secondary',
   PUBLISHED: 'default',
   ACTIVE: 'default',
@@ -33,6 +39,7 @@ export default function EventDetailPage() {
   const { data: event, isLoading } = useEvent(id);
   const { data: attendees } = useAttendees(id);
   const { mutate: register, isPending: registering } = useRegisterAttendee(id);
+  const access = useEventAccess(id);
 
   const [showRsvpDialog, setShowRsvpDialog] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -115,17 +122,7 @@ export default function EventDetailPage() {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <h1 className="text-3xl font-bold">{event.title}</h1>
-              <Badge
-                variant={
-                  STATUS_BADGE[event.status] as
-                    | 'default'
-                    | 'secondary'
-                    | 'destructive'
-                    | 'outline'
-                }
-              >
-                {event.status}
-              </Badge>
+              <Badge variant={STATUS_BADGE[event.status]}>{event.status}</Badge>
             </div>
             <p className="text-muted-foreground">
               {startDate.toLocaleDateString(undefined, {
@@ -149,7 +146,9 @@ export default function EventDetailPage() {
               <Badge className="bg-success text-success-foreground">
                 ✓ You're attending
               </Badge>
-            ) : event.status !== 'ENDED' && event.status !== 'CANCELLED' ? (
+            ) : event.status !== 'DRAFT' &&
+              event.status !== 'ENDED' &&
+              event.status !== 'CANCELLED' ? (
               <Button
                 onClick={() => setShowRsvpDialog(true)}
                 disabled={registering}
@@ -191,19 +190,31 @@ export default function EventDetailPage() {
           </TabsList>
 
           <TabsContent value="chat" className="mt-4">
-            <ChatPanel
-              eventId={id}
-              attendeeId={myAttendee?.id ?? null}
-              guestToken={guestToken}
-            />
+            {access.canReadChatHistory ? (
+              <ChatPanel
+                eventId={id}
+                attendeeId={myAttendee?.id ?? null}
+                guestToken={guestToken}
+              />
+            ) : (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                Chat is only available during the live event.
+              </p>
+            )}
           </TabsContent>
 
           <TabsContent value="gallery" className="mt-4">
-            <ImageGallery
-              eventId={id}
-              canUpload={isAttending}
-              guestToken={guestToken}
-            />
+            {access.canViewMedia ? (
+              <ImageGallery
+                eventId={id}
+                canUpload={access.canUploadMedia}
+                guestToken={guestToken}
+              />
+            ) : (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                Gallery is only available during the live event.
+              </p>
+            )}
           </TabsContent>
 
           <TabsContent value="guests" className="mt-4">
