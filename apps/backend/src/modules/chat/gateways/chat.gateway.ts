@@ -6,10 +6,12 @@ import {
   WebSocketGateway,
 } from '@nestjs/websockets';
 import type { Server } from 'socket.io';
+import { EventStatus } from '@prisma/client';
 import { BaseGateway } from '../../../rtc/base/base.gateway';
 import { RtcAuthMiddleware } from '../../../rtc/middleware/rtc-auth.middleware';
 import type { RtcSocket } from '../../../rtc/interfaces/rtc-socket.interface';
 import { ChatService } from '../services/chat.service';
+import { PrismaService } from '../../../prisma/services/prisma.service';
 
 @WebSocketGateway({
   namespace: '/chat',
@@ -19,6 +21,7 @@ export class ChatGateway extends BaseGateway implements OnGatewayInit {
   constructor(
     private readonly chat: ChatService,
     private readonly rtcAuth: RtcAuthMiddleware,
+    private readonly prisma: PrismaService,
   ) {
     super();
   }
@@ -28,23 +31,47 @@ export class ChatGateway extends BaseGateway implements OnGatewayInit {
     this.logger.log('ChatGateway initialized');
   }
 
-  /** Join a chat room for an event. */
+  /** Join a chat room for an event. History is only available during ACTIVE or ENDED. */
   @SubscribeMessage('chat:join')
   async handleJoin(
     @ConnectedSocket() socket: RtcSocket,
     @MessageBody() payload: { eventId: string },
   ) {
     await this.joinRoom(socket, `chat:${payload.eventId}`);
+
+    const event = await this.prisma.event.findUnique({
+      where: { id: payload.eventId },
+      select: { status: true },
+    });
+
+    const historyStatuses: EventStatus[] = [EventStatus.ACTIVE, EventStatus.ENDED];
+    if (!event || !historyStatuses.includes(event.status)) {
+      socket.emit('chat:history', []);
+      return;
+    }
+
     const history = await this.chat.getHistory(payload.eventId);
     socket.emit('chat:history', history);
   }
 
-  /** Send a message to an event chat room. */
+  /** Send a message to an event chat room. Only allowed during ACTIVE. */
   @SubscribeMessage('chat:send')
   async handleMessage(
     @ConnectedSocket() socket: RtcSocket,
     @MessageBody() payload: { eventId: string; content: string },
   ) {
+    const event = await this.prisma.event.findUnique({
+      where: { id: payload.eventId },
+      select: { status: true },
+    });
+
+    if (!event || event.status !== EventStatus.ACTIVE) {
+      socket.emit('chat:error', {
+        message: 'Chat is only available during the live event.',
+      });
+      return;
+    }
+
     const attendeeId = this.getAttendeeId(socket);
     if (!attendeeId) {
       socket.emit('chat:error', {
@@ -69,12 +96,23 @@ export class ChatGateway extends BaseGateway implements OnGatewayInit {
     this.broadcastToRoom(`chat:${payload.eventId}`, 'chat:message', message);
   }
 
-  /** Fetch older messages (cursor-based pagination). */
+  /** Fetch older messages (cursor-based pagination). Only available during ACTIVE or ENDED. */
   @SubscribeMessage('chat:history')
   async handleHistory(
     @ConnectedSocket() socket: RtcSocket,
     @MessageBody() payload: { eventId: string; cursor?: string },
   ) {
+    const event = await this.prisma.event.findUnique({
+      where: { id: payload.eventId },
+      select: { status: true },
+    });
+
+    const historyStatuses: EventStatus[] = [EventStatus.ACTIVE, EventStatus.ENDED];
+    if (!event || !historyStatuses.includes(event.status)) {
+      socket.emit('chat:history', []);
+      return;
+    }
+
     const history = await this.chat.getHistory(payload.eventId, payload.cursor);
     socket.emit('chat:history', history);
   }

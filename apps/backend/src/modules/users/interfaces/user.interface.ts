@@ -2,6 +2,7 @@ import {
   OAuthProvider,
   type EventConfig,
   type EventStaff,
+  type EventStatus,
 } from '@prisma/client';
 import type { SafeUser } from '../selects/user.select';
 
@@ -20,7 +21,7 @@ export interface UpsertOAuthUserInput {
 }
 
 export type MembershipWithConfig = EventStaff & {
-  event: { config: EventConfig | null };
+  event: { config: EventConfig | null; status: EventStatus };
 };
 
 export type UserWithMemberships = SafeUser & {

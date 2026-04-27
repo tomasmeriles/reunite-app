@@ -4,15 +4,23 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { EventRole } from '@prisma/client';
+import { EventRole, EventStatus } from '@prisma/client';
 import { TransactionalService } from '../../../common/base/transactional-service.base';
 import { Transactional } from '../../../common/decorators/transactional.decorator';
+import { requireEventStatus } from '../../../common/helpers/event-status.helper';
 import type { AddToWhitelistDto } from '../dto/add-to-whitelist.dto';
 
 @Injectable()
 export class WhitelistService extends TransactionalService {
   @Transactional()
   async add(eventId: string, dto: AddToWhitelistDto, requesterId: string) {
+    await requireEventStatus(
+      this.db,
+      eventId,
+      EventStatus.DRAFT,
+      EventStatus.PUBLISHED,
+      EventStatus.RESCHEDULED,
+    );
     await this.assertOrganizer(eventId, requesterId);
 
     const user = await this.db.user.findUnique({
@@ -56,6 +64,13 @@ export class WhitelistService extends TransactionalService {
 
   @Transactional()
   async remove(eventId: string, entryId: string, requesterId: string) {
+    await requireEventStatus(
+      this.db,
+      eventId,
+      EventStatus.DRAFT,
+      EventStatus.PUBLISHED,
+      EventStatus.RESCHEDULED,
+    );
     await this.assertOrganizer(eventId, requesterId);
     const entry = await this.db.eventWhitelistEntry.findFirst({
       where: { id: entryId, eventId },

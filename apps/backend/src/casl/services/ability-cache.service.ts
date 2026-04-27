@@ -53,10 +53,15 @@ export class AbilityCacheService {
     }
   }
 
-  /**
-   * Alias for del(). Kept for call sites that invalidate on logout / globalRole change.
-   */
-  async delAll(userId: string): Promise<void> {
-    return this.del(userId);
+  async delMany(userIds: string[]): Promise<void> {
+    if (userIds.length === 0) return;
+
+    const pipeline = this.redis.pipeline();
+
+    for (const userId of userIds) {
+      pipeline.del(this.key(userId));
+    }
+
+    await pipeline.exec();
   }
 }

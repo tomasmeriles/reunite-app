@@ -148,7 +148,7 @@ export class AuthService extends TransactionalService {
   async logout(refreshToken: string | undefined): Promise<string | null> {
     if (!refreshToken) return null;
     const userId = await this.refreshTokens.revoke(refreshToken);
-    if (userId) await this.abilityCache.delAll(userId);
+    if (userId) await this.abilityCache.del(userId);
     return userId;
   }
 

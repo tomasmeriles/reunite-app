@@ -26,6 +26,11 @@ export class AttendanceService extends TransactionalService {
       include: { config: true },
     });
     if (!event) throw new NotFoundException('Event not found');
+    if (event.status === EventStatus.DRAFT) {
+      throw new BadRequestException(
+        'This event is not yet open for registration',
+      );
+    }
     if (event.status === EventStatus.CANCELLED) {
       throw new BadRequestException('This event has been cancelled');
     }

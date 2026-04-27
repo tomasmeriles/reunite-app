@@ -3,11 +3,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { AttendeeStatus, EventRole } from '@prisma/client';
+import { AttendeeStatus, EventRole, EventStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../../prisma/services/prisma.service';
 import { StorageService } from '../../../storage/services/storage.service';
 import { ImageProcessingService } from '../../../storage/services/image-processing.service';
+import { requireEventStatus } from '../../../common/helpers/event-status.helper';
 
 const THUMBNAIL_WIDTH = 400;
 
@@ -25,7 +26,8 @@ export class MediaService {
     file: Express.Multer.File,
     caption?: string,
   ) {
-    // Verify attendee is confirmed for this event
+    await requireEventStatus(this.prisma, eventId, EventStatus.ACTIVE);
+
     const attendee = await this.prisma.eventAttendee.findFirst({
       where: { id: attendeeId, eventId, status: AttendeeStatus.CONFIRMED },
     });
@@ -36,7 +38,6 @@ export class MediaService {
 
     const base = `events/${eventId}/media/${randomUUID()}`;
 
-    // Process full-size
     const fullBuffer = await this.imageProcessing.toWebP(file.buffer, {
       width: 1920,
       quality: 85,
@@ -44,7 +45,6 @@ export class MediaService {
     const s3Key = `${base}/full.webp`;
     await this.storage.upload(s3Key, fullBuffer, { contentType: 'image/webp' });
 
-    // Process thumbnail
     const thumbBuffer = await this.imageProcessing.toWebP(file.buffer, {
       width: THUMBNAIL_WIDTH,
       quality: 70,
@@ -60,6 +60,8 @@ export class MediaService {
   }
 
   async findByEvent(eventId: string) {
+    await requireEventStatus(this.prisma, eventId, EventStatus.ACTIVE, EventStatus.ENDED);
+
     const items = await this.prisma.mediaItem.findMany({
       where: { eventId },
       include: {
@@ -68,7 +70,6 @@ export class MediaService {
       orderBy: { createdAt: 'desc' },
     });
 
-    // Attach presigned URLs
     return Promise.all(
       items.map(async (item) => ({
         ...item,
@@ -87,7 +88,6 @@ export class MediaService {
     });
     if (!item) throw new NotFoundException('Media item not found');
 
-    // Uploader or organizer can delete
     const isUploader = item.attendee.id === requesterId;
     if (!isUploader) {
       await this.assertOrganizer(eventId, requesterId);

@@ -4,8 +4,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { AttendeeStatus, EventRole } from '@prisma/client';
+import { AttendeeStatus, EventRole, EventStatus } from '@prisma/client';
 import { PrismaService } from '../../../prisma/services/prisma.service';
+import { requireEventStatus } from '../../../common/helpers/event-status.helper';
 import type { CreatePrizeDto } from '../dto/create-prize.dto';
 import type { AssignWinnerDto } from '../dto/assign-winner.dto';
 
@@ -14,11 +15,27 @@ export class PrizesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(eventId: string, dto: CreatePrizeDto, userId: string) {
+    await requireEventStatus(
+      this.prisma,
+      eventId,
+      EventStatus.DRAFT,
+      EventStatus.PUBLISHED,
+      EventStatus.RESCHEDULED,
+      EventStatus.ACTIVE,
+    );
     await this.assertOrganizer(eventId, userId);
     return this.prisma.prize.create({ data: { eventId, ...dto } });
   }
 
   async findByEvent(eventId: string) {
+    await requireEventStatus(
+      this.prisma,
+      eventId,
+      EventStatus.PUBLISHED,
+      EventStatus.RESCHEDULED,
+      EventStatus.ACTIVE,
+      EventStatus.ENDED,
+    );
     return this.prisma.prize.findMany({
       where: { eventId },
       include: {
@@ -34,6 +51,7 @@ export class PrizesService {
     dto: AssignWinnerDto,
     userId: string,
   ) {
+    await requireEventStatus(this.prisma, eventId, EventStatus.ACTIVE, EventStatus.ENDED);
     await this.assertOrganizer(eventId, userId);
 
     const prize = await this.prisma.prize.findFirst({
@@ -46,7 +64,6 @@ export class PrizesService {
     let attendeeId = dto.attendeeId;
 
     if (!attendeeId) {
-      // Random pick from confirmed attendees
       const attendees = await this.prisma.eventAttendee.findMany({
         where: { eventId, status: AttendeeStatus.CONFIRMED },
         select: { id: true },
@@ -73,6 +90,14 @@ export class PrizesService {
   }
 
   async delete(eventId: string, prizeId: string, userId: string) {
+    await requireEventStatus(
+      this.prisma,
+      eventId,
+      EventStatus.DRAFT,
+      EventStatus.PUBLISHED,
+      EventStatus.RESCHEDULED,
+      EventStatus.ACTIVE,
+    );
     await this.assertOrganizer(eventId, userId);
     const prize = await this.prisma.prize.findFirst({
       where: { id: prizeId, eventId },
