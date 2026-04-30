@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { EventRole, EventStatus } from '@prisma/client';
@@ -50,6 +51,8 @@ const TRANSITION_JOB_ACTIONS: Record<EventStatus, JobAction[]> = {
 
 @Injectable()
 export class EventsService extends TransactionalService {
+  private readonly logger = new Logger(EventsService.name);
+
   @Inject(AbilityCacheService)
   private readonly abilityCache!: AbilityCacheService;
 
@@ -215,28 +218,32 @@ export class EventsService extends TransactionalService {
   async updateStatus(id: string, dto: UpdateEventStatusDto) {
     const event = await this.db.event.findUnique({
       where: { id },
-      select: { status: true, startAt: true, endAt: true },
+      select: { status: true, startAt: true, endAt: true, timezone: true },
     });
 
     if (!event) throw new NotFoundException('Event not found');
 
     assertValidTransition(event.status, dto.status);
 
-    // CHECKME: Check if we should use event timezone for this comparison.
-    // Also we should use Luxon for all date handling in this service for consistency.
-    const now = new Date();
+    const now = DateTime.utc();
 
-    if (dto.status === EventStatus.PUBLISHED && event.startAt <= now) {
+    const startAt = DateTime.fromJSDate(event.startAt, { zone: 'utc' });
+
+    if (
+      dto.status === EventStatus.PUBLISHED &&
+      startAt.toMillis() <= now.toMillis()
+    ) {
       throw new BadRequestException(
         'Start date is in the past. Update the event date before publishing.',
       );
     }
+
     const extra: Record<string, Date> = {};
 
     if (dto.status === EventStatus.ACTIVE) {
-      extra['startedAt'] = now;
+      extra['startedAt'] = now.toJSDate();
     } else if (dto.status === EventStatus.ENDED) {
-      extra['endedAt'] = now;
+      extra['endedAt'] = now.toJSDate();
     }
 
     const updated = await this.db.event.update({

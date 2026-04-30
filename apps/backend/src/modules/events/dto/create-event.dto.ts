@@ -70,7 +70,6 @@ export class CreateEventDto {
   @IsAfterNow({ message: 'Start date must be in the future' })
   startAt!: Date;
 
-  @ApiPropertyOptional({ description: 'Duration in minutes', example: 60 })
   @Type(() => Number)
   @IsInt()
   @Min(1)
