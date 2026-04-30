@@ -72,7 +72,7 @@ export class AttendanceService extends TransactionalService {
     if (!where) throw new BadRequestException('No identity provided');
 
     const attendee = await this.db.eventAttendee.findUnique({
-      where: where as any,
+      where,
     });
     if (!attendee) throw new NotFoundException('Registration not found');
 
@@ -86,6 +86,18 @@ export class AttendanceService extends TransactionalService {
     return this.db.eventAttendee.findMany({
       where: { eventId, status: AttendeeStatus.CONFIRMED },
       orderBy: { registeredAt: 'asc' },
+      include: {
+        user: {
+          select: { id: true, name: true, username: true, avatar: true },
+        },
+        sponsoredBy: {
+          select: {
+            id: true,
+            guestName: true,
+            user: { select: { name: true, username: true } },
+          },
+        },
+      },
     });
   }
 
@@ -94,15 +106,98 @@ export class AttendanceService extends TransactionalService {
     user?: SafeUser,
     guestToken?: string,
   ) {
+    const include = {
+      inviteLink: { select: { maxUses: true, useCount: true } },
+    } as const;
     if (user) {
       return this.db.eventAttendee.findUnique({
         where: { eventId_userId: { eventId, userId: user.id } },
+        include,
       });
     }
     if (guestToken) {
-      return this.db.eventAttendee.findUnique({ where: { guestToken } });
+      return this.db.eventAttendee.findUnique({ where: { guestToken }, include });
     }
     return null;
+  }
+
+  /** Attendee (registered or guest) adds an additional guest on their behalf. */
+  @Transactional()
+  async bringGuest(
+    eventId: string,
+    guestName: string,
+    userId?: string,
+    guestToken?: string,
+  ) {
+    if (!userId && !guestToken) {
+      throw new ForbiddenException('No identity provided');
+    }
+
+    const event = await this.db.event.findUnique({ where: { id: eventId } });
+    if (!event) throw new NotFoundException('Event not found');
+
+    if (event.eventType === EventType.INVITE_ACCOUNT) {
+      throw new ForbiddenException(
+        'Bringing guests is not allowed for this event type',
+      );
+    }
+
+    let myAttendee = userId
+      ? await this.db.eventAttendee.findUnique({
+          where: { eventId_userId: { eventId, userId } },
+        })
+      : null;
+
+    // If authenticated user has no attendance record, fall back to guestToken
+    if (!myAttendee && guestToken) {
+      myAttendee = await this.db.eventAttendee.findUnique({
+        where: { guestToken },
+      });
+    }
+
+    if (!myAttendee || myAttendee.status !== AttendeeStatus.CONFIRMED) {
+      throw new ForbiddenException(
+        'You must be attending this event to bring guests',
+      );
+    }
+
+    if (event.maxAttendees !== null) {
+      const count = await this.db.eventAttendee.count({
+        where: { eventId, status: AttendeeStatus.CONFIRMED },
+      });
+      if (count >= event.maxAttendees) {
+        throw new BadRequestException('Event is at capacity');
+      }
+    }
+
+    // For INVITE_LINK events, enforce remaining uses on the link used to join
+    if (myAttendee.inviteLinkId) {
+      const link = await this.db.inviteLink.findUnique({
+        where: { id: myAttendee.inviteLinkId },
+      });
+      if (link && link.maxUses !== null && link.useCount >= link.maxUses) {
+        throw new ForbiddenException('Your invite link has no remaining uses');
+      }
+      if (link) {
+        await this.db.inviteLink.update({
+          where: { id: link.id },
+          data: { useCount: { increment: 1 } },
+        });
+      }
+    }
+
+    const newGuestToken = randomUUID();
+    const guest = await this.db.eventAttendee.create({
+      data: {
+        eventId,
+        guestName: guestName.trim(),
+        guestToken: newGuestToken,
+        status: AttendeeStatus.CONFIRMED,
+        inviteLinkId: myAttendee.inviteLinkId,
+        addedById: myAttendee.id,
+      },
+    });
+    return { ...guest, guestToken: newGuestToken };
   }
 
   // ---------------------------------------------------------------------------
@@ -115,6 +210,7 @@ export class AttendanceService extends TransactionalService {
     user?: SafeUser,
   ) {
     if (user) {
+      const guestName = dto.guestName?.trim() || null;
       // Check for duplicate
       const existing = await this.db.eventAttendee.findUnique({
         where: { eventId_userId: { eventId, userId: user.id } },
@@ -125,11 +221,16 @@ export class AttendanceService extends TransactionalService {
       if (existing) {
         return this.db.eventAttendee.update({
           where: { id: existing.id },
-          data: { status: AttendeeStatus.CONFIRMED },
+          data: { status: AttendeeStatus.CONFIRMED, guestName },
         });
       }
       return this.db.eventAttendee.create({
-        data: { eventId, userId: user.id, status: AttendeeStatus.CONFIRMED },
+        data: {
+          eventId,
+          userId: user.id,
+          guestName,
+          status: AttendeeStatus.CONFIRMED,
+        },
       });
     }
 
@@ -166,7 +267,7 @@ export class AttendanceService extends TransactionalService {
         id: true,
         eventId: true,
         maxUses: true,
-        usedCount: true,
+        useCount: true,
         expiresAt: true,
       },
     });
@@ -177,7 +278,7 @@ export class AttendanceService extends TransactionalService {
     if (link.expiresAt && link.expiresAt < new Date()) {
       throw new BadRequestException('This invite link has expired');
     }
-    if (link.maxUses !== null && link.usedCount >= link.maxUses) {
+    if (link.maxUses !== null && link.useCount >= link.maxUses) {
       throw new BadRequestException(
         'This invite link has reached its maximum uses',
       );
@@ -185,7 +286,7 @@ export class AttendanceService extends TransactionalService {
 
     await this.db.inviteLink.update({
       where: { id: link.id },
-      data: { usedCount: { increment: 1 } },
+      data: { useCount: { increment: 1 } },
     });
 
     // Reuse public flow after validation

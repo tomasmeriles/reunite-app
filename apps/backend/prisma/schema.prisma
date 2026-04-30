@@ -26,6 +26,7 @@ model User {
   auditLogs        AuditLog[]
   memberships      EventStaff[] // which events this user is an organizer of
   whitelistEntries EventWhitelistEntry[]
+  attendees        EventAttendee[]
 
   @@map("users")
 }
@@ -291,9 +292,9 @@ model InviteLink {
   eventId   String
   token     String    @unique @default(uuid())
   maxUses   Int? // null = unlimited
-  usedCount Int       @default(0)
+  useCount  Int       @default(0)
   expiresAt DateTime?
-  note      String? // organizer-facing label
+  label     String?
   createdAt DateTime  @default(now())
 
   event     Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
@@ -333,11 +334,14 @@ model EventAttendee {
   status       AttendeeStatus @default(CONFIRMED)
   registeredAt DateTime       @default(now())
 
-  event        Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  inviteLink   InviteLink?   @relation(fields: [inviteLinkId], references: [id], onDelete: SetNull)
-  chatMessages ChatMessage[]
-  mediaItems   MediaItem[]
-  prizes       Prize[]       @relation("PrizeWinner")
+  event           Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user            User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  inviteLink      InviteLink?    @relation(fields: [inviteLinkId], references: [id], onDelete: SetNull)
+  sponsoredBy     EventAttendee? @relation("SponsoredGuests", fields: [addedById], references: [id], onDelete: SetNull)
+  sponsoredGuests EventAttendee[] @relation("SponsoredGuests")
+  chatMessages    ChatMessage[]
+  mediaItems      MediaItem[]
+  prizes          Prize[]        @relation("PrizeWinner")
 
   @@unique([eventId, userId]) // a user can only attend once per event
   @@index([eventId])
