@@ -5,6 +5,7 @@ import {
   Outlet,
   redirect,
 } from '@tanstack/react-router';
+import { subject } from '@casl/ability';
 import { z } from 'zod';
 import { lazy } from 'react';
 
@@ -34,10 +35,16 @@ const EventCreatePage = lazy(() => import('~/pages/events/create/page'));
 const EventDetailPage = lazy(() => import('~/pages/events/[id]/page'));
 const EventManagePage = lazy(() => import('~/pages/events/[id]/manage/page'));
 const JoinPage = lazy(() => import('~/pages/join/[token]/page'));
+import type { QueryClient } from '@tanstack/react-query';
 import type { AuthContextValue } from '~/contexts/auth';
+import { eventKeys } from '~/hooks/api/use-events';
+import { inviteLinkKeys } from '~/hooks/api/use-invite-links';
+import { eventsApi } from '~/api/events/events.api';
+import { inviteLinksApi } from '~/api/invite-links/invite-links.api';
 
 interface RouterContext {
   auth: AuthContextValue;
+  queryClient: QueryClient;
 }
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
@@ -177,6 +184,23 @@ const eventManageRoute = createRoute({
   validateSearch: z.object({
     tab: z.string().optional(),
   }),
+  beforeLoad: ({ context: { auth }, params: { id } }) => {
+    const isStaff =
+      auth.ability.can('update', subject('Event', { id })) ||
+      auth.ability.can('manage', subject('EventAttendee', { eventId: id }));
+    if (!isStaff) throw redirect({ to: '/403' });
+  },
+  loader: ({ context: { queryClient }, params: { id } }) =>
+    Promise.all([
+      queryClient.ensureQueryData({
+        queryKey: eventKeys.detail(id),
+        queryFn: () => eventsApi.getById(id),
+      }),
+      queryClient.ensureQueryData({
+        queryKey: inviteLinkKeys.byEvent(id),
+        queryFn: () => inviteLinksApi.getByEvent(id),
+      }),
+    ]),
 });
 
 // ─── Join route (public) ──────────────────────────────────────────────────────
@@ -215,7 +239,7 @@ const routeTree = rootRoute.addChildren([
 
 export const router = createRouter({
   routeTree,
-  context: { auth: undefined! },
+  context: { auth: undefined!, queryClient: undefined! },
 });
 
 declare module '@tanstack/react-router' {

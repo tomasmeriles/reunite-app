@@ -1,5 +1,6 @@
 import { Navigate } from '@tanstack/react-router';
 import { useAuth } from '~/contexts/auth';
+import { Spinner } from '~/components/ui/spinner';
 
 export default function Index() {
   const { isLoading, isAuthenticated } = useAuth();
@@ -7,7 +8,7 @@ export default function Index() {
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <Spinner size="lg" />
       </div>
     );
   }

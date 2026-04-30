@@ -13,6 +13,7 @@ import { EventCoverCard } from './event-cover-card';
 import { AboutAccessCard } from './about-access-card';
 import { WhenCard } from './when-card';
 import { WhereCard } from './where-card';
+import { InviteLinksCard } from './invite-links-card';
 import type { Event } from '~/api/events/events.types';
 
 interface OverviewTabProps {
@@ -29,31 +30,37 @@ export function OverviewTab({ event }: OverviewTabProps) {
       <WhenCard event={event} />
       <WhereCard event={event} />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Share link</CardTitle>
-          <CardDescription>
-            Send this to anyone you want to invite
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-2">
-            <Input readOnly value={eventUrl} className="font-mono text-xs" />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                void navigator.clipboard.writeText(eventUrl);
-                toast.success('Link copied!');
-              }}
-            >
-              <Copy className="h-3.5 w-3.5" />
-              <span className="sr-only sm:not-sr-only sm:ml-1.5">Copy</span>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {event.eventType === 'PUBLIC' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Share link</CardTitle>
+            <CardDescription>
+              Send this to anyone you want to invite
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-2">
+              <Input readOnly value={eventUrl} className="font-mono text-xs" />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  void navigator.clipboard.writeText(eventUrl);
+                  toast.success('Link copied!');
+                }}
+              >
+                <Copy className="h-3.5 w-3.5" />
+                <span className="sr-only sm:not-sr-only sm:ml-1.5">Copy</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {event.eventType === 'INVITE_LINK' && (
+        <InviteLinksCard event={event} />
+      )}
     </div>
   );
 }

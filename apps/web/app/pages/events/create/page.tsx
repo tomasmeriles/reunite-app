@@ -15,14 +15,6 @@ import {
   Clock,
 } from 'lucide-react';
 import { Card, CardContent } from '~/components/ui/card';
-import { Input } from '~/components/ui/input';
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from '~/components/ui/form';
 import { GoogleMap } from '~/components/ui/google-map';
 import { Stepper } from '~/components/ui/stepper';
 import type { StepDef } from '~/components/ui/stepper';
@@ -34,13 +26,18 @@ import {
   FormCardSelectField,
   FormLocationField,
   FormTimeField,
+  FormNumberField,
   StepActions,
 } from '~/components/forms';
 import type { CardSelectOption } from '~/components/forms';
 import { useCreateEvent } from '~/hooks/api/use-events';
 import { useSteppedForm } from '~/hooks/use-stepped-form';
 import { getApiErrorMessage } from '~/lib/axios';
-import { formatDateTime, getSystemTimezone, DateTime } from '~/lib/datetime';
+import {
+  formatDateTime,
+  formatHHMMDuration,
+  getSystemTimezone,
+} from '~/lib/datetime';
 import {
   createEventSchema,
   createEventBaseSchema,
@@ -178,9 +175,7 @@ export default function EventCreatePage() {
         {watched.duration && (
           <p>
             <span className="font-medium text-foreground">Duration</span>{' '}
-            {watched.duration >= 60
-              ? `${Math.floor(watched.duration / 60)}h${watched.duration % 60 > 0 ? ` ${watched.duration % 60}m` : ''}`
-              : `${watched.duration}m`}
+            {formatHHMMDuration(watched.duration)}
           </p>
         )}
       </div>
@@ -237,36 +232,13 @@ export default function EventCreatePage() {
                   label="Access type"
                   options={EVENT_TYPE_OPTIONS}
                 />
-                <FormField
+                <FormNumberField
                   control={form.control}
                   name="maxAttendees"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Max attendees{' '}
-                        <span className="text-[11px] font-normal text-muted-foreground/60 tracking-wide">
-                          optional
-                        </span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min={1}
-                          placeholder="Unlimited"
-                          value={field.value ?? ''}
-                          onBlur={field.onBlur}
-                          onChange={(e) =>
-                            field.onChange(
-                              e.target.value === ''
-                                ? undefined
-                                : parseInt(e.target.value, 10),
-                            )
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Max attendees"
+                  placeholder="Unlimited"
+                  min={1}
+                  optional
                 />
                 <StepActions onNext={handleNext} />
               </div>

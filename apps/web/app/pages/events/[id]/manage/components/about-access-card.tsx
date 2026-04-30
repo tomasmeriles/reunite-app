@@ -1,4 +1,10 @@
-import { Globe, Link as LinkIcon, Users, Pencil, UserRoundCheck } from 'lucide-react';
+import {
+  Globe,
+  Link as LinkIcon,
+  Users,
+  Pencil,
+  UserRoundCheck,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -29,14 +35,33 @@ import { LoadingButton } from '~/components/buttons';
 import { useUpdateEvent } from '~/hooks/api/use-events';
 import { useEventAccess } from '~/hooks/use-permission';
 import { getApiErrorMessage } from '~/lib/axios';
-import { updateEventSchema, eventToFormDefaults, type UpdateEventFormValues } from '~/lib/schemas/event.schema';
+import {
+  updateEventSchema,
+  eventToFormDefaults,
+  type UpdateEventFormValues,
+} from '~/lib/schemas/event.schema';
 import type { CardSelectOption } from '~/components/forms';
 import type { Event, EventType } from '~/api/events/events.types';
 
 const EVENT_TYPE_OPTIONS: CardSelectOption<EventType>[] = [
-  { value: 'PUBLIC', label: 'Public', description: 'Anyone can join', icon: Globe },
-  { value: 'INVITE_LINK', label: 'Invite link', description: 'Guests need a link to join', icon: LinkIcon },
-  { value: 'INVITE_ACCOUNT', label: 'Guest list', description: 'Pre-approved accounts only', icon: Users },
+  {
+    value: 'PUBLIC',
+    label: 'Public',
+    description: 'Anyone can join',
+    icon: Globe,
+  },
+  {
+    value: 'INVITE_LINK',
+    label: 'Invite link',
+    description: 'Guests need a link to join',
+    icon: LinkIcon,
+  },
+  {
+    value: 'INVITE_ACCOUNT',
+    label: 'Guest list',
+    description: 'Pre-approved accounts only',
+    icon: Users,
+  },
 ];
 
 // ── Edit form ─────────────────────────────────────────────────────────────────
@@ -59,13 +84,16 @@ function AboutAccessEditForm({ event, onSuccess, onCancel }: EditFormProps) {
 
   const onSubmit = (values: UpdateEventFormValues) => {
     const { title, description, eventType, maxAttendees } = values;
-    updateEvent({ title, description, eventType, maxAttendees }, {
-      onSuccess: () => {
-        toast.success('Event details updated');
-        onSuccess();
+    updateEvent(
+      { title, description, eventType, maxAttendees },
+      {
+        onSuccess: () => {
+          toast.success('Event details updated');
+          onSuccess();
+        },
+        onError: (err) => toast.error(getApiErrorMessage(err)),
       },
-      onError: (err) => toast.error(getApiErrorMessage(err)),
-    });
+    );
   };
 
   return (
@@ -104,6 +132,7 @@ function AboutAccessEditForm({ event, onSuccess, onCancel }: EditFormProps) {
                 </span>
               </FormLabel>
               <FormControl>
+                {/* // TODO: Move this to a separate input number component */}
                 <Input
                   type="number"
                   min={1}
@@ -156,7 +185,9 @@ const TYPE_ICON = {
 export function AboutAccessCard({ event }: AboutAccessCardProps) {
   const { canEdit } = useEventAccess(event.id);
   const Icon = TYPE_ICON[event.eventType];
-  const typeOption = EVENT_TYPE_OPTIONS.find((o) => o.value === event.eventType);
+  const typeOption = EVENT_TYPE_OPTIONS.find(
+    (o) => o.value === event.eventType,
+  );
 
   return (
     <Card>
