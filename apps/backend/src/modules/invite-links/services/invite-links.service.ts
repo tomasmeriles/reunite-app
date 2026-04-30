@@ -1,37 +1,43 @@
 import {
-  ForbiddenException,
   Injectable,
   NotFoundException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
-import { EventRole, EventStatus } from '@prisma/client';
+import { EventStatus } from '@prisma/client';
 import { TransactionalService } from '../../../common/base/transactional-service.base';
 import { Transactional } from '../../../common/decorators/transactional.decorator';
 import { requireEventStatus } from '../../../common/helpers/event-status.helper';
+import { defined } from '../../../common/helpers/prisma.helpers';
 import type { CreateInviteLinkDto } from '../dto/create-invite-link.dto';
+import { DateTime } from 'luxon';
+
+type UnavailableReason =
+  | 'draft'
+  | 'expired'
+  | 'max_uses_reached'
+  | 'unavailable';
 
 @Injectable()
 export class InviteLinksService extends TransactionalService {
   @Transactional()
-  async create(eventId: string, dto: CreateInviteLinkDto, userId: string) {
+  async create(eventId: string, dto: CreateInviteLinkDto) {
     await requireEventStatus(
       this.db,
       eventId,
       EventStatus.DRAFT,
       EventStatus.PUBLISHED,
       EventStatus.RESCHEDULED,
+      EventStatus.ACTIVE,
     );
-    await this.assertOrganizer(eventId, userId);
     return this.db.inviteLink.create({
       data: {
         eventId,
-        maxUses: dto.maxUses,
-        expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : undefined,
-        note: dto.note,
+        ...defined(dto),
       },
     });
   }
 
-  async findByEvent(eventId: string, userId: string) {
+  async findByEvent(eventId: string) {
     await requireEventStatus(
       this.db,
       eventId,
@@ -41,75 +47,88 @@ export class InviteLinksService extends TransactionalService {
       EventStatus.ACTIVE,
       EventStatus.ENDED,
     );
-    await this.assertOrganizer(eventId, userId);
     return this.db.inviteLink.findMany({
       where: { eventId },
       orderBy: { createdAt: 'desc' },
     });
   }
 
-  /** Public endpoint — validates a token and returns the event info (no auth needed). */
+  /** Public endpoint - returns event + link info for a token. Throws 404 for unknown tokens, 422 when link is not usable. */
   async resolveToken(token: string) {
     const link = await this.db.inviteLink.findUnique({
       where: { token },
-      include: {
-        event: {
-          include: {
-            config: true,
-            _count: {
-              select: { attendees: { where: { status: 'CONFIRMED' } } },
-            },
-          },
-        },
-      },
+      include: { event: true },
     });
+
     if (!link) throw new NotFoundException('Invite link not found');
 
+    const { event } = link;
+
+    let reason: UnavailableReason | undefined;
+
+    const now = DateTime.utc();
     const usableStatuses: EventStatus[] = [
       EventStatus.PUBLISHED,
       EventStatus.RESCHEDULED,
       EventStatus.ACTIVE,
     ];
-    if (!usableStatuses.includes(link.event.status)) {
-      throw new NotFoundException('This invite link is not available');
+    if (event.status === EventStatus.DRAFT) {
+      reason = 'draft';
+    } else if (!usableStatuses.includes(event.status)) {
+      reason = 'unavailable';
+    } else if (
+      link.expiresAt &&
+      DateTime.fromJSDate(link.expiresAt).toMillis() < now.toMillis()
+    ) {
+      reason = 'expired';
+    } else if (link.maxUses !== null && link.useCount >= link.maxUses) {
+      reason = 'max_uses_reached';
     }
 
-    if (link.expiresAt && link.expiresAt < new Date()) {
-      throw new NotFoundException('This invite link has expired');
+    const payload = {
+      event: {
+        id: link.event.id,
+        title: link.event.title,
+        description: link.event.description,
+        coverImage: link.event.coverImage,
+        location: link.event.location,
+        timezone: link.event.timezone,
+        startDate: link.event.startAt,
+        endDate: link.event.endAt,
+        maxAttendees: link.event.maxAttendees,
+      },
+      link: {
+        label: link.label,
+        maxUses: link.maxUses,
+        useCount: link.useCount,
+        expiresAt: link.expiresAt,
+      },
+    };
+
+    if (reason !== undefined) {
+      throw new UnprocessableEntityException({ reason, ...payload });
     }
-    if (link.maxUses !== null && link.usedCount >= link.maxUses) {
-      throw new NotFoundException(
-        'This invite link has reached its maximum uses',
-      );
-    }
-    return { link, event: link.event };
+
+    return payload;
   }
 
   @Transactional()
-  async delete(eventId: string, linkId: string, userId: string) {
+  async delete(eventId: string, linkId: string) {
     await requireEventStatus(
       this.db,
       eventId,
       EventStatus.DRAFT,
       EventStatus.PUBLISHED,
       EventStatus.RESCHEDULED,
+      EventStatus.ACTIVE,
     );
-    await this.assertOrganizer(eventId, userId);
+
     const link = await this.db.inviteLink.findFirst({
       where: { id: linkId, eventId },
     });
-    if (!link) throw new NotFoundException('Invite link not found');
-    await this.db.inviteLink.delete({ where: { id: linkId } });
-  }
 
-  private async assertOrganizer(eventId: string, userId: string) {
-    const member = await this.db.eventStaff.findFirst({
-      where: {
-        userId,
-        eventId,
-        role: { in: [EventRole.OWNER, EventRole.ORGANIZER] },
-      },
-    });
-    if (!member) throw new ForbiddenException('Not an organizer of this event');
+    if (!link) throw new NotFoundException('Invite link not found');
+
+    await this.db.inviteLink.delete({ where: { id: linkId } });
   }
 }

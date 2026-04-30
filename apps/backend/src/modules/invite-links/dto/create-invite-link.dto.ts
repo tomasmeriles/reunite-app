@@ -1,10 +1,6 @@
-import {
-  IsDateString,
-  IsInt,
-  IsOptional,
-  IsString,
-  Min,
-} from 'class-validator';
+import { IsDate, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { ToDate } from '../../../common/decorators/to-date.decorator';
+import { IsAfterNow } from '../../../common/decorators/is-after-now.decorator';
 
 export class CreateInviteLinkDto {
   @IsOptional()
@@ -13,10 +9,12 @@ export class CreateInviteLinkDto {
   maxUses?: number;
 
   @IsOptional()
-  @IsDateString()
-  expiresAt?: string;
+  @IsDate()
+  @ToDate()
+  @IsAfterNow({ message: 'Expiration date must be in the future' })
+  expiresAt?: Date;
 
   @IsOptional()
   @IsString()
-  note?: string;
+  label?: string;
 }
