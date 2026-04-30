@@ -15,13 +15,25 @@ export interface CreateInviteLinkDto {
   expiresAt?: string;
 }
 
+export interface ResolveInviteLinkEvent {
+  id: string;
+  title: string;
+  description: string | null;
+  coverImage: string | null;
+  location: string | null;
+  timezone: string;
+  startDate: string;
+  endDate: string;
+  maxAttendees: number | null;
+}
+
 export interface ResolveInviteLinkResponse {
-  valid: boolean;
-  event: {
-    id: string;
-    title: string;
-    startDate: string;
-    coverImage: string | null;
-  };
+  event: ResolveInviteLinkEvent;
+  link: Pick<InviteLink, 'label' | 'expiresAt' | 'maxUses' | 'useCount'>;
+}
+
+export interface ResolveInviteLinkError {
+  reason: 'draft' | 'expired' | 'max_uses_reached' | 'unavailable';
+  event: ResolveInviteLinkEvent;
   link: Pick<InviteLink, 'label' | 'expiresAt' | 'maxUses' | 'useCount'>;
 }

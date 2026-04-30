@@ -1,16 +1,12 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '~/components/ui/button';
-import { Input } from '~/components/ui/input';
-import { Label } from '~/components/ui/label';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '~/components/ui/dialog';
+import { Modal, ModalFooter } from '~/components/ui/modal';
+import { FormContainer, FormTextField } from '~/components/forms';
+import { LoadingButton } from '~/components/buttons/loading-button';
 import { useAuth } from '~/contexts/auth';
+import { joinSchema, type JoinFormValues } from '~/lib/schemas/join.schema';
 import type { EventType } from '~/api/events/events.types';
 
 interface RsvpDialogProps {
@@ -19,68 +15,71 @@ interface RsvpDialogProps {
   eventType: EventType;
   onSubmit: (guestName?: string, inviteToken?: string) => void;
   isLoading: boolean;
+  /** "self" (default) = joining yourself; "guest" = adding someone else */
+  mode?: 'self' | 'guest';
 }
 
 export function RsvpDialog({
   open,
   onOpenChange,
-  eventType,
   onSubmit,
   isLoading,
+  mode = 'self',
 }: RsvpDialogProps) {
   const { user } = useAuth();
-  const [guestName, setGuestName] = useState('');
+  const addingForSelf = mode === 'self';
 
-  const needsName = !user && eventType === 'PUBLIC';
+  const form = useForm<JoinFormValues>({
+    resolver: zodResolver(joinSchema),
+    defaultValues: { name: '' },
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(needsName ? guestName : undefined);
-  };
+  useEffect(() => {
+    form.reset({ name: open && addingForSelf ? (user?.name ?? '') : '' });
+  }, [open]);
+
+  function handleSubmit({ name }: JoinFormValues) {
+    onSubmit(name);
+  }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle>RSVP to this event</DialogTitle>
-          <DialogDescription>
-            {user
-              ? `You'll be registered as ${user.name ?? user.username}.`
-              : "You'll join as a guest. No account needed!"}
-          </DialogDescription>
-        </DialogHeader>
+    <Modal
+      open={open}
+      onOpenChange={onOpenChange}
+      title={addingForSelf ? 'Join this event' : 'Bring a guest'}
+      description={
+        addingForSelf
+          ? user
+            ? 'You can use a different name just for this event.'
+            : "You'll join as a guest. No account needed!"
+          : "Enter the name of the person you're bringing."
+      }
+      size="sm"
+    >
+      <FormContainer form={form} onSubmit={handleSubmit} className="space-y-4">
+        <FormTextField
+          control={form.control}
+          name="name"
+          label={addingForSelf ? 'Your name' : "Guest's name"}
+          placeholder={
+            addingForSelf ? (user?.name ?? 'Enter your name') : 'Jane Smith'
+          }
+          autoFocus
+        />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {needsName && (
-            <div className="space-y-1.5">
-              <Label htmlFor="guestName">Your name</Label>
-              <Input
-                id="guestName"
-                placeholder="Enter your name"
-                value={guestName}
-                onChange={(e) => setGuestName(e.target.value)}
-                required
-              />
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isLoading || (needsName && !guestName.trim())}
-            >
-              {isLoading ? 'Joining…' : 'Count me in! 🎉'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+        <ModalFooter>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => onOpenChange(false)}
+          >
+            Cancel
+          </Button>
+          <LoadingButton type="submit" isLoading={isLoading} loadingText="Adding…">
+            {addingForSelf ? 'Count me in! 🎉' : 'Add guest'}
+          </LoadingButton>
+        </ModalFooter>
+      </FormContainer>
+    </Modal>
   );
 }

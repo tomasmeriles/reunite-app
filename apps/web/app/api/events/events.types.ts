@@ -27,7 +27,7 @@ export interface Event {
   location: string | null;
   latitude: number | null;
   longitude: number | null;
-  timezone: string | null;
+  timezone: string;
   startAt: string;
   endAt: string;
   duration: number;

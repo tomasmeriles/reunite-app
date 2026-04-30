@@ -36,11 +36,16 @@ export function useRegisterAttendee(eventId: string) {
       if (data.guestToken) {
         localStorage.setItem(`guest_token_${eventId}`, data.guestToken);
       }
+      // Populate myAttendance immediately from the registration response.
+      // Avoids a race where the refetch runs before localStorage has the
+      // guestToken, which would cause the query to return null.
+      queryClient.setQueryData(attendanceKeys.mine(eventId), data);
+      // exact: true — attendees key ['attendance', eventId] is a prefix of
+      // mine key ['attendance', eventId, 'me'], so without exact the mine
+      // query gets invalidated and refetched with a stale guestToken.
       queryClient.invalidateQueries({
         queryKey: attendanceKeys.attendees(eventId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: attendanceKeys.mine(eventId),
+        exact: true,
       });
     },
   });
@@ -61,6 +66,23 @@ export function useUnregisterAttendee(eventId: string) {
       });
       queryClient.invalidateQueries({
         queryKey: attendanceKeys.mine(eventId),
+      });
+    },
+  });
+}
+
+export function useAddGuest(eventId: string) {
+  const queryClient = useQueryClient();
+  const guestToken =
+    typeof window !== 'undefined'
+      ? (localStorage.getItem(`guest_token_${eventId}`) ?? undefined)
+      : undefined;
+  return useMutation({
+    mutationFn: (guestName: string) =>
+      attendanceApi.addGuest(eventId, guestName, guestToken),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: attendanceKeys.attendees(eventId),
       });
     },
   });

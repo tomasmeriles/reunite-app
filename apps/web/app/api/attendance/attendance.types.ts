@@ -5,6 +5,7 @@ export interface EventAttendee {
   eventId: string;
   userId: string | null;
   guestName: string | null;
+  addedById: string | null;
   status: AttendeeStatus;
   registeredAt: string;
   user?: {
@@ -13,6 +14,12 @@ export interface EventAttendee {
     username: string;
     avatar: string | null;
   };
+  sponsoredBy?: {
+    id: string;
+    guestName: string | null;
+    user: { name: string | null; username: string } | null;
+  } | null;
+  inviteLink?: { maxUses: number | null; useCount: number } | null;
 }
 
 export interface RegisterAttendeeDto {
@@ -20,8 +27,7 @@ export interface RegisterAttendeeDto {
   inviteToken?: string;
 }
 
-export interface RegisterAttendeeResponse {
-  attendee: EventAttendee;
+export interface RegisterAttendeeResponse extends EventAttendee {
   /** Only present when attendee is a guest (no account) */
   guestToken?: string;
 }

@@ -38,6 +38,7 @@ export function useEventPermission(
 
 export interface EventAccess {
   // ── Staff-only actions (CASL) ──────────────────────────────────────────────
+  isStaff: boolean;
   canEdit: boolean;
   canDelete: boolean;
   canManageAttendees: boolean;
@@ -80,6 +81,9 @@ export function useEventAccess(eventId: string): EventAccess {
   const isConfirmedAttendee = attendance?.status === 'CONFIRMED';
 
   // ── Staff-only actions ─────────────────────────────────────────────────────
+  const isStaff =
+    ability.can('update', subject('Event', { id: eventId })) ||
+    ability.can('manage', subject('EventAttendee', { eventId }));
   const canEdit = ability.can('update', subject('Event', { id: eventId }));
   const canDelete = ability.can('delete', subject('Event', { id: eventId }));
   const canManageAttendees = ability.can(
@@ -121,6 +125,7 @@ export function useEventAccess(eventId: string): EventAccess {
     status === 'DRAFT' || status === 'PUBLISHED' || status === 'RESCHEDULED';
 
   return {
+    isStaff,
     canEdit: canEdit && isEditable,
     canDelete: canDelete && (status === 'DRAFT' || status === 'CANCELLED'),
     canManageAttendees:

@@ -29,4 +29,13 @@ export const attendanceApi = {
         headers: guestToken ? { 'x-guest-token': guestToken } : {},
       })
       .then((r) => r.data),
+
+  addGuest: (eventId: string, guestName: string, guestToken?: string) =>
+    apiClient
+      .post<RegisterAttendeeResponse>(
+        `/events/${eventId}/attendees/bring-guest`,
+        { guestName },
+        { headers: guestToken ? { 'x-guest-token': guestToken } : {} },
+      )
+      .then((r) => r.data),
 };
