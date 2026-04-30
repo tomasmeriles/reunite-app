@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Confetti from 'react-confetti';
+import { useMediaQuery } from '~/hooks/use-media-query';
 
 interface ConfettiOverlayProps {
   onComplete?: () => void;
@@ -8,48 +9,68 @@ interface ConfettiOverlayProps {
 
 export function ConfettiOverlay({
   onComplete,
-  duration = 4000,
+  duration = 2400,
 }: ConfettiOverlayProps) {
+  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
   const [dimensions, setDimensions] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight,
+    width: typeof window === 'undefined' ? 0 : window.innerWidth,
+    height: typeof window === 'undefined' ? 0 : window.innerHeight,
   });
-  const [run, setRun] = useState(true);
+  const [opacity, setOpacity] = useState(1);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const handleResize = () =>
-      setDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
+      setDimensions({ width: window.innerWidth, height: window.innerHeight });
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setRun(false);
+    if (prefersReducedMotion) {
       onComplete?.();
-    }, duration);
-    return () => clearTimeout(timer);
-  }, [duration, onComplete]);
+      return;
+    }
 
-  if (!run) return null;
+    setOpacity(1);
+    const fadeTimer = setTimeout(() => setOpacity(0), Math.max(0, duration - 700));
+    const doneTimer = setTimeout(() => onComplete?.(), duration);
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(doneTimer);
+    };
+  }, [duration, onComplete, prefersReducedMotion]);
+
+  if (prefersReducedMotion) return null;
 
   return (
-    <Confetti
-      width={dimensions.width}
-      height={dimensions.height}
-      recycle={false}
-      numberOfPieces={350}
-      gravity={0.25}
+    <div
       style={{
+        opacity,
+        transition: 'opacity 0.7s ease',
         position: 'fixed',
-        top: 0,
-        left: 0,
+        inset: 0,
         zIndex: 9999,
         pointerEvents: 'none',
       }}
-    />
+    >
+      <Confetti
+        width={dimensions.width}
+        height={dimensions.height}
+        confettiSource={{
+          x: dimensions.width / 2,
+          y: dimensions.height * 0.55,
+          w: 0,
+          h: 0,
+        }}
+        initialVelocityX={38}
+        initialVelocityY={38}
+        gravity={0.28}
+        numberOfPieces={320}
+        recycle={false}
+        tweenDuration={50}
+      />
+    </div>
   );
 }

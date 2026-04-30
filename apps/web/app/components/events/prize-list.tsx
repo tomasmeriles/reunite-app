@@ -3,13 +3,8 @@ import { toast } from 'sonner';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Badge } from '~/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '~/components/ui/dialog';
+import { Card, CardContent } from '~/components/ui/card';
+import { Modal } from '~/components/ui/modal';
 import { Skeleton } from '~/components/ui/skeleton';
 import {
   usePrizes,
@@ -152,22 +147,27 @@ export function PrizeList({ eventId, canManage }: PrizeListProps) {
       </div>
 
       {/* Winner announcement dialog */}
-      <Dialog open={!!drawPrize} onOpenChange={() => setDrawPrize(null)}>
-        <DialogContent className="text-center">
-          <DialogHeader>
-            <DialogTitle className="text-2xl">🎉 We have a winner!</DialogTitle>
-          </DialogHeader>
-          {drawPrize && (
-            <div className="space-y-2 py-4">
+      <Modal
+        open={!!drawPrize}
+        onOpenChange={() => setDrawPrize(null)}
+        title="🎉 We have a winner!"
+        contentClassName="text-center"
+        size="sm"
+      >
+        {drawPrize && (
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
               <p className="text-4xl font-bold">{getWinnerName(drawPrize)}</p>
               <p className="text-muted-foreground">
                 wins the <strong>{drawPrize.title}</strong> prize!
               </p>
             </div>
-          )}
-          <Button onClick={() => setDrawPrize(null)}>Awesome!</Button>
-        </DialogContent>
-      </Dialog>
+            <Button className="w-full" onClick={() => setDrawPrize(null)}>
+              Awesome!
+            </Button>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

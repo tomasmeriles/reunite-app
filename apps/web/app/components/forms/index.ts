@@ -1,5 +1,6 @@
 export { FormContainer } from './form-container';
 export { FormTextField } from './form-text-field';
+export { FormNumberField } from './form-number-field';
 export { FormPasswordField } from './form-password-field';
 export { FormTextareaField } from './form-textarea-field';
 export { FormSelectField } from './form-select-field';

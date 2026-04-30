@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { cn } from '~/lib/utils';
+import { Spinner } from '~/components/ui/spinner';
 import {
   Dialog,
   DialogContent,
@@ -20,7 +21,6 @@ import {
   AlertDialogTrigger,
   AlertDialogMedia,
 } from '~/components/ui/alert-dialog';
-import { Button } from '~/components/ui/button';
 import type { VariantProps } from 'class-variance-authority';
 import type { buttonVariants } from '~/components/ui/button';
 
@@ -249,9 +249,7 @@ export function ConfirmModal({
           onClick={onConfirm}
           disabled={isLoading}
         >
-          {isLoading && (
-            <span className="size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-          )}
+          {isLoading && <Spinner size="sm" />}
           {confirmLabel}
         </AlertDialogAction>
       </AlertDialogFooter>

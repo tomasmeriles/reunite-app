@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Button, buttonVariants } from '~/components/ui/button';
+import { Spinner } from '~/components/ui/spinner';
 import type { VariantProps } from 'class-variance-authority';
 import {
   DropdownMenu,
@@ -63,7 +64,7 @@ export function SplitButton<T = string>({
       >
         {isLoading ? (
           <span className="flex items-center gap-1.5">
-            <span className="size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            <Spinner size="sm" />
             {primary.label}
           </span>
         ) : (

@@ -9,6 +9,7 @@ import { TooltipProvider } from '~/components/ui/tooltip';
 import { ThemeProvider } from '~/contexts/theme';
 import { AuthProvider, useAuth } from '~/contexts/auth';
 import { AuthModalProvider } from '~/contexts/auth-modal';
+import { ConfettiProvider } from '~/contexts/confetti';
 import { NuqsAdapter } from 'nuqs/adapters/tanstack-router';
 import { router } from '~/router';
 import './app.css';
@@ -23,7 +24,7 @@ function InnerApp() {
   const auth = useAuth();
   return (
     <NuqsAdapter>
-      <RouterProvider router={router} context={{ auth }} />
+      <RouterProvider router={router} context={{ auth, queryClient }} />
     </NuqsAdapter>
   );
 }
@@ -35,10 +36,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <ThemeProvider>
           <TooltipProvider>
             <AuthProvider>
-              <AuthModalProvider>
-                <InnerApp />
-                <Toaster richColors position="top-right" />
-              </AuthModalProvider>
+              <ConfettiProvider>
+                <AuthModalProvider>
+                  <InnerApp />
+                  <Toaster richColors position="top-right" />
+                </AuthModalProvider>
+              </ConfettiProvider>
             </AuthProvider>
           </TooltipProvider>
         </ThemeProvider>
