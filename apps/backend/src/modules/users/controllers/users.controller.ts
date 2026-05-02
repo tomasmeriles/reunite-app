@@ -19,6 +19,7 @@ import type { SafeUser } from '../selects/user.select';
 import { UsersService } from '../services/users.service';
 import { Audit } from '../../audit/decorators/audit.decorator';
 import { AuditAction, AuditResource } from '@prisma/client';
+import { ErrorCode } from '../../../common/errors/error-codes.enum';
 
 @Controller('users')
 export class UsersController {
@@ -35,7 +36,7 @@ export class UsersController {
     @Param('username') username: string,
   ): Promise<SafeUser> {
     const user = await this.users.findByUsername(username);
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException({ code: ErrorCode.USER_NOT_FOUND });
     return user;
   }
 

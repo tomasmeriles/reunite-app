@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ErrorCode } from '../../../common/errors/error-codes.enum';
 import { EventRole, EventStatus } from '@prisma/client';
 import { TransactionalService } from '../../../common/base/transactional-service.base';
 import { Transactional } from '../../../common/decorators/transactional.decorator';
@@ -27,15 +28,12 @@ export class WhitelistService extends TransactionalService {
       where: { username: dto.username },
       select: { id: true, username: true, name: true, avatar: true },
     });
-    if (!user) throw new NotFoundException(`User @${dto.username} not found`);
+    if (!user) throw new NotFoundException({ code: ErrorCode.USER_NOT_FOUND });
 
     const existing = await this.db.eventWhitelistEntry.findUnique({
       where: { eventId_userId: { eventId, userId: user.id } },
     });
-    if (existing)
-      throw new ConflictException(
-        `@${dto.username} is already on the guest list`,
-      );
+    if (existing) throw new ConflictException({ code: ErrorCode.ALREADY_ON_WHITELIST });
 
     const entry = await this.db.eventWhitelistEntry.create({
       data: { eventId, userId: user.id, status: 'WAITLISTED' },
@@ -75,7 +73,7 @@ export class WhitelistService extends TransactionalService {
     const entry = await this.db.eventWhitelistEntry.findFirst({
       where: { id: entryId, eventId },
     });
-    if (!entry) throw new NotFoundException('Whitelist entry not found');
+    if (!entry) throw new NotFoundException({ code: ErrorCode.WHITELIST_ENTRY_NOT_FOUND });
     await this.db.eventWhitelistEntry.delete({ where: { id: entryId } });
   }
 
@@ -87,6 +85,6 @@ export class WhitelistService extends TransactionalService {
         role: { in: [EventRole.OWNER, EventRole.ORGANIZER] },
       },
     });
-    if (!member) throw new ForbiddenException('Not an organizer of this event');
+    if (!member) throw new ForbiddenException({ code: ErrorCode.FORBIDDEN });
   }
 }

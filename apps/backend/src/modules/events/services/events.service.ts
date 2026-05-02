@@ -5,6 +5,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ErrorCode } from '../../../common/errors/error-codes.enum';
 import { EventRole, EventStatus } from '@prisma/client';
 import { TransactionalService } from '../../../common/base/transactional-service.base';
 import { Transactional } from '../../../common/decorators/transactional.decorator';
@@ -113,7 +114,7 @@ export class EventsService extends TransactionalService {
       include: eventDetailInclude,
     });
 
-    if (!event) throw new NotFoundException('Event not found');
+    if (!event) throw new NotFoundException({ code: ErrorCode.EVENT_NOT_FOUND });
 
     return event;
   }
@@ -126,7 +127,7 @@ export class EventsService extends TransactionalService {
       include: eventPublicInclude,
     });
 
-    if (!event) throw new NotFoundException('Event not found');
+    if (!event) throw new NotFoundException({ code: ErrorCode.EVENT_NOT_FOUND });
 
     return event;
   }
@@ -221,7 +222,7 @@ export class EventsService extends TransactionalService {
       select: { status: true, startAt: true, endAt: true, timezone: true },
     });
 
-    if (!event) throw new NotFoundException('Event not found');
+    if (!event) throw new NotFoundException({ code: ErrorCode.EVENT_NOT_FOUND });
 
     assertValidTransition(event.status, dto.status);
 
@@ -233,9 +234,7 @@ export class EventsService extends TransactionalService {
       dto.status === EventStatus.PUBLISHED &&
       startAt.toMillis() <= now.toMillis()
     ) {
-      throw new BadRequestException(
-        'Start date is in the past. Update the event date before publishing.',
-      );
+      throw new BadRequestException({ code: ErrorCode.EVENT_START_IN_PAST });
     }
 
     const extra: Record<string, Date> = {};
@@ -323,7 +322,7 @@ export class EventsService extends TransactionalService {
       select: { status: true },
     });
 
-    if (!event) throw new NotFoundException('Event not found');
+    if (!event) throw new NotFoundException({ code: ErrorCode.EVENT_NOT_FOUND });
     assertEventStatus(event.status, EventStatus.DRAFT, EventStatus.CANCELLED);
 
     const members = await this.db.eventStaff.findMany({

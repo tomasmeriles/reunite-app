@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ErrorCode } from '../../../common/errors/error-codes.enum';
 import { AttendeeStatus, EventRole, EventStatus } from '@prisma/client';
 import { PrismaService } from '../../../prisma/services/prisma.service';
 import { requireEventStatus } from '../../../common/helpers/event-status.helper';
@@ -57,9 +58,9 @@ export class PrizesService {
     const prize = await this.prisma.prize.findFirst({
       where: { id: prizeId, eventId },
     });
-    if (!prize) throw new NotFoundException('Prize not found');
+    if (!prize) throw new NotFoundException({ code: ErrorCode.PRIZE_NOT_FOUND });
     if (prize.winnerId)
-      throw new BadRequestException('Winner already assigned');
+      throw new BadRequestException({ code: ErrorCode.WINNER_ALREADY_ASSIGNED });
 
     let attendeeId = dto.attendeeId;
 
@@ -69,7 +70,7 @@ export class PrizesService {
         select: { id: true },
       });
       if (attendees.length === 0) {
-        throw new BadRequestException('No confirmed attendees to pick from');
+        throw new BadRequestException({ code: ErrorCode.NO_ATTENDEES });
       }
       attendeeId = attendees[Math.floor(Math.random() * attendees.length)]!.id;
     } else {
@@ -77,7 +78,7 @@ export class PrizesService {
         where: { id: attendeeId, eventId, status: AttendeeStatus.CONFIRMED },
       });
       if (!attendee)
-        throw new NotFoundException('Attendee not found in this event');
+        throw new NotFoundException({ code: ErrorCode.ATTENDEE_NOT_FOUND });
     }
 
     return this.prisma.prize.update({
@@ -102,7 +103,7 @@ export class PrizesService {
     const prize = await this.prisma.prize.findFirst({
       where: { id: prizeId, eventId },
     });
-    if (!prize) throw new NotFoundException('Prize not found');
+    if (!prize) throw new NotFoundException({ code: ErrorCode.PRIZE_NOT_FOUND });
     await this.prisma.prize.delete({ where: { id: prizeId } });
   }
 
@@ -114,6 +115,6 @@ export class PrizesService {
         role: { in: [EventRole.OWNER, EventRole.ORGANIZER] },
       },
     });
-    if (!member) throw new ForbiddenException('Not an organizer of this event');
+    if (!member) throw new ForbiddenException({ code: ErrorCode.FORBIDDEN });
   }
 }

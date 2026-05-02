@@ -3,6 +3,7 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
+import { ErrorCode } from '../../../common/errors/error-codes.enum';
 import { EventStatus } from '@prisma/client';
 import { TransactionalService } from '../../../common/base/transactional-service.base';
 import { Transactional } from '../../../common/decorators/transactional.decorator';
@@ -60,7 +61,7 @@ export class InviteLinksService extends TransactionalService {
       include: { event: true },
     });
 
-    if (!link) throw new NotFoundException('Invite link not found');
+    if (!link) throw new NotFoundException({ code: ErrorCode.INVITE_LINK_NOT_FOUND });
 
     const { event } = link;
 
@@ -127,7 +128,7 @@ export class InviteLinksService extends TransactionalService {
       where: { id: linkId, eventId },
     });
 
-    if (!link) throw new NotFoundException('Invite link not found');
+    if (!link) throw new NotFoundException({ code: ErrorCode.INVITE_LINK_NOT_FOUND });
 
     await this.db.inviteLink.delete({ where: { id: linkId } });
   }

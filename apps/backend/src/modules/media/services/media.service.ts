@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ErrorCode } from '../../../common/errors/error-codes.enum';
 import { AttendeeStatus, EventRole, EventStatus } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../../prisma/services/prisma.service';
@@ -32,9 +33,7 @@ export class MediaService {
       where: { id: attendeeId, eventId, status: AttendeeStatus.CONFIRMED },
     });
     if (!attendee)
-      throw new ForbiddenException(
-        'Must be a confirmed attendee to upload media',
-      );
+      throw new ForbiddenException({ code: ErrorCode.NOT_ATTENDING });
 
     const base = `events/${eventId}/media/${randomUUID()}`;
 
@@ -86,7 +85,7 @@ export class MediaService {
       where: { id: itemId, eventId },
       include: { attendee: true },
     });
-    if (!item) throw new NotFoundException('Media item not found');
+    if (!item) throw new NotFoundException({ code: ErrorCode.MEDIA_NOT_FOUND });
 
     const isUploader = item.attendee.id === requesterId;
     if (!isUploader) {
@@ -111,6 +110,6 @@ export class MediaService {
         role: { in: [EventRole.OWNER, EventRole.ORGANIZER] },
       },
     });
-    if (!member) throw new ForbiddenException('Not an organizer of this event');
+    if (!member) throw new ForbiddenException({ code: ErrorCode.FORBIDDEN });
   }
 }

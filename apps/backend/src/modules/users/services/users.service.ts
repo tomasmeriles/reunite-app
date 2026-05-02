@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ErrorCode } from '../../../common/errors/error-codes.enum';
 import { TransactionalService } from '../../../common/base/transactional-service.base';
 import { Transactional } from '../../../common/decorators/transactional.decorator';
 import {
@@ -72,7 +73,7 @@ export class UsersService extends TransactionalService {
 
   async findByIdOrFail(id: string): Promise<SafeUser> {
     const user = await this.findById(id);
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException({ code: ErrorCode.USER_NOT_FOUND });
     return user;
   }
 
@@ -111,10 +112,10 @@ export class UsersService extends TransactionalService {
       }),
     ]);
     if (existingEmail) {
-      throw new ConflictException('Email already in use');
+      throw new ConflictException({ code: ErrorCode.EMAIL_TAKEN });
     }
     if (existingUsername) {
-      throw new ConflictException('Username already taken');
+      throw new ConflictException({ code: ErrorCode.USERNAME_TAKEN });
     }
     return this.db.user.create({
       data: {

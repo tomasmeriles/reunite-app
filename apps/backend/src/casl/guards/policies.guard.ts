@@ -6,6 +6,7 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ErrorCode } from '../../common/errors/error-codes.enum';
 import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
 import { CaslAbilityFactory } from '../factories/casl-ability.factory';
@@ -43,14 +44,14 @@ export class PoliciesGuard implements CanActivate {
     const userId = req.user?.id;
 
     if (!userId) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException({ code: ErrorCode.UNAUTHORIZED });
     }
 
     const ability = await this.resolveAbility(userId);
 
     const allowed = handlers.every((handler) => handler(ability, req));
 
-    if (!allowed) throw new ForbiddenException();
+    if (!allowed) throw new ForbiddenException({ code: ErrorCode.FORBIDDEN });
 
     return true;
   }
@@ -65,7 +66,7 @@ export class PoliciesGuard implements CanActivate {
     // 2. Build from DB
     const user = await this.users.findWithMemberships(userId);
     if (!user) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException({ code: ErrorCode.UNAUTHORIZED });
     }
 
     const ability = this.abilityFactory.buildAbilities(user);

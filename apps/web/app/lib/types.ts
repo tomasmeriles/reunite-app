@@ -67,7 +67,8 @@ export interface Page<T> {
 
 export interface ApiError {
   statusCode: number;
-  message: string;
-  error: string;
+  message?: string;
+  code?: string;
+  error?: string;
   requestId: string | null;
 }

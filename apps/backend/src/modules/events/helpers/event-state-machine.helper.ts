@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { EventStatus } from '@prisma/client';
+import { ErrorCode } from '../../../common/errors/error-codes.enum';
 
 const VALID_TRANSITIONS: Record<EventStatus, EventStatus[]> = {
   [EventStatus.DRAFT]: [EventStatus.PUBLISHED, EventStatus.CANCELLED],
@@ -37,9 +38,6 @@ export function assertValidTransition(
   if (from === to) return;
   const allowed = getValidTransitions(from);
   if (!allowed.includes(to)) {
-    throw new BadRequestException(
-      `Cannot transition event from ${from} to ${to}. ` +
-        `Allowed: ${allowed.length ? allowed.join(', ') : 'none'}.`,
-    );
+    throw new BadRequestException({ code: ErrorCode.INVALID_STATUS_TRANSITION });
   }
 }

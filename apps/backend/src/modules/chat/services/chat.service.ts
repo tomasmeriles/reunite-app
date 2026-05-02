@@ -1,6 +1,7 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { EventStatus } from '@prisma/client';
 import { PrismaService } from '../../../prisma/services/prisma.service';
+import { ErrorCode } from '../../../common/errors/error-codes.enum';
 
 const MESSAGE_PAGE_SIZE = 40;
 
@@ -13,9 +14,9 @@ export class ChatService {
       where: { id: eventId },
       select: { status: true },
     });
-    if (!event) throw new NotFoundException('Event not found');
+    if (!event) throw new NotFoundException({ code: ErrorCode.EVENT_NOT_FOUND });
     if (event.status !== EventStatus.ACTIVE) {
-      throw new ForbiddenException('Chat is only available during the live event.');
+      throw new ForbiddenException({ code: ErrorCode.CHAT_NOT_AVAILABLE });
     }
 
     // Verify attendee belongs to this event
@@ -23,7 +24,7 @@ export class ChatService {
       where: { id: attendeeId, eventId, status: 'CONFIRMED' },
     });
     if (!attendee)
-      throw new NotFoundException('Attendee not found in this event');
+      throw new NotFoundException({ code: ErrorCode.ATTENDEE_NOT_FOUND });
 
     return this.prisma.chatMessage.create({
       data: { eventId, attendeeId, content },
