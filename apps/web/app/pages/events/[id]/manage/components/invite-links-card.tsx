@@ -28,7 +28,7 @@ import {
   useCreateInviteLink,
   useDeleteInviteLink,
 } from '~/hooks/api/use-invite-links';
-import { getApiErrorMessage } from '~/lib/axios';
+import { useApiError } from '~/hooks/use-api-error';
 import { formatDateTime, localISOToEventISO } from '~/lib/datetime';
 import type { Event } from '~/api/events/events.types';
 import {
@@ -65,6 +65,7 @@ function UsageBadge({
 }
 
 export function InviteLinksCard({ event }: InviteLinksCardProps) {
+  const apiError = useApiError();
   const { data: links, isLoading } = useInviteLinks(event.id);
   const { mutate: createLink, isPending: creating } = useCreateInviteLink(
     event.id,
@@ -97,7 +98,7 @@ export function InviteLinksCard({ event }: InviteLinksCardProps) {
         handleOpenChange(false);
       },
       onError: (err) =>
-        toast.error(getApiErrorMessage(err, 'Could not create link')),
+        toast.error(apiError(err)),
     });
   }
 
@@ -110,7 +111,7 @@ export function InviteLinksCard({ event }: InviteLinksCardProps) {
     deleteLink(linkId, {
       onSuccess: () => toast.success('Link deleted'),
       onError: (err) =>
-        toast.error(getApiErrorMessage(err, 'Could not delete link')),
+        toast.error(apiError(err)),
     });
   };
 

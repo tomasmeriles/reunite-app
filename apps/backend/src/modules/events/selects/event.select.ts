@@ -12,6 +12,7 @@ export type EventListPayload = Prisma.EventGetPayload<{
 export const eventDetailInclude = {
   config: true,
   rules: true,
+  staff: { select: { userId: true, role: true } },
 } satisfies Prisma.EventInclude;
 
 export type EventDetailPayload = Prisma.EventGetPayload<{
@@ -21,6 +22,7 @@ export type EventDetailPayload = Prisma.EventGetPayload<{
 export const eventPublicInclude = {
   config: true,
   rules: true,
+  staff: { select: { userId: true, role: true } },
   _count: {
     select: { attendees: { where: { status: AttendeeStatus.CONFIRMED } } },
   },

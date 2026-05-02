@@ -16,7 +16,7 @@ import { FormContainer, FormDateTimeField, FormTimeField } from '~/components/fo
 import { LoadingButton } from '~/components/buttons';
 import { useUpdateEvent } from '~/hooks/api/use-events';
 import { useEventAccess } from '~/hooks/use-permission';
-import { getApiErrorMessage } from '~/lib/axios';
+import { useApiError } from '~/hooks/use-api-error';
 import { getSystemTimezone, formatDateTime } from '~/lib/datetime';
 import {
   updateEventSchema,
@@ -35,6 +35,7 @@ interface EditFormProps {
 }
 
 function WhenEditForm({ event, onSuccess, onCancel }: EditFormProps) {
+  const apiError = useApiError();
   const { mutate: updateEvent, isPending } = useUpdateEvent(event.id);
 
   const form = useForm<UpdateEventFormValues>({
@@ -50,7 +51,7 @@ function WhenEditForm({ event, onSuccess, onCancel }: EditFormProps) {
         toast.success('Event dates updated');
         onSuccess();
       },
-      onError: (err) => toast.error(getApiErrorMessage(err)),
+      onError: (err) => toast.error(apiError(err)),
     });
   };
 

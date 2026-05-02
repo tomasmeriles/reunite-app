@@ -13,7 +13,7 @@ import { Alert, AlertDescription } from '~/components/ui/alert';
 import { SplitButton } from '~/components/buttons';
 import { ConfirmModal } from '~/components/ui/modal';
 import { useUpdateEventStatus } from '~/hooks/api/use-events';
-import { getApiErrorMessage } from '~/lib/axios';
+import { useApiError } from '~/hooks/use-api-error';
 import {
   STATUS_META,
   getPrimaryTransition,
@@ -46,6 +46,7 @@ function getStatusChangeMessage(status: EventStatus) {
 }
 
 export function EventStatusCard({ event }: EventStatusCardProps) {
+  const apiError = useApiError();
   const { mutate: updateStatus, isPending } = useUpdateEventStatus(event.id);
   const [pendingTransition, setPendingTransition] =
     useState<StatusTransition | null>(null);
@@ -55,7 +56,7 @@ export function EventStatusCard({ event }: EventStatusCardProps) {
       { status },
       {
         onSuccess: () => toast.success(getStatusChangeMessage(status)),
-        onError: (err) => toast.error(getApiErrorMessage(err)),
+        onError: (err) => toast.error(apiError(err)),
       },
     );
   };

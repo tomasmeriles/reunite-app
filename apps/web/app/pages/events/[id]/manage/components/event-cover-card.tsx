@@ -6,7 +6,7 @@ import { ImageWithFallback } from '~/components/ui/image-with-fallback';
 import { EventCoverPlaceholder } from '~/components/events/event-cover-placeholder';
 import { useUploadEventCover } from '~/hooks/api/use-events';
 import { useEventAccess } from '~/hooks/use-permission';
-import { getApiErrorMessage } from '~/lib/axios';
+import { useApiError } from '~/hooks/use-api-error';
 import type { Event } from '~/api/events/events.types';
 
 interface EventCoverCardProps {
@@ -14,6 +14,7 @@ interface EventCoverCardProps {
 }
 
 export function EventCoverCard({ event }: EventCoverCardProps) {
+  const apiError = useApiError();
   const { canEdit } = useEventAccess(event.id);
   const { mutate: uploadCover, isPending } = useUploadEventCover(event.id);
 
@@ -22,7 +23,7 @@ export function EventCoverCard({ event }: EventCoverCardProps) {
     if (!file) return;
     uploadCover(file, {
       onSuccess: () => toast.success('Cover image updated'),
-      onError: (err) => toast.error(getApiErrorMessage(err)),
+      onError: (err) => toast.error(apiError(err)),
     });
   };
 

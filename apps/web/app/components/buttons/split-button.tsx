@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type React from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Button, buttonVariants } from '~/components/ui/button';
 import { Spinner } from '~/components/ui/spinner';
@@ -17,6 +18,7 @@ import { cn } from '~/lib/utils';
 export interface SplitButtonOption<T = string> {
   value: T;
   label: string;
+  icon?: React.ReactNode;
   description?: string;
   variant?: VariantProps<typeof buttonVariants>['variant'];
   /** If true, a separator is rendered before this option in the dropdown. */
@@ -68,7 +70,10 @@ export function SplitButton<T = string>({
             {primary.label}
           </span>
         ) : (
-          primary.label
+          <span className="flex items-center gap-1.5">
+            {primary.icon}
+            {primary.label}
+          </span>
         )}
       </Button>
 
@@ -103,13 +108,16 @@ export function SplitButton<T = string>({
                   variant={opt.variant === 'destructive' ? 'destructive' : 'default'}
                   className="cursor-pointer"
                 >
-                  <div className="flex flex-col gap-0.5">
-                    <span className="font-medium">{opt.label}</span>
-                    {opt.description && (
-                      <span className="text-xs text-muted-foreground font-normal">
-                        {opt.description}
-                      </span>
-                    )}
+                  <div className="flex items-start gap-2">
+                    {opt.icon && <span className="mt-0.5 shrink-0">{opt.icon}</span>}
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-medium">{opt.label}</span>
+                      {opt.description && (
+                        <span className="text-xs text-muted-foreground font-normal">
+                          {opt.description}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </DropdownMenuItem>
               </div>

@@ -40,6 +40,7 @@ export interface Event {
   createdAt: string;
   updatedAt: string;
   config?: EventConfig;
+  staff?: { userId: string; role: 'OWNER' | 'ORGANIZER' }[];
 }
 
 export interface CreateEventDto {

@@ -10,7 +10,7 @@ import { Switch } from '~/components/ui/switch';
 import { Label } from '~/components/ui/label';
 import { useUpdateEventConfig } from '~/hooks/api/use-events';
 import { useEventAccess } from '~/hooks/use-permission';
-import { getApiErrorMessage } from '~/lib/axios';
+import { useApiError } from '~/hooks/use-api-error';
 import type { Event, UpdateEventConfigDto } from '~/api/events/events.types';
 
 const TOGGLES: {
@@ -45,6 +45,7 @@ interface EventSettingsCardProps {
 }
 
 export function EventSettingsCard({ event }: EventSettingsCardProps) {
+  const apiError = useApiError();
   const { canManageConfig } = useEventAccess(event.id);
   const { mutate: updateConfig, isPending } = useUpdateEventConfig(event.id);
 
@@ -53,7 +54,7 @@ export function EventSettingsCard({ event }: EventSettingsCardProps) {
       { [field]: value },
       {
         onSuccess: () => toast.success('Settings updated'),
-        onError: (err) => toast.error(getApiErrorMessage(err)),
+        onError: (err) => toast.error(apiError(err)),
       },
     );
   };

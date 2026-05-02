@@ -1,15 +1,17 @@
 import { useParams, Link } from '@tanstack/react-router';
 import { useQueryState, parseAsStringLiteral } from 'nuqs';
 import { Helmet } from 'react-helmet-async';
-import { LayoutDashboard, Settings2, ExternalLink } from 'lucide-react';
+import { LayoutDashboard, Settings2, ExternalLink, Users } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { Skeleton } from '~/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { useEvent } from '~/hooks/api/use-events';
+import { useAuth } from '~/contexts/auth';
 import { OverviewTab } from './components/overview-tab';
 import { ConfigTab } from './components/config-tab';
+import { ManageAttendeesCard } from './components/manage-attendees-card';
 
-const TABS = ['overview', 'config'] as const;
+const TABS = ['overview', 'config', 'attendees'] as const;
 type TabValue = (typeof TABS)[number];
 
 export default function EventManagePage() {
@@ -19,7 +21,12 @@ export default function EventManagePage() {
     parseAsStringLiteral(TABS).withDefault('overview'),
   );
 
+  const { user } = useAuth();
   const { data: event, isLoading } = useEvent(id);
+  const staffRoles = Object.fromEntries(
+    (event?.staff ?? []).map((s) => [s.userId, s.role]),
+  ) as Record<string, 'OWNER' | 'ORGANIZER'>;
+  const currentUserRole = user?.id ? staffRoles[user.id] : undefined;
 
   if (isLoading) {
     return (
@@ -84,6 +91,10 @@ export default function EventManagePage() {
               <Settings2 className="h-3.5 w-3.5" />
               Config
             </TabsTrigger>
+            <TabsTrigger value="attendees" className="flex-1 gap-1.5">
+              <Users className="h-3.5 w-3.5" />
+              Attendees
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-4">
@@ -92,6 +103,14 @@ export default function EventManagePage() {
 
           <TabsContent value="config" className="mt-4">
             <ConfigTab event={event} />
+          </TabsContent>
+
+          <TabsContent value="attendees" className="mt-4">
+            <ManageAttendeesCard
+              eventId={id}
+              staffRoles={staffRoles}
+              currentUserRole={currentUserRole}
+            />
           </TabsContent>
         </Tabs>
       </div>

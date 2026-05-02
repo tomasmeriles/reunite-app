@@ -18,7 +18,7 @@ import { LoadingButton } from '~/components/buttons';
 import { useUpdateEvent } from '~/hooks/api/use-events';
 import { useEventAccess } from '~/hooks/use-permission';
 import { useLocationPicker } from '~/hooks/use-location-picker';
-import { getApiErrorMessage } from '~/lib/axios';
+import { useApiError } from '~/hooks/use-api-error';
 import { updateEventSchema, toApiPayload, eventToFormDefaults, type UpdateEventFormValues } from '~/lib/schemas/event.schema';
 import type { Event } from '~/api/events/events.types';
 
@@ -31,6 +31,7 @@ interface EditFormProps {
 }
 
 function WhereEditForm({ event, onSuccess, onCancel }: EditFormProps) {
+  const apiError = useApiError();
   const { mutate: updateEvent, isPending } = useUpdateEvent(event.id);
   const picker = useLocationPicker();
 
@@ -53,7 +54,7 @@ function WhereEditForm({ event, onSuccess, onCancel }: EditFormProps) {
         toast.success('Event location updated');
         onSuccess();
       },
-      onError: (err) => toast.error(getApiErrorMessage(err)),
+      onError: (err) => toast.error(apiError(err)),
     });
   };
 

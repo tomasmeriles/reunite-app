@@ -34,7 +34,7 @@ import {
 import { LoadingButton } from '~/components/buttons';
 import { useUpdateEvent } from '~/hooks/api/use-events';
 import { useEventAccess } from '~/hooks/use-permission';
-import { getApiErrorMessage } from '~/lib/axios';
+import { useApiError } from '~/hooks/use-api-error';
 import {
   updateEventSchema,
   eventToFormDefaults,
@@ -73,6 +73,7 @@ interface EditFormProps {
 }
 
 function AboutAccessEditForm({ event, onSuccess, onCancel }: EditFormProps) {
+  const apiError = useApiError();
   const { mutate: updateEvent, isPending } = useUpdateEvent(event.id);
 
   const form = useForm<UpdateEventFormValues>({
@@ -91,7 +92,7 @@ function AboutAccessEditForm({ event, onSuccess, onCancel }: EditFormProps) {
           toast.success('Event details updated');
           onSuccess();
         },
-        onError: (err) => toast.error(getApiErrorMessage(err)),
+        onError: (err) => toast.error(apiError(err)),
       },
     );
   };

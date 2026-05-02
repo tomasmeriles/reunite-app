@@ -16,7 +16,7 @@ import {
   useAddToWhitelist,
   useRemoveFromWhitelist,
 } from '~/hooks/api/use-whitelist';
-import { getApiErrorMessage } from '~/lib/axios';
+import { useApiError } from '~/hooks/use-api-error';
 import type { Event } from '~/api/events/events.types';
 
 interface EventGuestListCardProps {
@@ -24,6 +24,7 @@ interface EventGuestListCardProps {
 }
 
 export function EventGuestListCard({ event }: EventGuestListCardProps) {
+  const apiError = useApiError();
   const { data: whitelist } = useWhitelist(event.id);
   const { mutate: addToWhitelist, isPending: adding } = useAddToWhitelist(event.id);
   const { mutate: removeFromWhitelist } = useRemoveFromWhitelist(event.id);
@@ -39,7 +40,7 @@ export function EventGuestListCard({ event }: EventGuestListCardProps) {
           setUsername('');
           toast.success('User added to guest list');
         },
-        onError: (err) => toast.error(getApiErrorMessage(err)),
+        onError: (err) => toast.error(apiError(err)),
       },
     );
   };

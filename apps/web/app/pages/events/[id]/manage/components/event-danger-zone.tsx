@@ -12,7 +12,7 @@ import {
 import { Alert, AlertDescription } from '~/components/ui/alert';
 import { ConfirmModal } from '~/components/ui/modal';
 import { useDeleteEvent } from '~/hooks/api/use-events';
-import { getApiErrorMessage } from '~/lib/axios';
+import { useApiError } from '~/hooks/use-api-error';
 import type { Event, EventStatus } from '~/api/events/events.types';
 
 interface EventDangerZoneProps {
@@ -27,6 +27,7 @@ const DELETE_BLOCKED_REASONS: Partial<Record<EventStatus, string>> = {
 };
 
 export function EventDangerZone({ event }: EventDangerZoneProps) {
+  const apiError = useApiError();
   const navigate = useNavigate();
   const { mutate: deleteEvent, isPending } = useDeleteEvent();
 
@@ -36,7 +37,7 @@ export function EventDangerZone({ event }: EventDangerZoneProps) {
         toast.success('Event deleted');
         void navigate({ to: '/dashboard' });
       },
-      onError: (err) => toast.error(getApiErrorMessage(err)),
+      onError: (err) => toast.error(apiError(err)),
     });
   };
 

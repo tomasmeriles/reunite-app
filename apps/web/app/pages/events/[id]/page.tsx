@@ -1,11 +1,22 @@
-import { useState, useRef, useEffect } from 'react';
-import { useParams, Link } from '@tanstack/react-router';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { useParams, Link, useNavigate } from '@tanstack/react-router';
 import { Helmet } from 'react-helmet-async';
 import { toast } from 'sonner';
-import { AlertCircle, Check, Lock, UserPlus, Zap } from 'lucide-react';
+import { AlertCircle, ChevronLeft, Lock } from 'lucide-react';
 import { Button } from '~/components/ui/button';
-import { Badge } from '~/components/ui/badge';
+import { Label } from '~/components/ui/label';
+import { Textarea } from '~/components/ui/textarea';
 import { Separator } from '~/components/ui/separator';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '~/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { Skeleton } from '~/components/ui/skeleton';
 import { useEvent } from '~/hooks/api/use-events';
@@ -13,11 +24,13 @@ import {
   useRegisterAttendee,
   useMyAttendance,
   useAddGuest,
-  useAttendees,
+  useAttendeesInfinite,
+  useUnregisterAttendee,
 } from '~/hooks/api/use-attendance';
 import { useAuth } from '~/contexts/auth';
 import { useEventAccess } from '~/hooks/use-permission';
-import { getApiErrorMessage } from '~/lib/axios';
+import { useBreakpoint } from '~/hooks/use-breakpoint';
+import { useApiError } from '~/hooks/use-api-error';
 import { ChatPanel } from '~/components/events/chat-panel';
 import { ImageGallery } from '~/components/events/image-gallery';
 import { PrizeList } from '~/components/events/prize-list';
@@ -26,19 +39,27 @@ import { RsvpDialog } from '~/components/events/rsvp-dialog';
 import { ConfettiOverlay } from '~/components/events/confetti-overlay';
 import { ImageWithFallback } from '~/components/ui/image-with-fallback';
 import { EventCoverPlaceholder } from '~/components/events/event-cover-placeholder';
-import { STATUS_META } from '~/lib/event-state-machine';
+import { EventDetailHeader } from '~/components/events/event-detail-header';
+import { ThemeToggle } from '~/components/theme-toggle';
 import { Alert } from '~/components/ui/alert';
 
 export default function EventDetailPage() {
+  const apiError = useApiError();
   const { id } = useParams({ from: '/events/$id' });
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const breakpoint = useBreakpoint();
   const { data: event, isLoading } = useEvent(id);
-  const { data: attendees } = useAttendees(id);
+  const { data: attendeesData } = useAttendeesInfinite(id);
+  const attendeeTotal = attendeesData?.pages[0]?.meta.total;
   const { data: myAttendance, isPending: attendancePending } = useMyAttendance(id);
   const { mutate: register, isPending: registering } = useRegisterAttendee(id);
   const { mutate: addGuest, isPending: addingGuest } = useAddGuest(id);
+  const { mutate: unregisterSelf, isPending: unregistering } = useUnregisterAttendee(id);
   const access = useEventAccess(id);
 
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+  const [leaveReason, setLeaveReason] = useState('');
   const [showAddGuestDialog, setShowAddGuestDialog] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showRsvpDialog, setShowRsvpDialog] = useState(false);
@@ -90,6 +111,23 @@ export default function EventDetailPage() {
     event?.status !== 'CANCELLED' &&
     event?.eventType !== 'INVITE_ACCOUNT';
 
+  const canAddSelf =
+    access.isStaff &&
+    !isAttending &&
+    event?.status !== 'DRAFT' &&
+    event?.status !== 'ENDED' &&
+    event?.status !== 'CANCELLED';
+
+  const canUnregisterSelf =
+    isAttending &&
+    event?.status !== 'ENDED' &&
+    event?.status !== 'CANCELLED';
+
+  const staffRoles = useMemo(
+    () => Object.fromEntries((event?.staff ?? []).map((s) => [s.userId, s.role])),
+    [event?.staff],
+  );
+
   const handleRsvp = (guestName?: string) => {
     register(
       { guestName },
@@ -102,9 +140,21 @@ export default function EventDetailPage() {
           toast.success("You're in! See you at the party 🎉");
         },
         onError: (err) =>
-          toast.error(getApiErrorMessage(err, 'Could not register')),
+          toast.error(apiError(err)),
       },
     );
+  };
+
+  const handleConfirmLeave = () => {
+    unregisterSelf(leaveReason.trim() || undefined, {
+      onSuccess: () => {
+        setShowLeaveDialog(false);
+        setLeaveReason('');
+        toast.success("You've left the event");
+        navigate({ to: user ? '/dashboard' : '/' });
+      },
+      onError: () => toast.error('Could not leave the event'),
+    });
   };
 
   const handleAddGuest = (guestName?: string) => {
@@ -115,30 +165,36 @@ export default function EventDetailPage() {
         toast.success(`${guestName} added!`);
       },
       onError: (err) =>
-        toast.error(getApiErrorMessage(err, 'Could not add guest')),
+        toast.error(apiError(err)),
     });
   };
 
+  const isMobile = breakpoint === 'xs';
+
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-4xl space-y-4 py-8">
-        <Skeleton className="h-64 w-full rounded-xl" />
-        <Skeleton className="h-8 w-1/2" />
-        <Skeleton className="h-4 w-1/3" />
-      </div>
+      <>
+        <TopBar user={user} isMobile={isMobile} />
+        <div className="mx-auto max-w-4xl space-y-4 px-4 py-8">
+          <Skeleton className="h-64 w-full rounded-xl" />
+          <Skeleton className="h-8 w-1/2" />
+          <Skeleton className="h-4 w-1/3" />
+        </div>
+      </>
     );
   }
 
   if (!event) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-muted-foreground">Event not found.</p>
-      </div>
+      <>
+        <TopBar user={user} isMobile={isMobile} />
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <p className="text-muted-foreground">Event not found.</p>
+        </div>
+      </>
     );
   }
 
-  const statusMeta = STATUS_META[event.status];
-  const startDate = new Date(event.startAt);
   const canJoin =
     !isAttending &&
     !isPrivateEvent &&
@@ -160,7 +216,9 @@ export default function EventDetailPage() {
         <ConfettiOverlay onComplete={() => setShowConfetti(false)} />
       )}
 
-      <div className="mx-auto max-w-4xl space-y-6 py-8 px-4">
+      <TopBar user={user} isMobile={isMobile} />
+
+      <div className="mx-auto max-w-4xl space-y-6 px-4 py-8">
         {event.status === 'DRAFT' && (
           <Alert variant="warning">
             <AlertCircle />
@@ -185,72 +243,31 @@ export default function EventDetailPage() {
         </div>
 
         {/* Header */}
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-bold">{event.title}</h1>
-              <Badge variant={statusMeta.variant}>{statusMeta.label}</Badge>
-            </div>
-            <p className="text-muted-foreground">
-              {startDate.toLocaleDateString(undefined, {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </p>
-            {event.location && (
-              <p className="text-sm text-muted-foreground">
-                📍 {event.location}
-              </p>
-            )}
-          </div>
-
-          <div className="flex shrink-0 flex-col items-end gap-2">
-            {isAttending ? (
-              <>
-                <Badge className="bg-success text-success-foreground">
-                  <Check className="mr-1.5 h-3.5 w-3.5" />
-                  You're attending
-                </Badge>
-                {canAddGuest && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowAddGuestDialog(true)}
-                    disabled={addingGuest}
-                  >
-                    <UserPlus className="mr-1.5 h-3.5 w-3.5" />
-                    Bring a friend
-                    {inviteLinkRemaining !== null && (
-                      <Badge variant="secondary" className="ml-1.5 text-xs">
-                        {inviteLinkRemaining} left
-                      </Badge>
-                    )}
-                  </Button>
-                )}
-              </>
-            ) : canJoin ? (
-              <Button
-                onClick={() => setShowRsvpDialog(true)}
-                disabled={registering}
-              >
-                <Zap className="mr-1.5 h-4 w-4" />
-                Jump in
-              </Button>
-            ) : null}
-
-            {user && (
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/events/$id/manage" params={{ id }}>
-                  Manage
-                </Link>
-              </Button>
-            )}
-          </div>
-        </div>
+        <EventDetailHeader
+          event={event}
+          isAttending={isAttending}
+          canJoin={canJoin}
+          canAddGuest={!!canAddGuest}
+          canAddSelf={!!canAddSelf}
+          inviteLinkRemaining={inviteLinkRemaining}
+          registering={registering}
+          addingGuest={addingGuest}
+          showManage={!!user}
+          canUnregisterSelf={canUnregisterSelf}
+          onJoin={() => setShowRsvpDialog(true)}
+          onAddGuest={() => setShowAddGuestDialog(true)}
+          onLeave={() => setShowLeaveDialog(true)}
+          onAddSelf={() => register({}, {
+            onSuccess: (data) => {
+              if (data.guestToken) setGuestToken(data.guestToken);
+              setJustRegistered(true);
+              setShowConfetti(true);
+              toast.success("You're in! See you at the party 🎉");
+            },
+            onError: (err) =>
+              toast.error(apiError(err)),
+          })}
+        />
 
         {event.description && (
           <>
@@ -275,15 +292,23 @@ export default function EventDetailPage() {
             </p>
           </div>
         ) : (
-          <Tabs defaultValue="chat">
+          <Tabs defaultValue="guests">
             <TabsList>
+              <TabsTrigger value="guests">
+                Guests {attendeeTotal != null ? `(${attendeeTotal})` : ''}
+              </TabsTrigger>
               <TabsTrigger value="chat">Chat</TabsTrigger>
               <TabsTrigger value="gallery">Gallery</TabsTrigger>
-              <TabsTrigger value="guests">
-                Guests {attendees ? `(${attendees.length})` : ''}
-              </TabsTrigger>
               <TabsTrigger value="prizes">Prizes</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="guests" className="mt-4">
+              <AttendeeList
+                eventId={id}
+                currentAttendeeId={myAttendance?.id}
+                staffRoles={staffRoles}
+              />
+            </TabsContent>
 
             <TabsContent value="chat" className="mt-4">
               {access.canReadChatHistory ? (
@@ -294,7 +319,7 @@ export default function EventDetailPage() {
                 />
               ) : (
                 <p className="py-8 text-center text-sm text-muted-foreground">
-                  Chat is only available during the live event.
+                  Chat is available once the event is published.
                 </p>
               )}
             </TabsContent>
@@ -311,10 +336,6 @@ export default function EventDetailPage() {
                   Gallery is only available during the live event.
                 </p>
               )}
-            </TabsContent>
-
-            <TabsContent value="guests" className="mt-4">
-              <AttendeeList eventId={id} currentAttendeeId={myAttendance?.id} />
             </TabsContent>
 
             <TabsContent value="prizes" className="mt-4">
@@ -340,6 +361,77 @@ export default function EventDetailPage() {
         isLoading={addingGuest}
         mode="guest"
       />
+
+      <AlertDialog
+        open={showLeaveDialog}
+        onOpenChange={(open) => {
+          if (!open) { setShowLeaveDialog(false); setLeaveReason(''); }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Leave this event?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You can rejoin later if the event is still open.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-1.5">
+            <Label htmlFor="leave-reason" className="text-sm">
+              Reason <span className="text-muted-foreground">(optional)</span>
+            </Label>
+            <Textarea
+              id="leave-reason"
+              placeholder="Let the organizer know why you're leaving…"
+              value={leaveReason}
+              onChange={(e) => setLeaveReason(e.target.value)}
+              rows={3}
+              className="resize-none"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Stay</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmLeave}
+              disabled={unregistering}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Leave event
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
+  );
+}
+
+// ─── TopBar ───────────────────────────────────────────────────────────────────
+
+interface TopBarProps {
+  user: { name?: string | null } | null | undefined;
+  isMobile: boolean;
+}
+
+function TopBar({ user, isMobile }: TopBarProps) {
+  return (
+    <div className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur-sm">
+      <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
+        <Link to={user ? '/dashboard' : '/'} className="flex items-center gap-1.5">
+          <span className="text-lg">🎉</span>
+          {!isMobile && (
+            <span className="font-semibold tracking-tight">Reunite</span>
+          )}
+        </Link>
+
+        <div className="flex items-center gap-1">
+          <ThemeToggle />
+          <Button variant="ghost" size="sm" asChild>
+            <Link to={user ? '/dashboard' : '/'}>
+              <ChevronLeft className="mr-1 h-4 w-4" />
+              {!isMobile && (user ? 'Dashboard' : 'Home')}
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
