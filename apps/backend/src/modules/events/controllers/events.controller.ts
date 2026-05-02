@@ -12,6 +12,7 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
+import { ErrorCode } from '../../../common/errors/error-codes.enum';
 import type { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CurrentUser } from '../../../auth/decorators/current-user.decorator';
@@ -116,7 +117,7 @@ export class EventsController {
     @UploadedFile() file: Express.Multer.File | undefined,
   ) {
     // TODO: Check this logic
-    if (!file) throw new BadRequestException('No file provided');
+    if (!file) throw new BadRequestException({ code: ErrorCode.NO_FILE_PROVIDED });
     const processed = await this.imageProcessing.toWebP(file.buffer, {
       width: 1920,
       quality: 85,
