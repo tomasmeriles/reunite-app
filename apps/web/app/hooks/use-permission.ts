@@ -47,7 +47,7 @@ export interface EventAccess {
   canManageStaff: boolean;
 
   // ── Merged actions (staff OR attendee depending on config) ─────────────────
-  /** Only during ACTIVE; organizers always, attendees only when chatEnabled */
+  /** ACTIVE or PUBLISHED; organizers always, attendees only when chatEnabled */
   canChat: boolean;
   /** Only during ACTIVE; organizers always, attendees only when mediaEnabled */
   canUploadMedia: boolean;
@@ -57,7 +57,7 @@ export interface EventAccess {
   canSeeAttendees: boolean;
 
   // ── Archival access (ACTIVE and ENDED) ────────────────────────────────────
-  /** Can read chat history: ACTIVE or ENDED */
+  /** Can read/send chat: ACTIVE, PUBLISHED, or ENDED */
   canReadChatHistory: boolean;
   /** Can view media gallery: ACTIVE or ENDED */
   canViewMedia: boolean;
@@ -121,6 +121,7 @@ export function useEventAccess(eventId: string): EventAccess {
   const status = event?.status;
   const isLive = status === 'ACTIVE';
   const isEnded = status === 'ENDED';
+  const isPublished = status === 'PUBLISHED';
   const isEditable =
     status === 'DRAFT' || status === 'PUBLISHED' || status === 'RESCHEDULED';
 
@@ -135,7 +136,8 @@ export function useEventAccess(eventId: string): EventAccess {
     canManageStaff: canManageStaff && !isEnded && status !== 'CANCELLED',
 
     canChat:
-      (staffCanChat || (isConfirmedAttendee && !!config?.chatEnabled)) && isLive,
+      (staffCanChat || (isConfirmedAttendee && !!config?.chatEnabled)) &&
+      (isLive || isPublished),
     canUploadMedia:
       (staffCanMedia || (isConfirmedAttendee && !!config?.mediaEnabled)) &&
       isLive,
@@ -145,7 +147,7 @@ export function useEventAccess(eventId: string): EventAccess {
     canSeeAttendees:
       staffCanSeeAttendees || !!config?.attendeesPublic || isConfirmedAttendee,
 
-    canReadChatHistory: isLive || isEnded,
+    canReadChatHistory: isLive || isEnded || isPublished,
     canViewMedia: isLive || isEnded,
   };
 }
