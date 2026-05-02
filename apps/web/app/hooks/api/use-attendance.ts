@@ -1,16 +1,27 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { attendanceApi } from '~/api/attendance/attendance.api';
 import type { RegisterAttendeeDto } from '~/api/attendance/attendance.types';
 
+const PAGE_SIZE = 20;
+
 export const attendanceKeys = {
-  attendees: (eventId: string) => ['attendance', eventId] as const,
+  attendeesPaged: (eventId: string) =>
+    ['attendance', eventId, 'paged'] as const,
   mine: (eventId: string) => ['attendance', eventId, 'me'] as const,
 };
 
-export function useAttendees(eventId: string) {
-  return useQuery({
-    queryKey: attendanceKeys.attendees(eventId),
-    queryFn: () => attendanceApi.getAttendees(eventId),
+export function useAttendeesInfinite(eventId: string, search?: string) {
+  return useInfiniteQuery({
+    queryKey: [...attendanceKeys.attendeesPaged(eventId), search ?? ''] as const,
+    queryFn: ({ pageParam = 1 }) =>
+      attendanceApi.getAttendees(eventId, pageParam as number, PAGE_SIZE, search),
+    initialPageParam: 1,
+    getNextPageParam: (last) => (last.meta.hasNext ? last.meta.page + 1 : undefined),
     enabled: !!eventId,
   });
 }
@@ -40,12 +51,8 @@ export function useRegisterAttendee(eventId: string) {
       // Avoids a race where the refetch runs before localStorage has the
       // guestToken, which would cause the query to return null.
       queryClient.setQueryData(attendanceKeys.mine(eventId), data);
-      // exact: true — attendees key ['attendance', eventId] is a prefix of
-      // mine key ['attendance', eventId, 'me'], so without exact the mine
-      // query gets invalidated and refetched with a stale guestToken.
       queryClient.invalidateQueries({
-        queryKey: attendanceKeys.attendees(eventId),
-        exact: true,
+        queryKey: attendanceKeys.attendeesPaged(eventId),
       });
     },
   });
@@ -54,20 +61,31 @@ export function useRegisterAttendee(eventId: string) {
 export function useUnregisterAttendee(eventId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => {
+    mutationFn: (reason?: string) => {
       const guestToken =
         localStorage.getItem(`guest_token_${eventId}`) ?? undefined;
-      return attendanceApi.unregister(eventId, guestToken);
+      return attendanceApi.unregister(eventId, guestToken, reason);
     },
     onSuccess: () => {
       localStorage.removeItem(`guest_token_${eventId}`);
       queryClient.invalidateQueries({
-        queryKey: attendanceKeys.attendees(eventId),
+        queryKey: attendanceKeys.attendeesPaged(eventId),
       });
       queryClient.invalidateQueries({
         queryKey: attendanceKeys.mine(eventId),
       });
     },
+  });
+}
+
+export function useAllAttendeesInfinite(eventId: string, search?: string) {
+  return useInfiniteQuery({
+    queryKey: ['attendance', eventId, 'all', search ?? ''] as const,
+    queryFn: ({ pageParam = 1 }) =>
+      attendanceApi.getAllAttendees(eventId, pageParam as number, PAGE_SIZE, search),
+    initialPageParam: 1,
+    getNextPageParam: (last) => (last.meta.hasNext ? last.meta.page + 1 : undefined),
+    enabled: !!eventId,
   });
 }
 
@@ -82,7 +100,20 @@ export function useAddGuest(eventId: string) {
       attendanceApi.addGuest(eventId, guestName, guestToken),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: attendanceKeys.attendees(eventId),
+        queryKey: attendanceKeys.attendeesPaged(eventId),
+      });
+    },
+  });
+}
+
+export function useRemoveAttendee(eventId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (attendeeId: string) =>
+      attendanceApi.removeAttendee(eventId, attendeeId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: attendanceKeys.attendeesPaged(eventId),
       });
     },
   });

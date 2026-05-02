@@ -7,20 +7,31 @@ import {
   HttpStatus,
   Param,
   Post,
+  Query,
   Headers,
 } from '@nestjs/common';
-import { IsString, MinLength } from 'class-validator';
+import type { Request } from 'express';
+import { subject } from '@casl/ability';
+import { AttendeeQueryDto } from '../dto/attendee-query.dto';
+import { IsOptional, IsString, MinLength } from 'class-validator';
 import { Public } from '../../../auth/decorators/public.decorator';
 import { CurrentUser } from '../../../auth/decorators/current-user.decorator';
+import { CheckPolicies } from '../../../casl/decorators/check-policies.decorator';
 import type { SafeUser } from '../../users/selects/user.select';
 import { AttendanceService } from '../services/attendance.service';
 import { RegisterAttendeeDto } from '../dto/register-attendee.dto';
 
-// TODO: Move this to the dto folder
+// TODO: Move these to the dto folder
 class BringGuestDto {
   @IsString()
   @MinLength(1)
   guestName!: string;
+}
+
+class UnregisterDto {
+  @IsOptional()
+  @IsString()
+  reason?: string;
 }
 
 @Controller('events/:eventId/attendees')
@@ -44,8 +55,9 @@ export class AttendanceController {
     @Param('eventId') eventId: string,
     @CurrentUser() user?: SafeUser,
     @Headers('x-guest-token') guestToken?: string,
+    @Body() dto?: UnregisterDto,
   ) {
-    return this.attendance.unregister(eventId, user, guestToken);
+    return this.attendance.unregister(eventId, user, guestToken, dto?.reason);
   }
 
   @Public()
@@ -74,9 +86,42 @@ export class AttendanceController {
     );
   }
 
+  @Get('all')
+  @CheckPolicies((ability, req: Request) =>
+    ability.can(
+      'manage',
+      subject('EventAttendee', { eventId: req.params['eventId'] }),
+    ),
+  )
+  getAllAttendees(
+    @Param('eventId') eventId: string,
+    @Query() query: AttendeeQueryDto,
+  ) {
+    return this.attendance.findAllAttendees(eventId, query);
+  }
+
   @Public()
   @Get()
-  getAttendees(@Param('eventId') eventId: string) {
-    return this.attendance.findAttendees(eventId);
+  getAttendees(
+    @Param('eventId') eventId: string,
+    @Query() query: AttendeeQueryDto,
+  ) {
+    return this.attendance.findAttendees(eventId, query);
+  }
+
+  @Delete(':attendeeId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @CheckPolicies((ability, req: Request) =>
+    ability.can(
+      'delete',
+      subject('EventAttendee', { eventId: req.params['eventId'] }),
+    ),
+  )
+  removeAttendee(
+    @Param('eventId') eventId: string,
+    @Param('attendeeId') attendeeId: string,
+    @CurrentUser() user?: SafeUser,
+  ) {
+    return this.attendance.removeAttendee(eventId, attendeeId, user?.id);
   }
 }

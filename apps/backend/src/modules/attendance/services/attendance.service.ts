@@ -5,10 +5,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ErrorCode } from '../../../common/errors/error-codes.enum';
 import { AttendeeStatus, EventStatus, EventType } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { TransactionalService } from '../../../common/base/transactional-service.base';
 import { Transactional } from '../../../common/decorators/transactional.decorator';
+import { paginate } from '../../../common/helpers/prisma.helpers';
+import type { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
+import type { AttendeeQueryDto } from '../dto/attendee-query.dto';
 import type { SafeUser } from '../../users/selects/user.select';
 import type { RegisterAttendeeDto } from '../dto/register-attendee.dto';
 
@@ -25,17 +29,15 @@ export class AttendanceService extends TransactionalService {
       where: { id: eventId },
       include: { config: true },
     });
-    if (!event) throw new NotFoundException('Event not found');
+    if (!event) throw new NotFoundException({ code: ErrorCode.EVENT_NOT_FOUND });
     if (event.status === EventStatus.DRAFT) {
-      throw new BadRequestException(
-        'This event is not yet open for registration',
-      );
+      throw new BadRequestException({ code: ErrorCode.REGISTRATION_CLOSED });
     }
     if (event.status === EventStatus.CANCELLED) {
-      throw new BadRequestException('This event has been cancelled');
+      throw new BadRequestException({ code: ErrorCode.EVENT_CANCELLED });
     }
     if (event.status === EventStatus.ENDED) {
-      throw new BadRequestException('This event has already ended');
+      throw new BadRequestException({ code: ErrorCode.EVENT_ENDED });
     }
 
     // Check capacity
@@ -48,6 +50,14 @@ export class AttendanceService extends TransactionalService {
       }
     }
 
+    // Staff (owner/organizer) bypass: skip invite token / whitelist requirements
+    if (user) {
+      const staffRow = await this.db.eventStaff.findUnique({
+        where: { eventId_userId: { eventId, userId: user.id } },
+      });
+      if (staffRow) return this.registerPublic(eventId, dto, user);
+    }
+
     switch (event.eventType) {
       case EventType.PUBLIC:
         return this.registerPublic(eventId, dto, user);
@@ -56,49 +66,149 @@ export class AttendanceService extends TransactionalService {
       case EventType.INVITE_ACCOUNT:
         return this.registerWithAccount(eventId, user);
       default:
-        throw new BadRequestException('Unknown event type');
+        throw new BadRequestException({ code: ErrorCode.VALIDATION_ERROR });
     }
   }
 
-  /** Unregister (cancel) own attendance */
+  /** Staff removes an attendee from the event. */
   @Transactional()
-  async unregister(eventId: string, user?: SafeUser, guestToken?: string) {
+  async removeAttendee(eventId: string, attendeeId: string, requestingUserId?: string) {
+    const attendee = await this.db.eventAttendee.findUnique({
+      where: { id: attendeeId },
+    });
+    if (!attendee || attendee.eventId !== eventId) {
+      throw new NotFoundException({ code: ErrorCode.ATTENDEE_NOT_FOUND });
+    }
+    if (attendee.status === AttendeeStatus.CANCELLED) {
+      throw new BadRequestException({ code: ErrorCode.ATTENDEE_ALREADY_REMOVED });
+    }
+
+    // ORGANIZER cannot remove other staff members (OWNER or ORGANIZER).
+    // Only the event OWNER can remove staff attendees.
+    if (attendee.userId && requestingUserId) {
+      const targetStaff = await this.db.eventStaff.findUnique({
+        where: { eventId_userId: { eventId, userId: attendee.userId } },
+      });
+      if (targetStaff) {
+        const requesterStaff = await this.db.eventStaff.findUnique({
+          where: { eventId_userId: { eventId, userId: requestingUserId } },
+        });
+        if (requesterStaff?.role !== 'OWNER') {
+          throw new ForbiddenException({ code: ErrorCode.FORBIDDEN });
+        }
+      }
+    }
+
+    await this.db.eventAttendee.update({
+      where: { id: attendeeId },
+      data: { status: AttendeeStatus.CANCELLED },
+    });
+  }
+
+  /** Unregister (cancel) own attendance, optionally recording a reason. */
+  @Transactional()
+  async unregister(
+    eventId: string,
+    user?: SafeUser,
+    guestToken?: string,
+    reason?: string,
+  ) {
     const where = user
       ? { eventId_userId: { eventId, userId: user.id } }
       : guestToken
         ? { guestToken }
         : null;
 
-    if (!where) throw new BadRequestException('No identity provided');
+    if (!where) throw new BadRequestException({ code: ErrorCode.NO_IDENTITY_PROVIDED });
 
-    const attendee = await this.db.eventAttendee.findUnique({
-      where,
-    });
-    if (!attendee) throw new NotFoundException('Registration not found');
+    const attendee = await this.db.eventAttendee.findUnique({ where });
+    if (!attendee) throw new NotFoundException({ code: ErrorCode.NOT_REGISTERED });
 
     await this.db.eventAttendee.update({
       where: { id: attendee.id },
-      data: { status: AttendeeStatus.CANCELLED },
+      data: {
+        status: AttendeeStatus.CANCELLED,
+        cancellationReason: reason?.trim() || null,
+      },
     });
   }
 
-  async findAttendees(eventId: string) {
-    return this.db.eventAttendee.findMany({
-      where: { eventId, status: AttendeeStatus.CONFIRMED },
-      orderBy: { registeredAt: 'asc' },
-      include: {
-        user: {
-          select: { id: true, name: true, username: true, avatar: true },
-        },
-        sponsoredBy: {
-          select: {
-            id: true,
-            guestName: true,
-            user: { select: { name: true, username: true } },
-          },
+  async findAttendees(eventId: string, query: AttendeeQueryDto) {
+    const where = {
+      eventId,
+      status: AttendeeStatus.CONFIRMED,
+      ...this.buildAttendeeSearch(query.search),
+    };
+    const include = {
+      user: {
+        select: { id: true, name: true, username: true, avatar: true },
+      },
+      sponsoredBy: {
+        select: {
+          id: true,
+          guestName: true,
+          user: { select: { name: true, username: true } },
         },
       },
-    });
+    } as const;
+
+    return paginate(
+      query,
+      () =>
+        this.db.eventAttendee.findMany({
+          where,
+          orderBy: { registeredAt: 'asc' },
+          skip: query.skip,
+          take: query.limit,
+          include,
+        }),
+      () => this.db.eventAttendee.count({ where }),
+    );
+  }
+
+  /** Staff-only: all attendees regardless of status, includes cancellation reason. */
+  async findAllAttendees(eventId: string, query: AttendeeQueryDto) {
+    const where = {
+      eventId,
+      ...this.buildAttendeeSearch(query.search),
+    };
+    const include = {
+      user: {
+        select: { id: true, name: true, username: true, avatar: true },
+      },
+      sponsoredBy: {
+        select: {
+          id: true,
+          guestName: true,
+          user: { select: { name: true, username: true } },
+        },
+      },
+    } as const;
+
+    return paginate(
+      query,
+      () =>
+        this.db.eventAttendee.findMany({
+          where,
+          orderBy: [{ status: 'asc' }, { registeredAt: 'asc' }],
+          skip: query.skip,
+          take: query.limit,
+          include,
+        }),
+      () => this.db.eventAttendee.count({ where }),
+    );
+  }
+
+  private buildAttendeeSearch(search?: string) {
+    if (!search?.trim()) return {};
+    const term = search.trim();
+    return {
+      OR: [
+        { guestName: { contains: term, mode: 'insensitive' as const } },
+        { user: { name: { contains: term, mode: 'insensitive' as const } } },
+        { user: { username: { contains: term, mode: 'insensitive' as const } } },
+      ],
+    };
   }
 
   async findMyAttendance(
@@ -130,16 +240,14 @@ export class AttendanceService extends TransactionalService {
     guestToken?: string,
   ) {
     if (!userId && !guestToken) {
-      throw new ForbiddenException('No identity provided');
+      throw new ForbiddenException({ code: ErrorCode.NO_IDENTITY_PROVIDED });
     }
 
     const event = await this.db.event.findUnique({ where: { id: eventId } });
-    if (!event) throw new NotFoundException('Event not found');
+    if (!event) throw new NotFoundException({ code: ErrorCode.EVENT_NOT_FOUND });
 
     if (event.eventType === EventType.INVITE_ACCOUNT) {
-      throw new ForbiddenException(
-        'Bringing guests is not allowed for this event type',
-      );
+      throw new ForbiddenException({ code: ErrorCode.GUESTS_NOT_ALLOWED });
     }
 
     let myAttendee = userId
@@ -156,9 +264,7 @@ export class AttendanceService extends TransactionalService {
     }
 
     if (!myAttendee || myAttendee.status !== AttendeeStatus.CONFIRMED) {
-      throw new ForbiddenException(
-        'You must be attending this event to bring guests',
-      );
+      throw new ForbiddenException({ code: ErrorCode.NOT_ATTENDING });
     }
 
     if (event.maxAttendees !== null) {
@@ -166,7 +272,7 @@ export class AttendanceService extends TransactionalService {
         where: { eventId, status: AttendeeStatus.CONFIRMED },
       });
       if (count >= event.maxAttendees) {
-        throw new BadRequestException('Event is at capacity');
+        throw new BadRequestException({ code: ErrorCode.CAPACITY_FULL });
       }
     }
 
@@ -176,7 +282,7 @@ export class AttendanceService extends TransactionalService {
         where: { id: myAttendee.inviteLinkId },
       });
       if (link && link.maxUses !== null && link.useCount >= link.maxUses) {
-        throw new ForbiddenException('Your invite link has no remaining uses');
+        throw new ForbiddenException({ code: ErrorCode.INVITE_LINK_EXHAUSTED });
       }
       if (link) {
         await this.db.inviteLink.update({
@@ -216,7 +322,7 @@ export class AttendanceService extends TransactionalService {
         where: { eventId_userId: { eventId, userId: user.id } },
       });
       if (existing && existing.status === AttendeeStatus.CONFIRMED) {
-        throw new ConflictException('Already registered for this event');
+        throw new ConflictException({ code: ErrorCode.ALREADY_REGISTERED });
       }
       if (existing) {
         return this.db.eventAttendee.update({
@@ -236,9 +342,7 @@ export class AttendanceService extends TransactionalService {
 
     // Guest flow
     if (!dto.guestName?.trim()) {
-      throw new BadRequestException(
-        'guestName is required for guest registrations',
-      );
+      throw new BadRequestException({ code: ErrorCode.GUEST_NAME_REQUIRED });
     }
     const guestToken = randomUUID();
     const attendee = await this.db.eventAttendee.create({
@@ -258,7 +362,7 @@ export class AttendanceService extends TransactionalService {
     user?: SafeUser,
   ) {
     if (!dto.inviteToken) {
-      throw new BadRequestException('inviteToken is required for this event');
+      throw new BadRequestException({ code: ErrorCode.INVITE_TOKEN_REQUIRED });
     }
 
     const link = await this.db.inviteLink.findUnique({
@@ -273,15 +377,13 @@ export class AttendanceService extends TransactionalService {
     });
 
     if (!link || link.eventId !== eventId) {
-      throw new BadRequestException('Invalid invite link');
+      throw new BadRequestException({ code: ErrorCode.INVITE_LINK_INVALID });
     }
     if (link.expiresAt && link.expiresAt < new Date()) {
-      throw new BadRequestException('This invite link has expired');
+      throw new BadRequestException({ code: ErrorCode.INVITE_LINK_EXPIRED });
     }
     if (link.maxUses !== null && link.useCount >= link.maxUses) {
-      throw new BadRequestException(
-        'This invite link has reached its maximum uses',
-      );
+      throw new BadRequestException({ code: ErrorCode.INVITE_LINK_EXHAUSTED });
     }
 
     await this.db.inviteLink.update({
@@ -301,9 +403,7 @@ export class AttendanceService extends TransactionalService {
 
   private async registerWithAccount(eventId: string, user?: SafeUser) {
     if (!user) {
-      throw new ForbiddenException(
-        'An account is required to register for this event',
-      );
+      throw new ForbiddenException({ code: ErrorCode.ACCOUNT_REQUIRED });
     }
 
     const entry = await this.db.eventWhitelistEntry.findUnique({
@@ -311,9 +411,7 @@ export class AttendanceService extends TransactionalService {
     });
 
     if (!entry) {
-      throw new ForbiddenException(
-        'You are not on the guest list for this event',
-      );
+      throw new ForbiddenException({ code: ErrorCode.NOT_INVITED });
     }
 
     // Mark whitelist entry as accepted

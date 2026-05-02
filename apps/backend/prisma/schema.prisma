@@ -331,8 +331,9 @@ model EventAttendee {
   guestName    String? // display name for guests
   addedById    String? // attendee who added this person (for group add)
   inviteLinkId String? // which invite link was used
-  status       AttendeeStatus @default(CONFIRMED)
-  registeredAt DateTime       @default(now())
+  status               AttendeeStatus @default(CONFIRMED)
+  cancellationReason   String?
+  registeredAt         DateTime       @default(now())
 
   event           Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
   user            User?          @relation(fields: [userId], references: [id], onDelete: SetNull)

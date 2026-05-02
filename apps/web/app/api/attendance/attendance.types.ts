@@ -7,6 +7,7 @@ export interface EventAttendee {
   guestName: string | null;
   addedById: string | null;
   status: AttendeeStatus;
+  cancellationReason?: string | null;
   registeredAt: string;
   user?: {
     id: string;
