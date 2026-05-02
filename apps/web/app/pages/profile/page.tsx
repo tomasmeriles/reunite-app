@@ -28,9 +28,10 @@ import {
   updateProfileSchema,
   type UpdateProfileFormValues,
 } from '~/lib/schemas/profile.schema';
-import { getApiErrorMessage } from '~/lib/axios';
+import { useApiError } from '~/hooks/use-api-error';
 
 export default function ProfilePage() {
+  const apiError = useApiError();
   const { user } = useAuth();
   const { mutate: updateUser, isPending } = useUpdateUser();
 
@@ -55,7 +56,7 @@ export default function ProfilePage() {
       {
         onSuccess: () => toast.success('Profile updated successfully'),
         onError: (err) =>
-          toast.error(getApiErrorMessage(err, 'Failed to update profile')),
+          toast.error(apiError(err)),
       },
     );
   };

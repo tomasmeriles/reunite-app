@@ -21,10 +21,11 @@ import {
   registerSchema,
   type RegisterFormValues,
 } from '~/lib/schemas/auth.schema';
-import { getApiErrorMessage } from '~/lib/axios';
+import { useApiError } from '~/hooks/use-api-error';
 import { GoogleButton } from '~/components/buttons';
 
 export default function RegisterPage() {
+  const apiError = useApiError();
   const navigate = useNavigate();
   const { mutate: register, isPending } = useRegister();
 
@@ -37,7 +38,7 @@ export default function RegisterPage() {
     register(values, {
       onSuccess: () => navigate({ to: '/dashboard', replace: true }),
       onError: (err) =>
-        toast.error(getApiErrorMessage(err, 'Registration failed')),
+        toast.error(apiError(err)),
     });
   };
 

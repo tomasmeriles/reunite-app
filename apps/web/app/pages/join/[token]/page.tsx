@@ -18,7 +18,7 @@ import {
 import axios from 'axios';
 import { useAuth } from '~/contexts/auth';
 import { useConfetti } from '~/contexts/confetti';
-import { getApiErrorMessage } from '~/lib/axios';
+import { useApiError } from '~/hooks/use-api-error';
 import type { ResolveInviteLinkError } from '~/api/invite-links/invite-links.types';
 import { FormContainer } from '~/components/forms';
 import { joinSchema, type JoinFormValues } from '~/lib/schemas/join.schema';
@@ -47,6 +47,7 @@ function LoadingState() {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function JoinPage() {
+  const apiError = useApiError();
   const { token } = useParams({ from: '/join/$token' });
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -85,7 +86,7 @@ export default function JoinPage() {
           void navigate({ to: '/events/$id', params: { id: eventId } });
         },
         onError: (err) =>
-          toast.error(getApiErrorMessage(err, 'Could not join event')),
+          toast.error(apiError(err)),
       },
     );
   };

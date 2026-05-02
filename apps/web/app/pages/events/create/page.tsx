@@ -32,7 +32,7 @@ import {
 import type { CardSelectOption } from '~/components/forms';
 import { useCreateEvent } from '~/hooks/api/use-events';
 import { useSteppedForm } from '~/hooks/use-stepped-form';
-import { getApiErrorMessage } from '~/lib/axios';
+import { useApiError } from '~/hooks/use-api-error';
 import {
   formatDateTime,
   formatHHMMDuration,
@@ -93,6 +93,7 @@ const STEPS: StepDef[] = [
 ];
 
 export default function EventCreatePage() {
+  const apiError = useApiError();
   const navigate = useNavigate();
   const { mutate: createEvent, isPending } = useCreateEvent();
   const picker = useLocationPicker();
@@ -120,7 +121,7 @@ export default function EventCreatePage() {
         void navigate({ to: '/events/$id/manage', params: { id: event.id } });
       },
       onError: (err) =>
-        toast.error(getApiErrorMessage(err, 'Failed to create event')),
+        toast.error(apiError(err)),
     });
   };
 

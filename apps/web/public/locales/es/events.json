@@ -1,0 +1,123 @@
+{
+  "list": {
+    "title": "Eventos",
+    "empty": "Todavía no hay eventos",
+    "createFirst": "Creá tu primer evento"
+  },
+  "create": {
+    "title": "Crear un evento",
+    "steps": {
+      "about": "Sobre & Acceso",
+      "when": "Cuándo",
+      "where": "Dónde"
+    },
+    "fields": {
+      "title": "Título del evento",
+      "description": "Descripción",
+      "accessType": "Tipo de acceso",
+      "maxAttendees": "Máx. asistentes",
+      "startDate": "Fecha de inicio",
+      "duration": "Duración",
+      "timezone": "Zona horaria",
+      "location": "Ubicación"
+    },
+    "submit": "Crear evento",
+    "submitting": "Creando...",
+    "success": "¡Evento creado!",
+    "error": "Error al crear el evento"
+  },
+  "detail": {
+    "attendees": "Asistentes",
+    "register": "Inscribirse",
+    "registered": "Estás inscripto",
+    "waitlisted": "Estás en lista de espera",
+    "cancelled": "Inscripción cancelada",
+    "unregister": "Cancelar inscripción",
+    "share": "Compartir",
+    "location": "Ubicación",
+    "duration": "{{minutes}} minutos",
+    "capacity": "{{count}} / {{max}} lugares",
+    "capacityFull": "Completo",
+    "tabs": {
+      "about": "Sobre el evento",
+      "attendees": "Asistentes",
+      "chat": "Chat",
+      "media": "Fotos",
+      "prizes": "Premios"
+    }
+  },
+  "manage": {
+    "title": "Administrar evento",
+    "tabs": {
+      "settings": "Configuración",
+      "guestList": "Lista de invitados",
+      "attendees": "Asistentes",
+      "inviteLinks": "Links de invitación"
+    },
+    "settings": {
+      "title": "Configuración del evento",
+      "success": "Configuración actualizada",
+      "error": "Error al actualizar la configuración",
+      "config": {
+        "publicGuestList": "Lista de asistentes pública",
+        "chat": "Chat",
+        "mediaUploads": "Subida de fotos",
+        "prizes": "Premios"
+      }
+    },
+    "danger": {
+      "title": "Zona de peligro",
+      "delete": "Eliminar evento",
+      "deleteConfirm": "¿Estás seguro de que querés eliminar este evento? Esta acción no se puede deshacer.",
+      "deleteSuccess": "Evento eliminado",
+      "deleteError": "Error al eliminar el evento",
+      "cancel": "Cancelar evento",
+      "cancelSuccess": "Evento cancelado",
+      "cancelError": "Error al cancelar el evento"
+    },
+    "inviteLinks": {
+      "create": "Crear link de invitación",
+      "createSuccess": "Link de invitación creado",
+      "createError": "No se pudo crear el link",
+      "deleteSuccess": "Link eliminado",
+      "deleteError": "No se pudo eliminar el link",
+      "label": "Etiqueta",
+      "maxUses": "Usos máximos",
+      "expiresAt": "Vence el",
+      "unlimited": "Sin límite",
+      "noExpiry": "Sin vencimiento",
+      "copy": "Copiar link",
+      "copied": "¡Copiado!"
+    },
+    "guestList": {
+      "addUser": "Agregar usuario",
+      "addSuccess": "Usuario agregado a la lista",
+      "addError": "No se pudo agregar el usuario",
+      "removeSuccess": "Usuario eliminado de la lista",
+      "removeError": "No se pudo eliminar el usuario",
+      "username": "Nombre de usuario",
+      "empty": "No hay usuarios en la lista de invitados"
+    },
+    "attendees": {
+      "title": "Asistentes",
+      "removeSuccess": "Asistente eliminado",
+      "removeError": "No se pudo eliminar el asistente",
+      "search": "Buscar asistentes...",
+      "empty": "Todavía no hay asistentes"
+    }
+  },
+  "status": {
+    "publish": "Publicar",
+    "publishSuccess": "Evento publicado",
+    "publishError": "Error al publicar el evento",
+    "activate": "Iniciar evento",
+    "activateSuccess": "Evento iniciado",
+    "end": "Finalizar evento",
+    "endSuccess": "Evento finalizado"
+  },
+  "accessType": {
+    "PUBLIC": "Público",
+    "INVITE_LINK": "Link de invitación",
+    "INVITE_ACCOUNT": "Solo invitados"
+  }
+}

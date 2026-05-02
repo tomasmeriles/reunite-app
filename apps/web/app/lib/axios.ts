@@ -1,4 +1,5 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
+import type { TFunction } from 'i18next';
 import env from '~/env';
 import type { ApiError } from '~/lib/types';
 
@@ -132,10 +133,16 @@ apiClient.interceptors.response.use(
 
 export function getApiErrorMessage(
   error: unknown,
-  fallback = 'An error occurred',
+  t: TFunction,
+  fallbackKey = 'errors:FALLBACK',
 ): string {
   if (axios.isAxiosError(error)) {
-    return (error.response?.data as ApiError | undefined)?.message ?? fallback;
+    const data = error.response?.data as ApiError | undefined;
+    if (data?.code) {
+      const translated = t(`errors:${data.code}`, { defaultValue: '' });
+      if (translated) return translated;
+    }
+    if (data?.message) return data.message;
   }
-  return fallback;
+  return t(fallbackKey);
 }

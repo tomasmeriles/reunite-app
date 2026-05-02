@@ -24,7 +24,7 @@ import {
   type LoginFormValues,
   type RegisterFormValues,
 } from '~/lib/schemas/auth.schema';
-import { getApiErrorMessage } from '~/lib/axios';
+import { useApiError } from '~/hooks/use-api-error';
 import env from '~/env';
 import { GoogleButton } from '~/components/buttons';
 
@@ -36,6 +36,7 @@ interface LoginFormProps {
 
 function LoginForm({ onSuccess }: LoginFormProps) {
   const { mutate: login, isPending } = useLogin();
+  const apiError = useApiError();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -46,7 +47,7 @@ function LoginForm({ onSuccess }: LoginFormProps) {
     login(values, {
       onSuccess,
       onError: (err) =>
-        toast.error(getApiErrorMessage(err, 'Invalid email or password')),
+        toast.error(apiError(err)),
     });
   };
 
@@ -90,6 +91,7 @@ interface RegisterFormProps {
 
 function RegisterForm({ onSuccess }: RegisterFormProps) {
   const { mutate: register, isPending } = useRegister();
+  const apiError = useApiError();
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -100,7 +102,7 @@ function RegisterForm({ onSuccess }: RegisterFormProps) {
     register(values, {
       onSuccess,
       onError: (err) =>
-        toast.error(getApiErrorMessage(err, 'Registration failed')),
+        toast.error(apiError(err)),
     });
   };
 

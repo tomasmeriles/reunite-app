@@ -1,0 +1,41 @@
+{
+  "nav": {
+    "dashboard": "Inicio",
+    "events": "Eventos",
+    "users": "Usuarios",
+    "auditLogs": "Auditoría"
+  },
+  "actions": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "confirm": "Confirmar",
+    "back": "Volver",
+    "next": "Siguiente",
+    "close": "Cerrar",
+    "submit": "Enviar",
+    "create": "Crear",
+    "update": "Actualizar",
+    "remove": "Eliminar",
+    "search": "Buscar",
+    "loading": "Cargando...",
+    "saving": "Guardando...",
+    "deleting": "Eliminando..."
+  },
+  "status": {
+    "DRAFT": "Borrador",
+    "PUBLISHED": "Publicado",
+    "RESCHEDULED": "Reprogramado",
+    "ACTIVE": "Activo",
+    "ENDED": "Finalizado",
+    "CANCELLED": "Cancelado"
+  },
+  "pagination": {
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "page": "Página {{current}} de {{total}}"
+  },
+  "empty": "No se encontraron resultados",
+  "error": "Algo salió mal"
+}

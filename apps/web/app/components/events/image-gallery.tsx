@@ -8,7 +8,7 @@ import {
   useDeleteMedia,
 } from '~/hooks/api/use-media';
 import { useAuth } from '~/contexts/auth';
-import { getApiErrorMessage } from '~/lib/axios';
+import { useApiError } from '~/hooks/use-api-error';
 
 interface ImageGalleryProps {
   eventId: string;
@@ -21,6 +21,7 @@ export function ImageGallery({
   canUpload,
   guestToken,
 }: ImageGalleryProps) {
+  const apiError = useApiError();
   const { user } = useAuth();
   const { data: items, isLoading } = useMedia(eventId);
   const { mutate: upload, isPending: uploading } = useUploadMedia(
@@ -35,7 +36,7 @@ export function ImageGallery({
     if (!file) return;
     upload(file, {
       onSuccess: () => toast.success('Photo uploaded!'),
-      onError: (err) => toast.error(getApiErrorMessage(err, 'Upload failed')),
+      onError: (err) => toast.error(apiError(err)),
     });
     e.target.value = '';
   };
@@ -44,7 +45,7 @@ export function ImageGallery({
     if (!confirm('Remove this photo?')) return;
     remove(mediaId, {
       onSuccess: () => toast.success('Photo removed'),
-      onError: (err) => toast.error(getApiErrorMessage(err)),
+      onError: (err) => toast.error(apiError(err)),
     });
   };
 

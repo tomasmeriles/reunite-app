@@ -1,0 +1,41 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "events": "Events",
+    "users": "Users",
+    "auditLogs": "Audit Logs"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "close": "Close",
+    "submit": "Submit",
+    "create": "Create",
+    "update": "Update",
+    "remove": "Remove",
+    "search": "Search",
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "deleting": "Deleting..."
+  },
+  "status": {
+    "DRAFT": "Draft",
+    "PUBLISHED": "Published",
+    "RESCHEDULED": "Rescheduled",
+    "ACTIVE": "Active",
+    "ENDED": "Ended",
+    "CANCELLED": "Cancelled"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {{current}} of {{total}}"
+  },
+  "empty": "No results found",
+  "error": "Something went wrong"
+}

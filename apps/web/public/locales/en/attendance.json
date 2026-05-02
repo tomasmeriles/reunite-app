@@ -1,0 +1,40 @@
+{
+  "register": {
+    "submit": "Register",
+    "submitting": "Registering...",
+    "success": "You're registered!",
+    "error": "Could not complete registration",
+    "guestName": "Your name",
+    "guestNamePlaceholder": "Enter your name"
+  },
+  "unregister": {
+    "title": "Cancel registration",
+    "reason": "Reason (optional)",
+    "submit": "Cancel registration",
+    "submitting": "Cancelling...",
+    "success": "Registration cancelled",
+    "error": "Could not cancel registration"
+  },
+  "bringGuest": {
+    "title": "Bring a guest",
+    "guestName": "Guest name",
+    "submit": "Add guest",
+    "submitting": "Adding...",
+    "success": "Guest added!",
+    "error": "Could not add guest"
+  },
+  "list": {
+    "title": "Attendees",
+    "empty": "No attendees yet",
+    "search": "Search attendees...",
+    "guest": "Guest",
+    "via": "via {{sponsor}}",
+    "waitlisted": "Waitlisted",
+    "cancelled": "Cancelled"
+  },
+  "status": {
+    "CONFIRMED": "Confirmed",
+    "WAITLISTED": "Waitlisted",
+    "CANCELLED": "Cancelled"
+  }
+}

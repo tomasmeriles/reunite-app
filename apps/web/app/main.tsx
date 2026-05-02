@@ -1,4 +1,5 @@
-import { StrictMode } from 'react';
+import './lib/i18n';
+import { StrictMode, Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import { RouterProvider } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -31,22 +32,24 @@ function InnerApp() {
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <TooltipProvider>
-            <AuthProvider>
-              <ConfettiProvider>
-                <AuthModalProvider>
-                  <InnerApp />
-                  <Toaster richColors position="top-right" />
-                </AuthModalProvider>
-              </ConfettiProvider>
-            </AuthProvider>
-          </TooltipProvider>
-        </ThemeProvider>
-        <ReactQueryDevtools initialIsOpen={false} />
-      </QueryClientProvider>
-    </HelmetProvider>
+    <Suspense>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider>
+            <TooltipProvider>
+              <AuthProvider>
+                <ConfettiProvider>
+                  <AuthModalProvider>
+                    <InnerApp />
+                    <Toaster richColors position="top-right" />
+                  </AuthModalProvider>
+                </ConfettiProvider>
+              </AuthProvider>
+            </TooltipProvider>
+          </ThemeProvider>
+          <ReactQueryDevtools initialIsOpen={false} />
+        </QueryClientProvider>
+      </HelmetProvider>
+    </Suspense>
   </StrictMode>,
 );

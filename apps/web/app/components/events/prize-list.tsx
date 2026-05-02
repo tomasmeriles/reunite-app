@@ -12,7 +12,7 @@ import {
   useAssignWinner,
   useDeletePrize,
 } from '~/hooks/api/use-prizes';
-import { getApiErrorMessage } from '~/lib/axios';
+import { useApiError } from '~/hooks/use-api-error';
 import type { Prize } from '~/api/prizes/prizes.types';
 
 interface PrizeListProps {
@@ -21,6 +21,7 @@ interface PrizeListProps {
 }
 
 export function PrizeList({ eventId, canManage }: PrizeListProps) {
+  const apiError = useApiError();
   const { data: prizes, isLoading } = usePrizes(eventId);
   const { mutate: createPrize, isPending: creating } = useCreatePrize(eventId);
   const { mutate: assignWinner, isPending: assigning } =
@@ -49,7 +50,7 @@ export function PrizeList({ eventId, canManage }: PrizeListProps) {
           setNewTitle('');
           toast.success('Prize added');
         },
-        onError: (err) => toast.error(getApiErrorMessage(err)),
+        onError: (err) => toast.error(apiError(err)),
       },
     );
   };
@@ -62,7 +63,7 @@ export function PrizeList({ eventId, canManage }: PrizeListProps) {
           setDrawPrize(prize);
           toast.success('Winner drawn!');
         },
-        onError: (err) => toast.error(getApiErrorMessage(err)),
+        onError: (err) => toast.error(apiError(err)),
       },
     );
   };

@@ -1,0 +1,40 @@
+{
+  "register": {
+    "submit": "Inscribirse",
+    "submitting": "Inscribiendo...",
+    "success": "¡Estás inscripto!",
+    "error": "No se pudo completar la inscripción",
+    "guestName": "Tu nombre",
+    "guestNamePlaceholder": "Ingresá tu nombre"
+  },
+  "unregister": {
+    "title": "Cancelar inscripción",
+    "reason": "Motivo (opcional)",
+    "submit": "Cancelar inscripción",
+    "submitting": "Cancelando...",
+    "success": "Inscripción cancelada",
+    "error": "No se pudo cancelar la inscripción"
+  },
+  "bringGuest": {
+    "title": "Traer un invitado",
+    "guestName": "Nombre del invitado",
+    "submit": "Agregar invitado",
+    "submitting": "Agregando...",
+    "success": "¡Invitado agregado!",
+    "error": "No se pudo agregar el invitado"
+  },
+  "list": {
+    "title": "Asistentes",
+    "empty": "Todavía no hay asistentes",
+    "search": "Buscar asistentes...",
+    "guest": "Invitado",
+    "via": "vía {{sponsor}}",
+    "waitlisted": "En espera",
+    "cancelled": "Cancelado"
+  },
+  "status": {
+    "CONFIRMED": "Confirmado",
+    "WAITLISTED": "En espera",
+    "CANCELLED": "Cancelado"
+  }
+}
