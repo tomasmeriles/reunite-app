@@ -233,6 +233,42 @@ export class AuthService extends TransactionalService {
     return `${random}.${signature}`;
   }
 
+  /**
+   * Links guest attendances (identified by guestTokens) to the authenticated user.
+   * Skips tokens where the user already has an attendance record for that event.
+   * guestName is left unchanged — the userId linkage is enough for display logic.
+   */
+  async claimGuestSessions(
+    userId: string,
+    guestTokens: string[],
+  ): Promise<{ claimed: string[] }> {
+    const claimed: string[] = [];
+
+    for (const guestToken of guestTokens) {
+      const attendee = await this.db.eventAttendee.findUnique({
+        where: { guestToken },
+        select: { id: true, eventId: true },
+      });
+      if (!attendee) continue;
+
+      const conflict = await this.db.eventAttendee.findUnique({
+        where: {
+          eventId_userId: { eventId: attendee.eventId, userId },
+        },
+        select: { id: true },
+      });
+      if (conflict) continue;
+
+      await this.db.eventAttendee.update({
+        where: { guestToken },
+        data: { userId, guestToken: null },
+      });
+      claimed.push(attendee.eventId);
+    }
+
+    return { claimed };
+  }
+
   /** Frontend URL for post-login redirect */
   frontendUrl(): string {
     return this.config.get('FRONTEND_URL');

@@ -10,6 +10,7 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+import { ErrorCode } from '../../common/errors/error-codes.enum';
 import {
   ApiBody,
   ApiCookieAuth,
@@ -35,6 +36,7 @@ import { LocalAuthGuard } from '../guards/local-auth.guard';
 import { OAuthUser } from '../interfaces/oauth-user.interface';
 import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
+import { ClaimGuestSessionsDto } from '../dto/claim-guest-sessions.dto';
 import type { PackedAbility } from '../../casl/interfaces/ability.interface';
 import type { SafeUser } from '../../modules/users/selects/user.select';
 
@@ -185,7 +187,7 @@ export class AuthController {
       // authenticated (e.g. Axios refresh interceptor fired on an anonymous
       // request). This is not a security event worth recording.
       req._audit = { skipAuditOnError: true };
-      throw new UnauthorizedException('No refresh token provided');
+      throw new UnauthorizedException({ code: ErrorCode.NO_REFRESH_TOKEN });
     }
 
     try {
@@ -250,6 +252,19 @@ export class AuthController {
     @CurrentUser() user: SafeUser,
   ): Promise<{ user: SafeUser; abilities: PackedAbility[] }> {
     return this.auth.getMe(user);
+  }
+
+  /** Links any guest attendances identified by guestTokens to the current user */
+  @Post('claim-guest-sessions')
+  @ApiOperation({ summary: 'Claim guest attendance records after login' })
+  @ApiCookieAuth('access_token')
+  @ApiOkResponse({ description: 'List of claimed event IDs' })
+  @SkipThrottle()
+  claimGuestSessions(
+    @CurrentUser() user: SafeUser,
+    @Body() dto: ClaimGuestSessionsDto,
+  ): Promise<{ claimed: string[] }> {
+    return this.auth.claimGuestSessions(user.id, dto.guestTokens);
   }
 
   /** Revokes the refresh token and clears both cookies */

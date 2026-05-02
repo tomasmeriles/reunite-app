@@ -1,7 +1,10 @@
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
+import { Info } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '~/components/ui/button';
 import { Separator } from '~/components/ui/separator';
 import {
@@ -19,11 +22,23 @@ import {
 import { GoogleButton } from '~/components/buttons';
 import { useLogin } from '~/hooks/api/use-auth';
 import { loginSchema, type LoginFormValues } from '~/lib/schemas/auth.schema';
-import { getApiErrorMessage } from '~/lib/axios';
+import { useApiError } from '~/hooks/use-api-error';
+
+function useHasGuestTokens(): boolean {
+  return useMemo(() => {
+    for (let i = 0; i < localStorage.length; i++) {
+      if (localStorage.key(i)?.startsWith('guest_token_')) return true;
+    }
+    return false;
+  }, []);
+}
 
 export default function LoginPage() {
+  const { t } = useTranslation('auth');
   const navigate = useNavigate();
   const { mutate: login, isPending } = useLogin();
+  const hasGuestTokens = useHasGuestTokens();
+  const apiError = useApiError();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -33,8 +48,7 @@ export default function LoginPage() {
   const onSubmit = (values: LoginFormValues) => {
     login(values, {
       onSuccess: () => navigate({ to: '/dashboard', replace: true }),
-      onError: (err) =>
-        toast.error(getApiErrorMessage(err, 'Invalid email or password')),
+      onError: (err) => toast.error(apiError(err)),
     });
   };
 
@@ -42,18 +56,24 @@ export default function LoginPage() {
     <Card className="border-border/60 bg-card/70 shadow-xl backdrop-blur-sm">
       <CardHeader>
         <CardTitle className="text-2xl font-semibold bg-linear-to-r from-primary via-[oklch(0.88_0.14_84)] to-secondary bg-clip-text text-transparent">
-          Sign in
+          {t('login.title')}
         </CardTitle>
         <CardDescription>
-          Enter your credentials to access your account
+          {t('login.subtitle')}
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {hasGuestTokens && (
+          <div className="flex items-start gap-2 rounded-lg border bg-muted/50 p-3 text-sm text-muted-foreground mb-4">
+            <Info className="size-4 shrink-0 mt-0.5" />
+            <span>{t('login.guestNote')}</span>
+          </div>
+        )}
         <FormContainer form={form} onSubmit={onSubmit}>
           <FormTextField
             control={form.control}
             name="email"
-            label="Email"
+            label={t('login.email')}
             type="email"
             placeholder="you@example.com"
             autoComplete="email"
@@ -61,17 +81,17 @@ export default function LoginPage() {
           <FormPasswordField
             control={form.control}
             name="password"
-            label="Password"
+            label={t('login.password')}
             autoComplete="current-password"
           />
           <Button type="submit" className="w-full" disabled={isPending}>
-            {isPending ? 'Signing in…' : 'Sign in'}
+            {isPending ? t('login.submitting') : t('login.submit')}
           </Button>
         </FormContainer>
         <div className="relative my-4">
           <Separator />
           <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card/70 px-2 text-xs text-muted-foreground">
-            or
+            {t('login.orContinueWith')}
           </span>
         </div>
         <GoogleButton />
@@ -80,15 +100,15 @@ export default function LoginPage() {
             to="/forgot-password"
             className="hover:text-foreground underline-offset-4 hover:underline"
           >
-            Forgot your password?
+            {t('login.forgotPassword')}
           </Link>
           <span>
-            Don't have an account?{' '}
+            {t('login.noAccount')}{' '}
             <Link
               to="/register"
               className="font-medium text-foreground underline-offset-4 hover:underline"
             >
-              Sign up
+              {t('login.signUp')}
             </Link>
           </span>
         </div>
