@@ -49,11 +49,11 @@ export interface EventAccess {
   // ── Merged actions (staff OR attendee depending on config) ─────────────────
   /** ACTIVE or PUBLISHED; organizers always, attendees only when chatEnabled */
   canChat: boolean;
-  /** Only during ACTIVE; organizers always, attendees only when mediaEnabled */
+  /** Only during ACTIVE; staff always (unless DISABLED), attendees when ATTENDEES_ONLY or ANYONE */
   canUploadMedia: boolean;
   /** Organizers always; attendees only when prizesEnabled */
   canSeePrizes: boolean;
-  /** Organizers always; attendees when attendeesPublic OR confirmed */
+  /** Organizers always; attendees per attendeeAccess (ANYONE/ATTENDEES_ONLY) */
   canSeeAttendees: boolean;
 
   // ── Archival access (ACTIVE and ENDED) ────────────────────────────────────
@@ -139,15 +139,26 @@ export function useEventAccess(eventId: string): EventAccess {
       (staffCanChat || (isConfirmedAttendee && !!config?.chatEnabled)) &&
       (isLive || isPublished),
     canUploadMedia:
-      (staffCanMedia || (isConfirmedAttendee && !!config?.mediaEnabled)) &&
+      (staffCanMedia ||
+        (isConfirmedAttendee &&
+          (config?.mediaAccess === 'ATTENDEES_ONLY' ||
+            config?.mediaAccess === 'ANYONE'))) &&
       isLive,
     canSeePrizes:
       (staffCanPrizes || (isConfirmedAttendee && !!config?.prizesEnabled)) &&
       (isEditable || isLive || isEnded),
     canSeeAttendees:
-      staffCanSeeAttendees || !!config?.attendeesPublic || isConfirmedAttendee,
+      staffCanSeeAttendees ||
+      (config?.attendeeAccess === 'ANYONE' && event?.eventType === 'PUBLIC') ||
+      (isConfirmedAttendee &&
+        (config?.attendeeAccess === 'ATTENDEES_ONLY' ||
+          config?.attendeeAccess === 'ANYONE')),
 
     canReadChatHistory: isLive || isEnded || isPublished,
-    canViewMedia: isLive || isEnded,
+    canViewMedia:
+      (staffCanMedia ||
+        config?.mediaAccess === 'ANYONE' ||
+        (isConfirmedAttendee && config?.mediaAccess === 'ATTENDEES_ONLY')) &&
+      (isLive || isEnded),
   };
 }

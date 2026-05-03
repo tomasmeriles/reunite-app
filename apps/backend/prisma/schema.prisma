@@ -27,6 +27,7 @@ model User {
   memberships      EventStaff[] // which events this user is an organizer of
   whitelistEntries EventWhitelistEntry[]
   attendees        EventAttendee[]
+  uploadedMedia    MediaItem[]
 
   @@map("users")
 }
@@ -217,6 +218,20 @@ enum AttendeeStatus {
   WAITLISTED
 }
 
+enum MediaAccess {
+  ANYONE          // anyone can view; only attendees can upload
+  ATTENDEES_ONLY  // confirmed attendees and staff can view and upload
+  ORGANIZERS_ONLY // only staff can view and upload
+  DISABLED        // gallery hidden for everyone
+}
+
+enum AttendeeAccess {
+  ANYONE          // anyone can view the attendee list; public events only
+  ATTENDEES_ONLY  // confirmed attendees and staff can view
+  ORGANIZERS_ONLY // only staff can view
+  DISABLED        // attendee list hidden for everyone
+}
+
 /// The main event record. Organizers are tracked in EventStaff.
 model Event {
   id              String      @id @default(cuid())
@@ -262,10 +277,10 @@ model Event {
 model EventConfig {
   id              String  @id @default(cuid())
   eventId         String  @unique
-  attendeesPublic Boolean @default(true) // show attendee list publicly
-  chatEnabled     Boolean @default(true)
-  mediaEnabled    Boolean @default(true)
-  prizesEnabled   Boolean @default(true)
+  attendeeAccess  AttendeeAccess @default(ATTENDEES_ONLY)
+  chatEnabled     Boolean     @default(true)
+  mediaAccess     MediaAccess @default(ATTENDEES_ONLY)
+  prizesEnabled   Boolean     @default(true)
 
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
@@ -371,16 +386,18 @@ model ChatMessage {
 
 /// An image or media item uploaded to an event's gallery.
 model MediaItem {
-  id           String   @id @default(cuid())
-  eventId      String
-  attendeeId   String
-  s3Key        String // full S3 object key
-  thumbnailKey String? // S3 key for the generated thumbnail
-  caption      String?
-  createdAt    DateTime @default(now())
+  id               String   @id @default(cuid())
+  eventId          String
+  attendeeId       String? // null when uploaded by staff (not registered as attendee)
+  uploadedByUserId String? // set for staff uploads; null for attendee uploads
+  s3Key            String // full S3 object key
+  thumbnailKey     String? // S3 key for the generated thumbnail
+  caption          String?
+  createdAt        DateTime @default(now())
 
-  event    Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  attendee EventAttendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
+  event    Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  attendee EventAttendee? @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
+  uploader User?          @relation(fields: [uploadedByUserId], references: [id], onDelete: SetNull)
 
   @@index([eventId, createdAt])
   @@map("media_items")

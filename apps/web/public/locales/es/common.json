@@ -21,7 +21,8 @@
     "search": "Buscar",
     "loading": "Cargando...",
     "saving": "Guardando...",
-    "deleting": "Eliminando..."
+    "deleting": "Eliminando...",
+    "view": "Ver"
   },
   "status": {
     "DRAFT": "Borrador",
@@ -37,5 +38,60 @@
     "page": "Página {{current}} de {{total}}"
   },
   "empty": "No se encontraron resultados",
-  "error": "Algo salió mal"
+  "error": "Algo salió mal",
+  "roles": {
+    "SUPER_ADMIN": "Super Admin",
+    "MODERATOR": "Moderador",
+    "MEMBER": "Miembro",
+    "OWNER": "Propietario",
+    "ORGANIZER": "Organizador"
+  },
+  "auditActions": {
+    "LOGIN": "Inicio de sesión",
+    "LOGOUT": "Cierre de sesión",
+    "REGISTER": "Registro",
+    "TOKEN_REVOKED": "Token revocado",
+    "UPDATE": "Actualización",
+    "DELETE": "Eliminación",
+    "EVENT_CREATED": "Evento creado",
+    "EVENT_UPDATED": "Evento actualizado",
+    "ATTENDEE_REGISTERED": "Asistente registrado",
+    "ATTENDEE_CANCELLED": "Asistente cancelado"
+  },
+  "dashboard": {
+    "greeting": "Hola",
+    "role": "Tu rol",
+    "eventsCreated": "Eventos creados",
+    "upcoming": "Próximos",
+    "upcomingEvents": "Próximos Eventos",
+    "viewAll": "Ver todos",
+    "noUpcoming": "No hay próximos eventos",
+    "noUpcomingSubtitle": "¡Creá tu primer evento e invitá a tu gente!",
+    "createEvent": "Crear evento"
+  },
+  "profile": {
+    "title": "Perfil",
+    "subtitle": "Administrá tu cuenta",
+    "name": "Nombre completo",
+    "avatarUrl": "URL del avatar",
+    "submit": "Guardar cambios",
+    "submitting": "Guardando...",
+    "success": "Perfil actualizado correctamente"
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "subtitle": "La página que buscás no existe o fue movida.",
+    "goHome": "Ir al inicio"
+  },
+  "forbidden": {
+    "title": "Acceso denegado",
+    "subtitle": "No tenés permiso para ver esta página.",
+    "goHome": "Ir al inicio"
+  },
+  "join": {
+    "loading": "Uniéndose al evento...",
+    "success": "¡Te uniste al evento!",
+    "invalid": "Este link de invitación es inválido o expiró.",
+    "goToEvent": "Ir al evento"
+  }
 }

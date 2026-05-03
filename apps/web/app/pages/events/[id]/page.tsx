@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate } from '@tanstack/react-router';
+import { useQueryState, parseAsStringLiteral } from 'nuqs';
 import { Helmet } from 'react-helmet-async';
 import { toast } from 'sonner';
-import { AlertCircle, ChevronLeft, Lock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { AlertCircle, ChevronLeft, Lock, EyeOff, Users, Clock } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { Label } from '~/components/ui/label';
 import { Textarea } from '~/components/ui/textarea';
@@ -41,16 +43,33 @@ import { ImageWithFallback } from '~/components/ui/image-with-fallback';
 import { EventCoverPlaceholder } from '~/components/events/event-cover-placeholder';
 import { EventDetailHeader } from '~/components/events/event-detail-header';
 import { ThemeToggle } from '~/components/theme-toggle';
+import { LanguageSwitcher } from '~/components/layout/language-switcher';
 import { Alert } from '~/components/ui/alert';
+import { EmptyState } from '~/components/ui/empty-state';
+
+const TABS = ['guests', 'chat', 'gallery', 'prizes'] as const;
+type TabValue = (typeof TABS)[number];
 
 export default function EventDetailPage() {
+  const { t } = useTranslation(['events', 'attendance', 'common']);
   const apiError = useApiError();
   const { id } = useParams({ from: '/events/$id' });
+  const [tab, setTab] = useQueryState<TabValue>(
+    'tab',
+    parseAsStringLiteral(TABS).withDefault('guests'),
+  );
   const { user } = useAuth();
   const navigate = useNavigate();
   const breakpoint = useBreakpoint();
   const { data: event, isLoading } = useEvent(id);
-  const { data: attendeesData } = useAttendeesInfinite(id);
+
+  const [guestToken, setGuestToken] = useState<string | null>(() =>
+    typeof window !== 'undefined'
+      ? localStorage.getItem(`guest_token_${id}`)
+      : null,
+  );
+
+  const { data: attendeesData } = useAttendeesInfinite(id, undefined, guestToken);
   const attendeeTotal = attendeesData?.pages[0]?.meta.total;
   const { data: myAttendance, isPending: attendancePending } = useMyAttendance(id);
   const { mutate: register, isPending: registering } = useRegisterAttendee(id);
@@ -65,14 +84,6 @@ export default function EventDetailPage() {
   const [showRsvpDialog, setShowRsvpDialog] = useState(false);
   const [justRegistered, setJustRegistered] = useState(false);
 
-  // Read raw from localStorage — useLocalStorage would corrupt this value by
-  // JSON.parse-failing on the UUID then overwriting it with "null" on mount.
-  const [guestToken, setGuestToken] = useState<string | null>(() =>
-    typeof window !== 'undefined'
-      ? localStorage.getItem(`guest_token_${id}`)
-      : null,
-  );
-
   const isAttending = justRegistered || myAttendance?.status === 'CONFIRMED';
   const isConfirmedAttendee = isAttending;
   const isPrivateEvent =
@@ -86,7 +97,6 @@ export default function EventDetailPage() {
       ? myAttendance.inviteLink.maxUses - myAttendance.inviteLink.useCount
       : null;
 
-  // Auto-open RSVP once when attendance data loads and user hasn't joined yet.
   const rsvpAutoOpened = useRef(false);
   useEffect(() => {
     if (rsvpAutoOpened.current || !event || myAttendance === undefined) return;
@@ -137,10 +147,9 @@ export default function EventDetailPage() {
           setJustRegistered(true);
           setShowRsvpDialog(false);
           setShowConfetti(true);
-          toast.success("You're in! See you at the party 🎉");
+          toast.success(t('attendance:register.success'));
         },
-        onError: (err) =>
-          toast.error(apiError(err)),
+        onError: (err) => toast.error(apiError(err)),
       },
     );
   };
@@ -150,10 +159,10 @@ export default function EventDetailPage() {
       onSuccess: () => {
         setShowLeaveDialog(false);
         setLeaveReason('');
-        toast.success("You've left the event");
+        toast.success(t('attendance:leave.success'));
         navigate({ to: user ? '/dashboard' : '/' });
       },
-      onError: () => toast.error('Could not leave the event'),
+      onError: () => toast.error(t('attendance:leave.error')),
     });
   };
 
@@ -162,10 +171,9 @@ export default function EventDetailPage() {
     addGuest(guestName, {
       onSuccess: () => {
         setShowAddGuestDialog(false);
-        toast.success(`${guestName} added!`);
+        toast.success(t('attendance:bringGuest.success', { name: guestName }));
       },
-      onError: (err) =>
-        toast.error(apiError(err)),
+      onError: (err) => toast.error(apiError(err)),
     });
   };
 
@@ -189,7 +197,7 @@ export default function EventDetailPage() {
       <>
         <TopBar user={user} isMobile={isMobile} />
         <div className="flex min-h-[60vh] items-center justify-center">
-          <p className="text-muted-foreground">Event not found.</p>
+          <p className="text-muted-foreground">{t('events:detail.eventNotFound')}</p>
         </div>
       </>
     );
@@ -222,7 +230,7 @@ export default function EventDetailPage() {
         {event.status === 'DRAFT' && (
           <Alert variant="warning">
             <AlertCircle />
-            This event is still a draft and not accesible yet.
+            {t('events:detail.draftAlert')}
           </Alert>
         )}
 
@@ -262,10 +270,9 @@ export default function EventDetailPage() {
               if (data.guestToken) setGuestToken(data.guestToken);
               setJustRegistered(true);
               setShowConfetti(true);
-              toast.success("You're in! See you at the party 🎉");
+              toast.success(t('attendance:register.success'));
             },
-            onError: (err) =>
-              toast.error(apiError(err)),
+            onError: (err) => toast.error(apiError(err)),
           })}
         />
 
@@ -284,30 +291,57 @@ export default function EventDetailPage() {
         {isPrivateEvent && !isConfirmedAttendee && !access.isStaff && !attendancePending ? (
           <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-muted/40 py-12 text-center">
             <Lock className="h-8 w-8 text-muted-foreground/50" />
-            <p className="font-medium">This is a private event</p>
+            <p className="font-medium">{t('events:detail.privateEvent')}</p>
             <p className="text-sm text-muted-foreground">
               {event.eventType === 'INVITE_LINK'
-                ? 'You need an invite link to join.'
-                : 'Access is by invitation only.'}
+                ? t('events:detail.needInviteLink')
+                : t('events:detail.invitationOnly')}
             </p>
           </div>
         ) : (
-          <Tabs defaultValue="guests">
+          <Tabs value={tab} onValueChange={(v) => void setTab(v as TabValue)}>
             <TabsList>
               <TabsTrigger value="guests">
-                Guests {attendeeTotal != null ? `(${attendeeTotal})` : ''}
+                {t('events:detail.tabs.attendees')} {attendeeTotal != null ? `(${attendeeTotal})` : ''}
               </TabsTrigger>
-              <TabsTrigger value="chat">Chat</TabsTrigger>
-              <TabsTrigger value="gallery">Gallery</TabsTrigger>
-              <TabsTrigger value="prizes">Prizes</TabsTrigger>
+              <TabsTrigger value="chat">{t('events:detail.tabs.chat')}</TabsTrigger>
+              <TabsTrigger value="gallery">{t('events:detail.tabs.media')}</TabsTrigger>
+              <TabsTrigger value="prizes">{t('events:detail.tabs.prizes')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="guests" className="mt-4">
-              <AttendeeList
-                eventId={id}
-                currentAttendeeId={myAttendance?.id}
-                staffRoles={staffRoles}
-              />
+              {access.canSeeAttendees ? (
+                <AttendeeList
+                  eventId={id}
+                  currentAttendeeId={myAttendance?.id}
+                  staffRoles={staffRoles}
+                  guestToken={guestToken}
+                />
+              ) : event?.config?.attendeeAccess === 'DISABLED' ? (
+                <EmptyState
+                  icon={EyeOff}
+                  message={t('events:detail.guestListDisabled')}
+                  description={t('events:detail.guestListDisabledDesc')}
+                />
+              ) : event?.config?.attendeeAccess === 'ORGANIZERS_ONLY' ? (
+                <EmptyState
+                  icon={Lock}
+                  message={t('events:detail.organizersOnly')}
+                  description={t('events:detail.guestListOrganizerDesc')}
+                />
+              ) : event?.config?.attendeeAccess === 'ATTENDEES_ONLY' && !isConfirmedAttendee ? (
+                <EmptyState
+                  icon={Users}
+                  message={t('events:detail.attendeesOnly')}
+                  description={t('events:detail.guestListAttendeeDesc')}
+                />
+              ) : (
+                <EmptyState
+                  icon={Users}
+                  message={t('events:detail.guestListUnavailable')}
+                  description={t('events:detail.guestListUnavailableDesc')}
+                />
+              )}
             </TabsContent>
 
             <TabsContent value="chat" className="mt-4">
@@ -319,7 +353,7 @@ export default function EventDetailPage() {
                 />
               ) : (
                 <p className="py-8 text-center text-sm text-muted-foreground">
-                  Chat is available once the event is published.
+                  {t('events:detail.chatNotAvailable')}
                 </p>
               )}
             </TabsContent>
@@ -329,12 +363,39 @@ export default function EventDetailPage() {
                 <ImageGallery
                   eventId={id}
                   canUpload={access.canUploadMedia}
+                  isStaff={access.isStaff}
                   guestToken={guestToken}
                 />
+              ) : access.isStaff ? (
+                <EmptyState
+                  icon={Clock}
+                  message={t('events:detail.notAvailableYet')}
+                  description={t('events:detail.galleryNotAvailableDesc')}
+                />
+              ) : event?.config?.mediaAccess === 'DISABLED' ? (
+                <EmptyState
+                  icon={EyeOff}
+                  message={t('events:detail.galleryDisabled')}
+                  description={t('events:detail.galleryDisabledDesc')}
+                />
+              ) : event?.config?.mediaAccess === 'ORGANIZERS_ONLY' ? (
+                <EmptyState
+                  icon={Lock}
+                  message={t('events:detail.organizersOnly')}
+                  description={t('events:detail.galleryOrganizerDesc')}
+                />
+              ) : event?.config?.mediaAccess === 'ATTENDEES_ONLY' && !isConfirmedAttendee ? (
+                <EmptyState
+                  icon={Users}
+                  message={t('events:detail.attendeesOnly')}
+                  description={t('events:detail.galleryAttendeeDesc')}
+                />
               ) : (
-                <p className="py-8 text-center text-sm text-muted-foreground">
-                  Gallery is only available during the live event.
-                </p>
+                <EmptyState
+                  icon={Clock}
+                  message={t('events:detail.notAvailableYet')}
+                  description={t('events:detail.galleryNotAvailableDesc')}
+                />
               )}
             </TabsContent>
 
@@ -370,18 +431,19 @@ export default function EventDetailPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Leave this event?</AlertDialogTitle>
+            <AlertDialogTitle>{t('attendance:leave.dialogTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              You can rejoin later if the event is still open.
+              {t('attendance:leave.dialogDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-1.5">
             <Label htmlFor="leave-reason" className="text-sm">
-              Reason <span className="text-muted-foreground">(optional)</span>
+              {t('attendance:leave.reason')}{' '}
+              <span className="text-muted-foreground">{t('attendance:leave.reasonOptional')}</span>
             </Label>
             <Textarea
               id="leave-reason"
-              placeholder="Let the organizer know why you're leaving…"
+              placeholder={t('attendance:leave.reasonPlaceholder')}
               value={leaveReason}
               onChange={(e) => setLeaveReason(e.target.value)}
               rows={3}
@@ -389,13 +451,13 @@ export default function EventDetailPage() {
             />
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>Stay</AlertDialogCancel>
+            <AlertDialogCancel>{t('attendance:leave.stay')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmLeave}
               disabled={unregistering}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Leave event
+              {t('attendance:leave.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -412,6 +474,7 @@ interface TopBarProps {
 }
 
 function TopBar({ user, isMobile }: TopBarProps) {
+  const { t } = useTranslation('common');
   return (
     <div className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur-sm">
       <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
@@ -423,11 +486,12 @@ function TopBar({ user, isMobile }: TopBarProps) {
         </Link>
 
         <div className="flex items-center gap-1">
+          <LanguageSwitcher />
           <ThemeToggle />
           <Button variant="ghost" size="sm" asChild>
             <Link to={user ? '/dashboard' : '/'}>
               <ChevronLeft className="mr-1 h-4 w-4" />
-              {!isMobile && (user ? 'Dashboard' : 'Home')}
+              {!isMobile && (user ? t('nav.dashboard') : t('nav.events'))}
             </Link>
           </Button>
         </div>

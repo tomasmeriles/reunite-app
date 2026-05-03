@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { CalendarDays, MapPin, Plus, Settings } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useMyEvents } from '~/hooks/api/use-events';
 import { Button } from '~/components/ui/button';
 import { Badge } from '~/components/ui/badge';
@@ -10,6 +11,7 @@ import { formatDate, formatDateTime } from '~/lib/datetime';
 import type { Event } from '~/api/events/events.types';
 
 function EventCard({ event }: { event: Event }) {
+  const { t } = useTranslation(['common', 'events']);
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow group flex flex-col">
       <div className="relative h-40 bg-muted shrink-0">
@@ -27,7 +29,7 @@ function EventCard({ event }: { event: Event }) {
         <Badge
           className={`absolute top-2 right-2 text-xs ${STATUS_META[event.status].colorClass}`}
         >
-          {STATUS_META[event.status].label}
+          {t(`common:status.${event.status}`)}
         </Badge>
       </div>
 
@@ -49,7 +51,7 @@ function EventCard({ event }: { event: Event }) {
         <div className="flex gap-2 mt-auto pt-3">
           <Button size="sm" variant="outline" className="flex-1" asChild>
             <Link to="/events/$id" params={{ id: event.id }}>
-              View
+              {t('common:actions.view')}
             </Link>
           </Button>
           <Button size="sm" variant="ghost" asChild>
@@ -64,6 +66,7 @@ function EventCard({ event }: { event: Event }) {
 }
 
 export default function EventsPage() {
+  const { t } = useTranslation(['events', 'common']);
   const { data: events, isLoading } = useMyEvents();
 
   return (
@@ -71,13 +74,13 @@ export default function EventsPage() {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-muted-foreground mt-1">
-            Events you&apos;ve created and organized
+            {t('events:list.subtitle')}
           </p>
         </div>
         <Button asChild className="gap-2">
           <Link to="/events/create">
             <Plus className="h-4 w-4" />
-            New Event
+            {t('events:list.new')}
           </Link>
         </Button>
       </div>
@@ -97,14 +100,14 @@ export default function EventsPage() {
       ) : (
         <div className="rounded-xl border border-dashed p-16 text-center">
           <CalendarDays className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
-          <p className="text-lg font-semibold">No events yet</p>
+          <p className="text-lg font-semibold">{t('events:list.empty')}</p>
           <p className="text-sm text-muted-foreground mt-2 mb-6">
-            Create your first event and start bringing people together!
+            {t('events:list.emptySubtitle')}
           </p>
           <Button asChild className="gap-2">
             <Link to="/events/create">
               <Plus className="h-4 w-4" />
-              Create your first event
+              {t('events:list.createFirst')}
             </Link>
           </Button>
         </div>

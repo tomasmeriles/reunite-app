@@ -1,24 +1,21 @@
 import type { EventStatus } from '~/api/events/events.types';
 
 export interface ConfirmationConfig {
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
 }
 
 export interface StatusTransition {
   to: EventStatus;
-  label: string;
-  description: string;
+  labelKey: string;
+  descriptionKey: string;
   variant: 'default' | 'secondary' | 'outline' | 'destructive';
-  /** The most natural next step — shown as the primary action in split buttons. */
   isPrimary?: boolean;
-  /** When set, the transition requires a ConfirmModal before firing. */
   requiresConfirmation?: ConfirmationConfig;
 }
 
 export interface StatusMeta {
-  label: string;
-  description: string;
+  descriptionKey: string;
   variant: 'default' | 'secondary' | 'outline' | 'destructive';
   colorClass: string;
   dotClass: string;
@@ -28,43 +25,37 @@ export interface StatusMeta {
 
 export const STATUS_META: Record<EventStatus, StatusMeta> = {
   DRAFT: {
-    label: 'Draft',
-    description: 'Created but not yet published',
+    descriptionKey: 'statusMeta.DRAFT.description',
     variant: 'secondary',
     colorClass: 'bg-muted text-muted-foreground',
     dotClass: 'bg-muted-foreground',
   },
   PUBLISHED: {
-    label: 'Published',
-    description: 'Visible and accepting registrations',
+    descriptionKey: 'statusMeta.PUBLISHED.description',
     variant: 'default',
     colorClass: 'bg-info text-info-foreground',
     dotClass: 'bg-info',
   },
   ACTIVE: {
-    label: 'Live',
-    description: 'Event is currently happening',
+    descriptionKey: 'statusMeta.ACTIVE.description',
     variant: 'default',
     colorClass: 'bg-success text-success-foreground',
     dotClass: 'bg-success',
   },
   RESCHEDULED: {
-    label: 'Rescheduled',
-    description: 'Date was changed after publishing',
+    descriptionKey: 'statusMeta.RESCHEDULED.description',
     variant: 'outline',
     colorClass: 'bg-warning text-warning-foreground',
     dotClass: 'bg-warning',
   },
   ENDED: {
-    label: 'Ended',
-    description: 'Event has concluded',
+    descriptionKey: 'statusMeta.ENDED.description',
     variant: 'secondary',
     colorClass: 'bg-secondary text-secondary-foreground',
     dotClass: 'bg-muted-foreground',
   },
   CANCELLED: {
-    label: 'Cancelled',
-    description: 'Cancelled by the organizer',
+    descriptionKey: 'statusMeta.CANCELLED.description',
     variant: 'destructive',
     colorClass: 'bg-destructive text-destructive-foreground',
     dotClass: 'bg-destructive',
@@ -77,97 +68,92 @@ const TRANSITIONS: Record<EventStatus, StatusTransition[]> = {
   DRAFT: [
     {
       to: 'PUBLISHED',
-      label: 'Publish',
-      description: 'Make the event visible and open for registrations',
+      labelKey: 'transitions.toPublished.label',
+      descriptionKey: 'transitions.toPublished.description',
       variant: 'default',
       isPrimary: true,
     },
     {
       to: 'CANCELLED',
-      label: 'Cancel event',
-      description: 'Cancel this event permanently',
+      labelKey: 'transitions.toCancelled.label',
+      descriptionKey: 'transitions.toCancelled.description',
       variant: 'destructive',
       requiresConfirmation: {
-        title: 'Cancel event?',
-        description:
-          'This event will be cancelled. Attendees will no longer be able to join.',
+        titleKey: 'transitions.confirms.cancelFromDraft.title',
+        descriptionKey: 'transitions.confirms.cancelFromDraft.description',
       },
     },
   ],
   PUBLISHED: [
     {
       to: 'ACTIVE',
-      label: 'Go live',
-      description: 'Mark as currently happening',
+      labelKey: 'transitions.toActive.label',
+      descriptionKey: 'transitions.toActive.description',
       variant: 'default',
       isPrimary: true,
     },
     {
       to: 'DRAFT',
-      label: 'Unpublish',
-      description: 'Move back to draft',
+      labelKey: 'transitions.toDraft.label',
+      descriptionKey: 'transitions.toDraft.description',
       variant: 'secondary',
     },
     {
       to: 'CANCELLED',
-      label: 'Cancel event',
-      description: 'Cancel this event permanently',
+      labelKey: 'transitions.toCancelled.label',
+      descriptionKey: 'transitions.toCancelled.description',
       variant: 'destructive',
       requiresConfirmation: {
-        title: 'Cancel event?',
-        description:
-          'This event will be cancelled. All registered attendees will lose access.',
+        titleKey: 'transitions.confirms.cancelFromPublished.title',
+        descriptionKey: 'transitions.confirms.cancelFromPublished.description',
       },
     },
   ],
   ACTIVE: [
     {
       to: 'ENDED',
-      label: 'End event',
-      description: 'Mark the event as concluded',
+      labelKey: 'transitions.toEnded.label',
+      descriptionKey: 'transitions.toEnded.description',
       variant: 'default',
       isPrimary: true,
       requiresConfirmation: {
-        title: 'End event?',
-        description:
-          'This will conclude the event. Attendees will no longer be able to join or interact.',
+        titleKey: 'transitions.confirms.endEvent.title',
+        descriptionKey: 'transitions.confirms.endEvent.description',
       },
     },
     {
       to: 'CANCELLED',
-      label: 'Cancel event',
-      description: 'Cancel this event',
+      labelKey: 'transitions.toCancelled.label',
+      descriptionKey: 'transitions.toCancelled.description',
       variant: 'destructive',
       requiresConfirmation: {
-        title: 'Cancel live event?',
-        description:
-          'The event is currently live. Cancelling will immediately stop it for all attendees.',
+        titleKey: 'transitions.confirms.cancelFromActive.title',
+        descriptionKey: 'transitions.confirms.cancelFromActive.description',
       },
     },
   ],
   RESCHEDULED: [
     {
       to: 'PUBLISHED',
-      label: 'Re-publish',
-      description: 'Make visible again at the new date',
+      labelKey: 'transitions.toPublishedAgain.label',
+      descriptionKey: 'transitions.toPublishedAgain.description',
       variant: 'default',
       isPrimary: true,
     },
     {
       to: 'ACTIVE',
-      label: 'Go live',
-      description: 'Mark as currently happening',
+      labelKey: 'transitions.toActive.label',
+      descriptionKey: 'transitions.toActive.description',
       variant: 'default',
     },
     {
       to: 'CANCELLED',
-      label: 'Cancel event',
-      description: 'Cancel this event',
+      labelKey: 'transitions.toCancelled.label',
+      descriptionKey: 'transitions.toCancelled.description',
       variant: 'destructive',
       requiresConfirmation: {
-        title: 'Cancel event?',
-        description:
-          'This event will be cancelled. All registered attendees will lose access.',
+        titleKey: 'transitions.confirms.cancelFromRescheduled.title',
+        descriptionKey: 'transitions.confirms.cancelFromRescheduled.description',
       },
     },
   ],
@@ -175,14 +161,13 @@ const TRANSITIONS: Record<EventStatus, StatusTransition[]> = {
   CANCELLED: [
     {
       to: 'DRAFT',
-      label: 'Restore to draft',
-      description: 'Restore this event to draft state',
+      labelKey: 'transitions.toRestored.label',
+      descriptionKey: 'transitions.toRestored.description',
       variant: 'outline',
       isPrimary: true,
       requiresConfirmation: {
-        title: 'Restore to draft?',
-        description:
-          'All event data (attendees, messages, media) is preserved. The event will stay hidden until you publish again.',
+        titleKey: 'transitions.confirms.restoreFromCancelled.title',
+        descriptionKey: 'transitions.confirms.restoreFromCancelled.description',
       },
     },
   ],

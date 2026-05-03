@@ -1,11 +1,15 @@
 {
   "list": {
     "title": "Events",
+    "subtitle": "Events you've created and organized",
     "empty": "No events yet",
-    "createFirst": "Create your first event"
+    "emptySubtitle": "Create your first event and start bringing people together!",
+    "createFirst": "Create your first event",
+    "new": "New Event"
   },
   "create": {
     "title": "Create an event",
+    "subtitle": "Fill in the details below to get your event live",
     "steps": {
       "about": "About & Access",
       "when": "When",
@@ -13,7 +17,9 @@
     },
     "fields": {
       "title": "Event title",
+      "titlePlaceholder": "My Birthday Party",
       "description": "Description",
+      "descriptionPlaceholder": "Tell your guests what to expect…",
       "accessType": "Access type",
       "maxAttendees": "Max attendees",
       "startDate": "Start date",
@@ -38,12 +44,96 @@
     "duration": "{{minutes}} minutes",
     "capacity": "{{count}} / {{max}} spots",
     "capacityFull": "Full",
+    "bringAFriend": "Bring a friend",
+    "manage": "Manage",
+    "leaveEvent": "Leave event",
+    "addMe": "Add me",
+    "jumpIn": "Jump in",
+    "attending": "You're attending",
+    "inviteLinkLeft": "left",
     "tabs": {
       "about": "About",
       "attendees": "Attendees",
       "chat": "Chat",
       "media": "Media",
       "prizes": "Prizes"
+    },
+    "guestListDisabled": "Guest list disabled",
+    "organizersOnly": "Organizers only",
+    "attendeesOnly": "Attendees only",
+    "galleryDisabled": "Gallery disabled",
+    "notAvailableYet": "Not available yet",
+    "privateEvent": "This is a private event",
+    "needInviteLink": "You need an invite link to join",
+    "invitationOnly": "Access is by invitation only",
+    "draftAlert": "This event is still a draft and is not accessible yet.",
+    "guestListUnavailable": "Guest list unavailable",
+    "guestListUnavailableDesc": "You don't have access to the guest list.",
+    "guestListDisabledDesc": "The organizer has turned off the guest list for this event.",
+    "guestListOrganizerDesc": "Guest list is only visible to organizers.",
+    "guestListAttendeeDesc": "Join the event to see who else is coming.",
+    "chatNotAvailable": "Chat is available once the event is published.",
+    "galleryNotAvailableDesc": "Gallery opens once the event goes live.",
+    "galleryDisabledDesc": "The organizer has turned off the gallery for this event.",
+    "galleryOrganizerDesc": "Gallery is only visible to organizers.",
+    "galleryAttendeeDesc": "Join the event to see and share photos.",
+    "eventNotFound": "Event not found.",
+    "attendeeList": {
+      "search": "Search guests…",
+      "noMatch": "No guests match your search.",
+      "empty": "No guests yet.",
+      "emptyDesc": "Share the event link to get people in!",
+      "total": "{{count}} attending",
+      "you": "(you)",
+      "guestOf": "guest of {{name}}"
+    },
+    "gallery": {
+      "empty": "No photos yet",
+      "emptyUpload": "Be the first to share a moment!",
+      "emptyJoin": "Join the event and share a photo!",
+      "deletePhoto": "Delete photo",
+      "removeTitle": "Remove photo?",
+      "removeDesc": "This photo will be permanently deleted.",
+      "fileTooLarge": "File is too large (max 10 MB)",
+      "uploadSuccess": "Photo uploaded!",
+      "removeSuccess": "Photo removed"
+    }
+  },
+  "join": {
+    "invalidLink": "Invalid link",
+    "invalidLinkDesc": "This invite link doesn't exist. Ask the event organizer for a valid link.",
+    "youreInvited": "You're invited",
+    "alreadyRegistered": "You're already registered!",
+    "viewEvent": "View event",
+    "onWaitlist": "You're on the waitlist",
+    "waitlistDesc": "We'll let you know if a spot opens up.",
+    "helmetInvited": "You're invited to {{title}} — Reunite",
+    "capacity": "{{count}} capacity",
+    "spotsLeft_one": "{{count}} spot left on this link",
+    "spotsLeft_other": "{{count}} spots left on this link",
+    "yourName": "Your name",
+    "yourNamePlaceholder": "Your name",
+    "nameHelp": "You can use a different name than your profile for this event.",
+    "joining": "Joining…",
+    "joinEvent": "Join event 🎉",
+    "successToast": "You're in! 🎉",
+    "errors": {
+      "draft": {
+        "title": "Event not published yet",
+        "body": "This event hasn't been published yet. Check back later."
+      },
+      "unavailable": {
+        "title": "Event no longer available",
+        "body": "This event has ended or been cancelled."
+      },
+      "expired": {
+        "title": "Link expired",
+        "body": "This invite link has expired. Ask the organizer for a new one."
+      },
+      "max_uses_reached": {
+        "title": "Link is full",
+        "body": "This invite link has reached its limit."
+      }
     }
   },
   "manage": {
@@ -58,8 +148,11 @@
       "title": "Event settings",
       "success": "Settings updated",
       "error": "Failed to update settings",
+      "autoSave": "Changes are saved automatically",
+      "chatDescription": "Allow attendees to message each other",
+      "prizesDescription": "Enable the prizes feature for this event",
       "config": {
-        "publicGuestList": "Public guest list",
+        "publicGuestList": "Guest list",
         "chat": "Chat",
         "mediaUploads": "Media uploads",
         "prizes": "Prizes"
@@ -67,13 +160,22 @@
     },
     "danger": {
       "title": "Danger zone",
+      "description": "These actions are permanent and cannot be undone",
       "delete": "Delete event",
+      "deleteTitle": "Delete event?",
+      "deleteSubtitle": "All attendees, media, and data will be permanently removed",
+      "deleteDescNormal": "This will permanently delete {{title}} and all associated data. This action cannot be undone.",
+      "deleteDescCancelled": "This will permanently delete {{title}} and all associated data including attendees, messages, and media. This action cannot be undone.",
+      "deleteConfirmLabel": "Yes, delete event",
       "deleteConfirm": "Are you sure you want to delete this event? This action cannot be undone.",
       "deleteSuccess": "Event deleted",
       "deleteError": "Failed to delete event",
       "cancel": "Cancel event",
       "cancelSuccess": "Event cancelled",
-      "cancelError": "Failed to cancel event"
+      "cancelError": "Failed to cancel event",
+      "blockedPublished": "Unpublish the event before deleting.",
+      "blockedActive": "You cannot delete a live event.",
+      "blockedEnded": "Ended events cannot be deleted."
     },
     "inviteLinks": {
       "create": "Create invite link",
@@ -100,10 +202,52 @@
     },
     "attendees": {
       "title": "Attendees",
-      "removeSuccess": "Attendee removed",
+      "description": "View and manage all event attendees",
+      "confirmed": "confirmed",
+      "searchPlaceholder": "Search attendees…",
+      "removeSuccess": "{{name}} removed",
       "removeError": "Could not remove attendee",
       "search": "Search attendees...",
-      "empty": "No attendees yet"
+      "empty": "No attendees yet",
+      "filters": {
+        "all": "All",
+        "confirmed": "Confirmed",
+        "waitlisted": "Waitlisted",
+        "cancelled": "Cancelled"
+      },
+      "emptyAll": "No attendees yet.",
+      "emptyConfirmed": "No confirmed guests yet.",
+      "emptyWaitlisted": "No one on the waitlist.",
+      "emptyCancelled": "No cancellations.",
+      "guest": "guest",
+      "removeTitle": "Remove attendee?",
+      "removeDesc": "Remove {{name}} from this event? They won't be notified."
+    },
+    "about": {
+      "title": "About & Access",
+      "description": "Title, description and who can join",
+      "updateSuccess": "Event details updated",
+      "maxAttendees": "Max {{count}} attendees",
+      "unlimitedAttendees": "Unlimited attendees"
+    },
+    "when": {
+      "title": "When",
+      "description": "Start date, time, and duration",
+      "updateSuccess": "Event dates updated",
+      "rescheduledWarning": "Changing the start date will automatically mark this event as Rescheduled and notify attendees.",
+      "from": "From",
+      "duration": "Duration"
+    },
+    "where": {
+      "title": "Where",
+      "description": "Location",
+      "updateSuccess": "Event location updated",
+      "noLocation": "No location set"
+    },
+    "cover": {
+      "title": "Cover image",
+      "description": "Upload a cover image for your event",
+      "updateSuccess": "Cover updated"
     }
   },
   "status": {
@@ -118,6 +262,111 @@
   "accessType": {
     "PUBLIC": "Public",
     "INVITE_LINK": "Invite link",
-    "INVITE_ACCOUNT": "Invite only"
+    "INVITE_ACCOUNT": "Invite only",
+    "PUBLIC_description": "Anyone can join",
+    "INVITE_LINK_description": "Guests need a link to join",
+    "INVITE_ACCOUNT_description": "Pre-approved accounts only"
+  },
+  "statusMeta": {
+    "DRAFT": { "description": "Created but not yet published" },
+    "PUBLISHED": { "description": "Visible and accepting registrations" },
+    "ACTIVE": { "description": "Event is currently happening" },
+    "RESCHEDULED": { "description": "Date was changed after publishing" },
+    "ENDED": { "description": "Event has concluded" },
+    "CANCELLED": { "description": "Cancelled by the organizer" }
+  },
+  "transitions": {
+    "toDraft": {
+      "label": "Unpublish",
+      "description": "Move back to draft"
+    },
+    "toPublished": {
+      "label": "Publish",
+      "description": "Make the event visible and open for registrations"
+    },
+    "toPublishedAgain": {
+      "label": "Re-publish",
+      "description": "Make visible again at the new date"
+    },
+    "toActive": {
+      "label": "Go live",
+      "description": "Mark as currently happening"
+    },
+    "toEnded": {
+      "label": "End event",
+      "description": "Mark the event as concluded"
+    },
+    "toCancelled": {
+      "label": "Cancel event",
+      "description": "Cancel this event permanently"
+    },
+    "toRestored": {
+      "label": "Restore to draft",
+      "description": "Restore this event to draft state"
+    },
+    "confirms": {
+      "cancelFromDraft": {
+        "title": "Cancel event?",
+        "description": "This event will be cancelled. Attendees will no longer be able to join."
+      },
+      "cancelFromPublished": {
+        "title": "Cancel event?",
+        "description": "This event will be cancelled. All registered attendees will lose access."
+      },
+      "cancelFromRescheduled": {
+        "title": "Cancel event?",
+        "description": "This event will be cancelled. All registered attendees will lose access."
+      },
+      "cancelFromActive": {
+        "title": "Cancel live event?",
+        "description": "The event is currently live. Cancelling will immediately stop it for all attendees."
+      },
+      "endEvent": {
+        "title": "End event?",
+        "description": "This will conclude the event. Attendees will no longer be able to join or interact."
+      },
+      "restoreFromCancelled": {
+        "title": "Restore to draft?",
+        "description": "All event data (attendees, messages, media) is preserved. The event will stay hidden until you publish again."
+      }
+    }
+  },
+  "accessLevels": {
+    "attendeeAccess": {
+      "ANYONE": {
+        "label": "Anyone",
+        "description": "Anyone can view the attendee list"
+      },
+      "ATTENDEES_ONLY": {
+        "label": "Attendees only",
+        "description": "Only registered attendees can see the list"
+      },
+      "ORGANIZERS_ONLY": {
+        "label": "Organizers only",
+        "description": "Only event staff can see the list"
+      },
+      "DISABLED": {
+        "label": "Disabled",
+        "description": "Guest list is hidden from everyone"
+      }
+    },
+    "mediaAccess": {
+      "ANYONE": {
+        "label": "Anyone",
+        "description": "Anyone can view and upload photos"
+      },
+      "ATTENDEES_ONLY": {
+        "label": "Attendees only",
+        "description": "Only registered attendees can access"
+      },
+      "ORGANIZERS_ONLY": {
+        "label": "Organizers only",
+        "description": "Only event staff can access"
+      },
+      "DISABLED": {
+        "label": "Disabled",
+        "description": "Gallery is disabled"
+      }
+    }
   }
 }

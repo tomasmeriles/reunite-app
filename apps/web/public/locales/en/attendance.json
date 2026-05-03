@@ -2,7 +2,7 @@
   "register": {
     "submit": "Register",
     "submitting": "Registering...",
-    "success": "You're registered!",
+    "success": "You're in! See you at the party 🎉",
     "error": "Could not complete registration",
     "guestName": "Your name",
     "guestNamePlaceholder": "Enter your name"
@@ -15,12 +15,23 @@
     "success": "Registration cancelled",
     "error": "Could not cancel registration"
   },
+  "leave": {
+    "dialogTitle": "Leave this event?",
+    "dialogDescription": "You can rejoin later if the event is still open.",
+    "reason": "Reason",
+    "reasonOptional": "(optional)",
+    "reasonPlaceholder": "Let the organizer know why you're leaving…",
+    "stay": "Stay",
+    "confirm": "Leave event",
+    "success": "You've left the event",
+    "error": "Could not leave the event"
+  },
   "bringGuest": {
     "title": "Bring a guest",
     "guestName": "Guest name",
     "submit": "Add guest",
     "submitting": "Adding...",
-    "success": "Guest added!",
+    "success": "{{name}} added!",
     "error": "Could not add guest"
   },
   "list": {

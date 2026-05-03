@@ -105,8 +105,10 @@ export class AttendanceController {
   getAttendees(
     @Param('eventId') eventId: string,
     @Query() query: AttendeeQueryDto,
+    @CurrentUser() user?: SafeUser,
+    @Headers('x-guest-token') guestToken?: string,
   ) {
-    return this.attendance.findAttendees(eventId, query);
+    return this.attendance.findAttendees(eventId, query, user, guestToken);
   }
 
   @Delete(':attendeeId')

@@ -57,6 +57,20 @@
     --animate-blob-2: blob-2 18s ease-in-out infinite;
     --animate-blob-3: blob-3 12s ease-in-out infinite;
     --animate-blob-4: blob-4 16s ease-in-out infinite;
+
+    /* ── Lightbox slide animations ──────────────────────────────── */
+    --animate-slide-from-right: slide-from-right 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    --animate-slide-from-left:  slide-from-left  0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes slide-from-right {
+    from { opacity: 0; transform: translateX(6%); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-from-left {
+    from { opacity: 0; transform: translateX(-6%); }
+    to   { opacity: 1; transform: translateX(0); }
 }
 
 :root {

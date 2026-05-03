@@ -2,6 +2,7 @@ import { Link, Outlet } from '@tanstack/react-router';
 import { Sparkles } from 'lucide-react';
 import { DotGrid } from '~/components/decorative/dot-grid';
 import { ThemeToggle } from '~/components/theme-toggle';
+import { LanguageSwitcher } from '~/components/layout/language-switcher';
 import env from '~/env';
 
 export default function AuthLayout() {
@@ -41,7 +42,10 @@ export default function AuthLayout() {
             {env.VITE_APP_NAME}
           </span>
         </Link>
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          <LanguageSwitcher />
+          <ThemeToggle />
+        </div>
       </div>
 
       {/* Form content */}

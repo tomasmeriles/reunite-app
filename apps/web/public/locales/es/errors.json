@@ -50,6 +50,7 @@
   "NO_ATTENDEES": "No hay asistentes confirmados para elegir",
 
   "MEDIA_NOT_FOUND": "Elemento multimedia no encontrado",
+  "FILE_TOO_LARGE": "El archivo es demasiado grande (máx. 10 MB)",
 
   "CHAT_NOT_AVAILABLE": "El chat solo está disponible durante el evento en vivo",
 

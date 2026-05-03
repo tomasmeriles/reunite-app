@@ -1,4 +1,5 @@
 import { apiClient } from '~/lib/axios';
+import type { Page } from '~/lib/types';
 import type { MediaItem, UploadMediaResponse } from './media.types';
 
 export const mediaApi = {
@@ -14,8 +15,13 @@ export const mediaApi = {
       .then((r) => r.data);
   },
 
-  getByEvent: (eventId: string) =>
-    apiClient.get<MediaItem[]>(`/events/${eventId}/media`).then((r) => r.data),
+  getByEvent: (eventId: string, page = 1, limit = 20, guestToken?: string | null) =>
+    apiClient
+      .get<Page<MediaItem>>(`/events/${eventId}/media`, {
+        params: { page, limit },
+        headers: guestToken ? { 'x-guest-token': guestToken } : {},
+      })
+      .then((r) => r.data),
 
   delete: (eventId: string, mediaId: string, guestToken?: string | null) => {
     const headers: Record<string, string> = {};

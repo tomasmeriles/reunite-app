@@ -27,10 +27,11 @@ export const attendanceApi = {
       })
       .then((r) => r.data),
 
-  getAttendees: (eventId: string, page = 1, limit = 20, search?: string) =>
+  getAttendees: (eventId: string, page = 1, limit = 20, search?: string, guestToken?: string) =>
     apiClient
       .get<Page<EventAttendee>>(`/events/${eventId}/attendees`, {
         params: { page, limit, ...(search ? { search } : {}) },
+        headers: guestToken ? { 'x-guest-token': guestToken } : {},
       })
       .then((r) => r.data),
 

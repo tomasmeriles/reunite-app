@@ -50,6 +50,7 @@
   "NO_ATTENDEES": "No confirmed attendees to pick from",
 
   "MEDIA_NOT_FOUND": "Media item not found",
+  "FILE_TOO_LARGE": "File is too large (max 10 MB)",
 
   "CHAT_NOT_AVAILABLE": "Chat is only available during the live event",
 

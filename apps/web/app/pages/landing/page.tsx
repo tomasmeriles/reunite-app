@@ -12,6 +12,7 @@ import {
   Share2,
   PartyPopper,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '~/components/ui/button';
 import { SectionHeader } from '~/components/ui/section-header';
 import { IconCard } from '~/components/ui/icon-card';
@@ -20,6 +21,7 @@ import { DotGrid } from '~/components/decorative/dot-grid';
 import { ConfettiBackground } from '~/components/decorative/confetti-background';
 import { GradientBanner } from '~/components/marketing/gradient-banner';
 import { ThemeToggle } from '~/components/theme-toggle';
+import { LanguageSwitcher } from '~/components/layout/language-switcher';
 import { useAuth } from '~/contexts/auth';
 import { useAuthModal } from '~/contexts/auth-modal';
 import env from '~/env';
@@ -27,6 +29,7 @@ import env from '~/env';
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 
 function Navbar() {
+  const { t } = useTranslation('landing');
   const { isAuthenticated, user } = useAuth();
   const { openAuthModal } = useAuthModal();
   const navigate = useNavigate();
@@ -43,14 +46,15 @@ function Navbar() {
       </div>
 
       <nav className="flex items-center gap-2">
+        <LanguageSwitcher />
         <ThemeToggle />
         {isAuthenticated ? (
           <>
             <span className="hidden text-sm text-muted-foreground sm:block">
-              Hey, {user?.name?.split(' ')[0]}
+              {t('nav.greeting', { name: user?.name?.split(' ')[0] })}
             </span>
             <Button size="sm" onClick={() => navigate({ to: '/dashboard' })}>
-              Dashboard
+              {t('nav.dashboard')}
             </Button>
           </>
         ) : (
@@ -60,10 +64,10 @@ function Navbar() {
               size="sm"
               onClick={() => openAuthModal('login')}
             >
-              Sign in
+              {t('nav.signIn')}
             </Button>
             <Button size="sm" onClick={() => openAuthModal('register')}>
-              Get started
+              {t('nav.getStarted')}
             </Button>
           </>
         )}
@@ -75,6 +79,7 @@ function Navbar() {
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 
 function HeroSection() {
+  const { t } = useTranslation('landing');
   const { isAuthenticated } = useAuth();
   const { openAuthModal } = useAuthModal();
   const navigate = useNavigate();
@@ -89,62 +94,29 @@ function HeroSection() {
 
   return (
     <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 text-center">
-      {/* Background blobs */}
-      {/* <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div
-          className="absolute -left-32 -top-32 h-125 w-125 animate-blob-1 rounded-full opacity-30 blur-3xl"
-          style={{ background: 'oklch(0.61 0.23 5)' }}
-        />
-        <div
-          className="absolute -bottom-48 left-1/3 h-150 w-150 animate-blob-2 rounded-full opacity-20 blur-3xl"
-          style={{
-            background: 'oklch(0.78 0.18 165)',
-            animationDelay: '4s',
-          }}
-        />
-        <div
-          className="absolute -right-32 top-1/4 h-112.5 w-112.5 animate-blob-3 rounded-full opacity-25 blur-3xl"
-          style={{
-            background: 'oklch(0.88 0.14 84)',
-            animationDelay: '2s',
-          }}
-        />
-        <div
-          className="absolute left-1/2 top-1/2 h-75 w-75 animate-blob-4 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-15 blur-2xl"
-          style={{
-            background: 'oklch(0.55 0.11 222)',
-            animationDelay: '6s',
-          }}
-        />
-      </div> */}
-
-      {/* Confetti */}
       <ConfettiBackground />
 
-      {/* Dot grid */}
       <div className="pointer-events-none absolute inset-0 text-foreground">
         <DotGrid />
       </div>
 
-      {/* Content */}
       <div className="relative z-10 max-w-3xl space-y-6">
         <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/70 px-4 py-1.5 text-sm font-medium text-muted-foreground backdrop-blur-sm">
           <PartyPopper className="h-3.5 w-3.5 text-primary" />
-          Turn plans into memories
+          {t('hero.badge')}
         </div>
 
         <h1 className="text-5xl font-bold leading-tight tracking-tight sm:text-6xl lg:text-7xl">
-          Create{' '}
+          {t('hero.headline1')}{' '}
           <span className="bg-linear-to-r from-primary via-[oklch(0.88_0.14_84)] to-[oklch(0.78_0.18_165)] bg-clip-text text-transparent">
-            moments.
+            {t('hero.headline2')}
           </span>
           <br />
-          Connect people.
+          {t('hero.headline3')}
         </h1>
 
         <p className="mx-auto max-w-xl text-lg leading-relaxed text-muted-foreground">
-          Plan your event, invite your guests, manage attendance, share photos
-          and celebrate together — all in one place.
+          {t('hero.description')}
         </p>
 
         <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
@@ -154,7 +126,7 @@ function HeroSection() {
             className="gap-2 px-8 text-base"
             onClick={handleCreateEvent}
           >
-            Create my first event
+            {t('hero.cta')}
             <ArrowRight className="h-4 w-4" />
           </Button>
           {!isAuthenticated && (
@@ -164,7 +136,7 @@ function HeroSection() {
               className="gap-2 px-8 text-base backdrop-blur-sm"
               onClick={() => openAuthModal('login')}
             >
-              Sign in
+              {t('hero.signIn')}
             </Button>
           )}
           {isAuthenticated && (
@@ -174,13 +146,12 @@ function HeroSection() {
               className="gap-2 px-8 text-base"
               onClick={() => navigate({ to: '/dashboard' })}
             >
-              Go to dashboard
+              {t('hero.goToDashboard')}
             </Button>
           )}
         </div>
       </div>
 
-      {/* Scroll hint */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce opacity-40">
         <div className="h-8 w-5 rounded-full border-2 border-foreground/40 p-1">
           <div className="mx-auto h-1.5 w-1 rounded-full bg-foreground/60" />
@@ -192,66 +163,32 @@ function HeroSection() {
 
 // ─── Features ─────────────────────────────────────────────────────────────────
 
-const FEATURES = [
-  {
-    icon: Users,
-    title: 'Attendee management',
-    description:
-      'Track RSVPs, manage waitlists, and control capacity with ease.',
-    color: 'text-primary bg-primary/10',
-  },
-  {
-    icon: MessageSquare,
-    title: 'Real-time chat',
-    description: 'Let your guests connect before, during and after the event.',
-    color: 'text-[oklch(0.55_0.11_222)] bg-[oklch(0.55_0.11_222)]/10',
-  },
-  {
-    icon: ImageIcon,
-    title: 'Photo gallery',
-    description:
-      'Collect and share memories. Guests can upload directly from their phones.',
-    color: 'text-[oklch(0.78_0.18_165)] bg-[oklch(0.78_0.18_165)]/10',
-  },
-  {
-    icon: Trophy,
-    title: 'Prizes & giveaways',
-    description:
-      'Run draws and award prizes to keep the energy high all night.',
-    color: 'text-[oklch(0.88_0.14_84)] bg-[oklch(0.88_0.14_84)]/10',
-  },
-  {
-    icon: Lock,
-    title: 'Flexible access control',
-    description:
-      'Public events, private invite-only, or link-based access — your choice.',
-    color: 'text-primary bg-primary/10',
-  },
-  {
-    icon: BarChart3,
-    title: 'Insights & analytics',
-    description:
-      'See who attended, engagement stats, and post-event summaries.',
-    color: 'text-[oklch(0.55_0.11_222)] bg-[oklch(0.55_0.11_222)]/10',
-  },
-] as const;
-
 function FeaturesSection() {
+  const { t } = useTranslation('landing');
+
+  const FEATURES = [
+    { icon: Users, key: 'attendees', color: 'text-primary bg-primary/10' },
+    { icon: MessageSquare, key: 'chat', color: 'text-[oklch(0.55_0.11_222)] bg-[oklch(0.55_0.11_222)]/10' },
+    { icon: ImageIcon, key: 'photos', color: 'text-[oklch(0.78_0.18_165)] bg-[oklch(0.78_0.18_165)]/10' },
+    { icon: Trophy, key: 'prizes', color: 'text-[oklch(0.88_0.14_84)] bg-[oklch(0.88_0.14_84)]/10' },
+    { icon: Lock, key: 'access', color: 'text-primary bg-primary/10' },
+    { icon: BarChart3, key: 'analytics', color: 'text-[oklch(0.55_0.11_222)] bg-[oklch(0.55_0.11_222)]/10' },
+  ] as const;
+
   return (
     <section className="relative overflow-hidden px-6 py-24">
       <div className="mx-auto max-w-5xl">
         <SectionHeader
-          title="Everything you need to run a great event"
-          description="From planning to celebration — one platform, zero hassle."
+          title={t('features.title')}
+          description={t('features.description')}
         />
-
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map(({ icon, title, description, color }) => (
+          {FEATURES.map(({ icon, key, color }) => (
             <IconCard
-              key={title}
+              key={key}
               icon={icon}
-              title={title}
-              description={description}
+              title={t(`features.items.${key}.title`)}
+              description={t(`features.items.${key}.description`)}
               colorClass={color}
             />
           ))}
@@ -263,49 +200,32 @@ function FeaturesSection() {
 
 // ─── How it works ─────────────────────────────────────────────────────────────
 
-const STEPS = [
-  {
-    number: '01',
-    icon: CalendarDays,
-    title: 'Create your event',
-    description:
-      'Fill in the details — title, date, location, cover image, access rules. Takes less than 2 minutes.',
-  },
-  {
-    number: '02',
-    icon: Share2,
-    title: 'Share the link',
-    description:
-      'Send your unique event link. Guests can RSVP, join the chat and see the schedule instantly.',
-  },
-  {
-    number: '03',
-    icon: Sparkles,
-    title: 'Enjoy together',
-    description:
-      'During and after the event, everyone shares photos, wins prizes and keeps the vibe going.',
-  },
-] as const;
-
 function HowItWorksSection() {
+  const { t } = useTranslation('landing');
+
+  const STEPS = [
+    { icon: CalendarDays, key: 'create' },
+    { icon: Share2, key: 'share' },
+    { icon: Sparkles, key: 'enjoy' },
+  ] as const;
+
   return (
     <section className="relative overflow-hidden px-6 py-24">
-      {/* Subtle background tint */}
       <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-transparent via-secondary/10 to-transparent" />
 
       <div className="relative mx-auto max-w-4xl">
         <SectionHeader
-          title="How it works"
-          description="Three simple steps to your perfect event."
+          title={t('howItWorks.title')}
+          description={t('howItWorks.description')}
         />
 
         <StepList>
-          {STEPS.map(({ icon, title, description }, i) => (
+          {STEPS.map(({ icon, key }, i) => (
             <StepItem
-              key={title}
+              key={key}
               icon={icon}
-              title={title}
-              description={description}
+              title={t(`howItWorks.steps.${key}.title`)}
+              description={t(`howItWorks.steps.${key}.description`)}
               step={i + 1}
               showConnector={i < STEPS.length - 1}
             />
@@ -319,6 +239,7 @@ function HowItWorksSection() {
 // ─── CTA final ────────────────────────────────────────────────────────────────
 
 function CtaSection() {
+  const { t } = useTranslation('landing');
   const { isAuthenticated } = useAuth();
   const { openAuthModal } = useAuthModal();
   const navigate = useNavigate();
@@ -334,8 +255,8 @@ function CtaSection() {
   return (
     <section className="px-6 py-24">
       <GradientBanner
-        title="Ready to create something special?"
-        description="Join thousands of event creators. Free to start, no credit card required."
+        title={t('cta.title')}
+        description={t('cta.description')}
         icon={Sparkles}
       >
         <Button
@@ -344,7 +265,7 @@ function CtaSection() {
           className="gap-2 px-10 text-base font-semibold"
           onClick={handleCta}
         >
-          {isAuthenticated ? 'Create an event' : 'Start for free'}
+          {isAuthenticated ? t('cta.createEvent') : t('cta.startFree')}
           <ArrowRight className="h-4 w-4" />
         </Button>
       </GradientBanner>
@@ -355,6 +276,8 @@ function CtaSection() {
 // ─── Footer ───────────────────────────────────────────────────────────────────
 
 function Footer() {
+  const { t } = useTranslation('landing');
+
   return (
     <footer className="border-t border-border/40 px-6 py-8 text-center text-sm text-muted-foreground">
       <p>
@@ -362,7 +285,7 @@ function Footer() {
         <span className="font-medium text-foreground">
           {env.VITE_APP_NAME ?? 'Reunite'}
         </span>
-        . All rights reserved.
+        . {t('footer.rights')}
       </p>
     </footer>
   );

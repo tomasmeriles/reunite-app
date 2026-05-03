@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { toast } from 'sonner';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, type SubmitHandler } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { CheckCircle2, Users } from 'lucide-react';
 import { Badge } from '~/components/ui/badge';
 import { Button } from '~/components/ui/button';
@@ -47,6 +48,7 @@ function LoadingState() {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function JoinPage() {
+  const { t } = useTranslation('events');
   const apiError = useApiError();
   const { token } = useParams({ from: '/join/$token' });
   const navigate = useNavigate();
@@ -82,7 +84,7 @@ export default function JoinPage() {
       {
         onSuccess: () => {
           launchConfetti();
-          toast.success("You're in! 🎉");
+          toast.success(t('join.successToast'));
           void navigate({ to: '/events/$id', params: { id: eventId } });
         },
         onError: (err) =>
@@ -95,28 +97,10 @@ export default function JoinPage() {
 
   if (unusableError) {
     const { event, reason } = unusableError;
-    const messages: Record<
-      ResolveInviteLinkError['reason'],
-      { title: string; body: string }
-    > = {
-      draft: {
-        title: 'Event not published yet',
-        body: "This event hasn't been published yet. Check back later.",
-      },
-      unavailable: {
-        title: 'Event no longer available',
-        body: 'This event has ended or been cancelled.',
-      },
-      expired: {
-        title: 'Link expired',
-        body: 'This invite link has expired. Ask the organizer for a new one.',
-      },
-      max_uses_reached: {
-        title: 'Link is full',
-        body: 'This invite link has reached its limit.',
-      },
+    const msg = {
+      title: t(`join.errors.${reason}.title`),
+      body: t(`join.errors.${reason}.body`),
     };
-    const msg = messages[reason];
 
     return (
       <div className="flex min-h-screen flex-col items-center">
@@ -151,10 +135,9 @@ export default function JoinPage() {
         <div className="-mt-6 w-full max-w-lg px-4">
           <Card className="shadow-md">
             <CardContent className="space-y-2 p-6">
-              <p className="text-lg font-semibold">Invalid link</p>
+              <p className="text-lg font-semibold">{t('join.invalidLink')}</p>
               <p className="text-sm text-muted-foreground">
-                This invite link doesn't exist. Ask the event organizer for a
-                valid link.
+                {t('join.invalidLinkDesc')}
               </p>
             </CardContent>
           </Card>
@@ -169,7 +152,7 @@ export default function JoinPage() {
 
   const invitedBadge = (
     <Badge className="bg-primary/90 text-primary-foreground shadow-md backdrop-blur-sm px-3 py-1 text-xs font-semibold uppercase tracking-widest">
-      You're invited
+      {t('join.youreInvited')}
     </Badge>
   );
 
@@ -185,7 +168,7 @@ export default function JoinPage() {
             <CardContent className="space-y-5 p-6">
               <div>
                 <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                  You're invited
+                  {t('join.youreInvited')}
                 </p>
                 <h1 className="text-2xl font-bold">{event.title}</h1>
               </div>
@@ -198,7 +181,7 @@ export default function JoinPage() {
               <div className="flex items-center gap-2 rounded-lg border border-success/30 bg-success/10 px-4 py-3">
                 <CheckCircle2 className="h-5 w-5 shrink-0 text-success" />
                 <p className="text-sm font-medium text-success">
-                  You're already registered!
+                  {t('join.alreadyRegistered')}
                 </p>
               </div>
               <Button
@@ -207,7 +190,7 @@ export default function JoinPage() {
                   void navigate({ to: '/events/$id', params: { id: eventId } })
                 }
               >
-                Go to event
+                {t('join.viewEvent')}
               </Button>
             </CardContent>
           </Card>
@@ -228,7 +211,7 @@ export default function JoinPage() {
             <CardContent className="space-y-5 p-6">
               <div>
                 <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                  You're invited
+                  {t('join.youreInvited')}
                 </p>
                 <h1 className="text-2xl font-bold">{event.title}</h1>
               </div>
@@ -240,10 +223,10 @@ export default function JoinPage() {
               )}
               <div className="rounded-lg border border-warning/30 bg-warning/10 px-4 py-3">
                 <p className="text-sm font-medium text-warning-foreground">
-                  You're on the waitlist
+                  {t('join.onWaitlist')}
                 </p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  We'll let you know if a spot opens up.
+                  {t('join.waitlistDesc')}
                 </p>
               </div>
               <Button
@@ -253,7 +236,7 @@ export default function JoinPage() {
                   void navigate({ to: '/events/$id', params: { id: eventId } })
                 }
               >
-                View event
+                {t('join.viewEvent')}
               </Button>
             </CardContent>
           </Card>
@@ -265,7 +248,7 @@ export default function JoinPage() {
   return (
     <>
       <Helmet>
-        <title>You're invited to {event.title} — Reunite</title>
+        <title>{t('join.helmetInvited', { title: event.title })}</title>
       </Helmet>
 
       <div className="flex min-h-screen flex-col items-center">
@@ -293,13 +276,12 @@ export default function JoinPage() {
                   {event.maxAttendees !== null && (
                     <Badge variant="secondary" className="gap-1">
                       <Users className="h-3 w-3" />
-                      {event.maxAttendees} capacity
+                      {t('join.capacity', { count: event.maxAttendees })}
                     </Badge>
                   )}
                   {remainingUses !== null && (
                     <Badge variant="outline" className="text-xs">
-                      {remainingUses} spot{remainingUses !== 1 ? 's' : ''} left
-                      on this link
+                      {t('join.spotsLeft', { count: remainingUses })}
                     </Badge>
                   )}
                 </div>
@@ -313,24 +295,23 @@ export default function JoinPage() {
                 <FormTextField
                   control={form.control}
                   name="name"
-                  label="Your name"
-                  placeholder="Your name"
+                  label={t('join.yourName')}
+                  placeholder={t('join.yourNamePlaceholder')}
                   autoFocus
                 />
                 {user && (
                   <p className="-mt-2 text-xs text-muted-foreground">
-                    You can use a different name than your profile for this
-                    event.
+                    {t('join.nameHelp')}
                   </p>
                 )}
                 <LoadingButton
                   type="submit"
                   className="w-full"
                   isLoading={isPending}
-                  loadingText="Joining…"
+                  loadingText={t('join.joining')}
                   disabled={!eventId}
                 >
-                  Join event 🎉
+                  {t('join.joinEvent')}
                 </LoadingButton>
               </FormContainer>
             </CardContent>

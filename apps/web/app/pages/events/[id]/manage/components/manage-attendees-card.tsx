@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Crown, ShieldCheck, Users, X } from 'lucide-react';
 import { DebouncedSearchInput } from '~/components/ui/debounced-search-input';
 import { toast } from 'sonner';
@@ -32,10 +33,10 @@ import type { EventAttendee } from '~/api/attendance/attendance.types';
 
 type StatusFilter = 'all' | 'CONFIRMED' | 'WAITLISTED' | 'CANCELLED';
 
-const STATUS_BADGE: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-  CONFIRMED: { label: 'Confirmed', variant: 'default' },
-  WAITLISTED: { label: 'Waitlisted', variant: 'secondary' },
-  CANCELLED: { label: 'Cancelled', variant: 'destructive' },
+const STATUS_BADGE_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+  CONFIRMED: 'default',
+  WAITLISTED: 'secondary',
+  CANCELLED: 'destructive',
 };
 
 interface ManageAttendeesCardProps {
@@ -45,6 +46,7 @@ interface ManageAttendeesCardProps {
 }
 
 export function ManageAttendeesCard({ eventId, staffRoles = {}, currentUserRole }: ManageAttendeesCardProps) {
+  const { t } = useTranslation(['events', 'attendance', 'common']);
   const [search, setSearch] = useState('');
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
     useAllAttendeesInfinite(eventId, search || undefined);
@@ -95,20 +97,20 @@ export function ManageAttendeesCard({ eventId, staffRoles = {}, currentUserRole 
     removeAttendee(targetId, {
       onSuccess: () => {
         setRemovingId(null);
-        toast.success(`${targetName} removed`);
+        toast.success(t('events:manage.attendees.removeSuccess', { name: targetName }));
       },
       onError: () => {
         setRemovingId(null);
-        toast.error('Could not remove attendee');
+        toast.error(t('events:manage.attendees.removeError'));
       },
     });
   };
 
   const filters: { value: StatusFilter; label: string; count?: number }[] = [
-    { value: 'all', label: 'All', count: total },
-    { value: 'CONFIRMED', label: 'Confirmed', count: counts.CONFIRMED },
-    { value: 'WAITLISTED', label: 'Waitlisted', count: counts.WAITLISTED },
-    { value: 'CANCELLED', label: 'Cancelled', count: counts.CANCELLED },
+    { value: 'all', label: t('events:manage.attendees.filters.all'), count: total },
+    { value: 'CONFIRMED', label: t('events:manage.attendees.filters.confirmed'), count: counts.CONFIRMED },
+    { value: 'WAITLISTED', label: t('events:manage.attendees.filters.waitlisted'), count: counts.WAITLISTED },
+    { value: 'CANCELLED', label: t('events:manage.attendees.filters.cancelled'), count: counts.CANCELLED },
   ];
 
   return (
@@ -116,13 +118,13 @@ export function ManageAttendeesCard({ eventId, staffRoles = {}, currentUserRole 
       <Card>
         <CardHeader className="flex flex-row items-start justify-between gap-3 pb-4">
           <div className="min-w-0">
-            <CardTitle>Attendees</CardTitle>
-            <CardDescription>View and manage all event attendees</CardDescription>
+            <CardTitle>{t('events:manage.attendees.title')}</CardTitle>
+            <CardDescription>{t('events:manage.attendees.description')}</CardDescription>
           </div>
           {!isLoading && (
             <Badge variant="secondary" className="shrink-0 tabular-nums">
               <Users className="mr-1 h-3 w-3" />
-              {counts.CONFIRMED} confirmed
+              {counts.CONFIRMED} {t('events:manage.attendees.confirmed')}
             </Badge>
           )}
         </CardHeader>
@@ -132,7 +134,7 @@ export function ManageAttendeesCard({ eventId, staffRoles = {}, currentUserRole 
           <DebouncedSearchInput
             value={search}
             onChange={setSearch}
-            placeholder="Search attendees…"
+            placeholder={t('events:manage.attendees.searchPlaceholder')}
           />
         </div>
 
@@ -189,7 +191,7 @@ export function ManageAttendeesCard({ eventId, staffRoles = {}, currentUserRole 
                 const username = attendee.user?.username;
                 const avatar = attendee.user?.avatar ?? undefined;
                 const initials = name.charAt(0).toUpperCase();
-                const statusMeta = STATUS_BADGE[attendee.status];
+                const statusVariant = STATUS_BADGE_VARIANT[attendee.status];
                 const isGuest = !attendee.userId;
                 const targetIsStaff = !!staffRole;
                 const canRemoveThis =
@@ -218,7 +220,9 @@ export function ManageAttendeesCard({ eventId, staffRoles = {}, currentUserRole 
                           <ShieldCheck className="h-3.5 w-3.5 text-blue-400" />
                         )}
                         {isGuest && (
-                          <span className="text-xs text-muted-foreground">guest</span>
+                          <span className="text-xs text-muted-foreground">
+                            {t('events:manage.attendees.guest')}
+                          </span>
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground">
@@ -233,9 +237,9 @@ export function ManageAttendeesCard({ eventId, staffRoles = {}, currentUserRole 
                     </div>
 
                     <div className="flex shrink-0 items-center gap-2">
-                      {statusMeta && (
-                        <Badge variant={statusMeta.variant} className="text-xs">
-                          {statusMeta.label}
+                      {statusVariant && (
+                        <Badge variant={statusVariant} className="text-xs">
+                          {t(`attendance:status.${attendee.status}`)}
                         </Badge>
                       )}
                       {canRemoveThis && !isRemoving && (
@@ -281,29 +285,25 @@ export function ManageAttendeesCard({ eventId, staffRoles = {}, currentUserRole 
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove attendee?</AlertDialogTitle>
+            <AlertDialogTitle>{t('events:manage.attendees.removeTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {pendingRemove && (
-                <>
-                  Remove{' '}
-                  <span className="font-medium text-foreground">
-                    {pendingRemove.guestName ??
-                      pendingRemove.user?.name ??
-                      pendingRemove.user?.username ??
-                      'Guest'}
-                  </span>{' '}
-                  from this event? They won&apos;t be notified.
-                </>
-              )}
+              {pendingRemove &&
+                t('events:manage.attendees.removeDesc', {
+                  name:
+                    pendingRemove.guestName ??
+                    pendingRemove.user?.name ??
+                    pendingRemove.user?.username ??
+                    'Guest',
+                })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('common:actions.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmRemove}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Remove
+              {t('common:actions.remove')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -313,11 +313,12 @@ export function ManageAttendeesCard({ eventId, staffRoles = {}, currentUserRole 
 }
 
 function EmptyState({ filter }: { filter: StatusFilter }) {
+  const { t } = useTranslation('events');
   const messages: Record<StatusFilter, string> = {
-    all: 'No attendees yet.',
-    CONFIRMED: 'No confirmed guests yet.',
-    WAITLISTED: 'No one on the waitlist.',
-    CANCELLED: 'No cancellations.',
+    all: t('manage.attendees.emptyAll'),
+    CONFIRMED: t('manage.attendees.emptyConfirmed'),
+    WAITLISTED: t('manage.attendees.emptyWaitlisted'),
+    CANCELLED: t('manage.attendees.emptyCancelled'),
   };
   return (
     <div className="flex flex-col items-center gap-2 py-12 text-center">

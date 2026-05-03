@@ -21,7 +21,8 @@
     "search": "Search",
     "loading": "Loading...",
     "saving": "Saving...",
-    "deleting": "Deleting..."
+    "deleting": "Deleting...",
+    "view": "View"
   },
   "status": {
     "DRAFT": "Draft",
@@ -37,5 +38,60 @@
     "page": "Page {{current}} of {{total}}"
   },
   "empty": "No results found",
-  "error": "Something went wrong"
+  "error": "Something went wrong",
+  "roles": {
+    "SUPER_ADMIN": "Super Admin",
+    "MODERATOR": "Moderator",
+    "MEMBER": "Member",
+    "OWNER": "Owner",
+    "ORGANIZER": "Organizer"
+  },
+  "auditActions": {
+    "LOGIN": "Login",
+    "LOGOUT": "Logout",
+    "REGISTER": "Register",
+    "TOKEN_REVOKED": "Token Revoked",
+    "UPDATE": "Update",
+    "DELETE": "Delete",
+    "EVENT_CREATED": "Event Created",
+    "EVENT_UPDATED": "Event Updated",
+    "ATTENDEE_REGISTERED": "Attendee Registered",
+    "ATTENDEE_CANCELLED": "Attendee Cancelled"
+  },
+  "dashboard": {
+    "greeting": "Hey",
+    "role": "Your role",
+    "eventsCreated": "Events created",
+    "upcoming": "Upcoming",
+    "upcomingEvents": "Upcoming Events",
+    "viewAll": "View all",
+    "noUpcoming": "No upcoming events",
+    "noUpcomingSubtitle": "Create your first event and invite your people!",
+    "createEvent": "Create event"
+  },
+  "profile": {
+    "title": "Profile",
+    "subtitle": "Manage your account settings",
+    "name": "Full name",
+    "avatarUrl": "Avatar URL",
+    "submit": "Save changes",
+    "submitting": "Saving...",
+    "success": "Profile updated successfully"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "subtitle": "The page you're looking for doesn't exist or has been moved.",
+    "goHome": "Go home"
+  },
+  "forbidden": {
+    "title": "Access denied",
+    "subtitle": "You don't have permission to view this page.",
+    "goHome": "Go home"
+  },
+  "join": {
+    "loading": "Joining event...",
+    "success": "You've joined the event!",
+    "invalid": "This invite link is invalid or has expired.",
+    "goToEvent": "Go to event"
+  }
 }

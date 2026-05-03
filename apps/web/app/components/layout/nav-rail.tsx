@@ -106,7 +106,7 @@ export function NavRail() {
         </div>
 
         <div className="flex flex-col items-center gap-2 py-3 border-t shrink-0">
-          <LanguageSwitcher />
+          <LanguageSwitcher side="right" align="end" />
           <ThemeToggle />
           <UserMenu />
         </div>

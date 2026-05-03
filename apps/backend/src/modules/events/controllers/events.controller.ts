@@ -47,6 +47,13 @@ export class EventsController {
     private readonly imageProcessing: ImageProcessingService,
   ) {}
 
+  private async withCoverUrl<T extends { coverImage: string | null }>(
+    event: T,
+  ): Promise<T> {
+    if (!event.coverImage) return event;
+    return { ...event, coverImage: await this.storage.getPresignedUrl(event.coverImage) };
+  }
+
   @Post()
   @Throttle({ default: THROTTLE.WRITE })
   @Audit(AuditAction.EVENT_CREATED, AuditResource.EVENT)
@@ -59,14 +66,15 @@ export class EventsController {
   }
 
   @Get('mine')
-  getMine(@CurrentUser() user: SafeUser): Promise<EventListPayload[]> {
-    return this.events.findMine(user.id);
+  async getMine(@CurrentUser() user: SafeUser): Promise<EventListPayload[]> {
+    const events = await this.events.findMine(user.id);
+    return Promise.all(events.map((e) => this.withCoverUrl(e)));
   }
 
   @Public()
   @Get(':id')
-  getOne(@Param('id') id: string): Promise<EventPublicPayload> {
-    return this.events.findPublic(id);
+  async getOne(@Param('id') id: string): Promise<EventPublicPayload> {
+    return this.withCoverUrl(await this.events.findPublic(id));
   }
 
   @Patch(':id')
@@ -75,11 +83,11 @@ export class EventsController {
   @CheckPolicies((ability, req: Request) =>
     ability.can('update', subject('Event', { id: req.params['id'] })),
   )
-  update(
+  async update(
     @Param('id') id: string,
     @Body() dto: UpdateEventDto,
   ): Promise<EventDetailPayload> {
-    return this.events.update(id, dto);
+    return this.withCoverUrl(await this.events.update(id, dto));
   }
 
   @Patch(':id/status')
@@ -88,8 +96,8 @@ export class EventsController {
   @CheckPolicies((ability, req: Request) =>
     ability.can('update', subject('Event', { id: req.params['id'] })),
   )
-  updateStatus(@Param('id') id: string, @Body() dto: UpdateEventStatusDto) {
-    return this.events.updateStatus(id, dto);
+  async updateStatus(@Param('id') id: string, @Body() dto: UpdateEventStatusDto) {
+    return this.withCoverUrl(await this.events.updateStatus(id, dto));
   }
 
   @Patch(':id/config')

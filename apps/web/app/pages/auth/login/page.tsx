@@ -5,7 +5,6 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { Info } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '~/components/ui/button';
 import { Separator } from '~/components/ui/separator';
 import {
   Card,
@@ -19,7 +18,7 @@ import {
   FormTextField,
   FormPasswordField,
 } from '~/components/forms';
-import { GoogleButton } from '~/components/buttons';
+import { GoogleButton, LoadingButton } from '~/components/buttons';
 import { useLogin } from '~/hooks/api/use-auth';
 import { loginSchema, type LoginFormValues } from '~/lib/schemas/auth.schema';
 import { useApiError } from '~/hooks/use-api-error';
@@ -58,9 +57,7 @@ export default function LoginPage() {
         <CardTitle className="text-2xl font-semibold bg-linear-to-r from-primary via-[oklch(0.88_0.14_84)] to-secondary bg-clip-text text-transparent">
           {t('login.title')}
         </CardTitle>
-        <CardDescription>
-          {t('login.subtitle')}
-        </CardDescription>
+        <CardDescription>{t('login.subtitle')}</CardDescription>
       </CardHeader>
       <CardContent>
         {hasGuestTokens && (
@@ -84,9 +81,14 @@ export default function LoginPage() {
             label={t('login.password')}
             autoComplete="current-password"
           />
-          <Button type="submit" className="w-full" disabled={isPending}>
-            {isPending ? t('login.submitting') : t('login.submit')}
-          </Button>
+          <LoadingButton
+            loadingText={t('login.submitting')}
+            isLoading={isPending}
+            type="submit"
+            className="w-full"
+          >
+            {t('login.submit')}
+          </LoadingButton>
         </FormContainer>
         <div className="relative my-4">
           <Separator />

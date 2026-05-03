@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { CalendarClock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '~/components/ui/badge';
 import {
   Card,
@@ -28,24 +29,8 @@ interface EventStatusCardProps {
   event: Event;
 }
 
-function getStatusChangeMessage(status: EventStatus) {
-  switch (status) {
-    case 'DRAFT':
-      return 'Event is now a draft. It will not be visible to attendees.';
-    case 'PUBLISHED':
-      return 'Event is now published. Attendees can view and join the event.';
-    case 'CANCELLED':
-      return 'Event is canceled. Attendees will be notified and cannot join.';
-    case 'RESCHEDULED':
-      return 'Event is rescheduled. Attendees will be notified with the new details.';
-    case 'ACTIVE':
-      return 'Event is now active. Attendees can join the event.';
-    case 'ENDED':
-      return 'Event has ended. It will be archived and read-only.';
-  }
-}
-
 export function EventStatusCard({ event }: EventStatusCardProps) {
+  const { t } = useTranslation(['events', 'common']);
   const apiError = useApiError();
   const { mutate: updateStatus, isPending } = useUpdateEventStatus(event.id);
   const [pendingTransition, setPendingTransition] =
@@ -55,7 +40,7 @@ export function EventStatusCard({ event }: EventStatusCardProps) {
     updateStatus(
       { status },
       {
-        onSuccess: () => toast.success(getStatusChangeMessage(status)),
+        onSuccess: () => toast.success(t(`common:status.${status}`)),
         onError: (err) => toast.error(apiError(err)),
       },
     );
@@ -67,7 +52,7 @@ export function EventStatusCard({ event }: EventStatusCardProps) {
       ...getSecondaryTransitions(event.status),
     ].filter(Boolean) as StatusTransition[];
 
-    const transition = allTransitions.find((t) => t.to === status);
+    const transition = allTransitions.find((tr) => tr.to === status);
     if (transition?.requiresConfirmation) {
       setPendingTransition(transition);
     } else {
@@ -83,61 +68,63 @@ export function EventStatusCard({ event }: EventStatusCardProps) {
     PUBLISH_STATUSES.includes(event.status) &&
     new Date(event.startAt) <= new Date();
 
-  // When startAt is in the past, filter out PUBLISHED transitions so the
-  // SplitButton doesn't surface an action that will be rejected by the backend.
   const effectivePrimary =
     startInPast && primaryTransition?.to === 'PUBLISHED'
       ? null
       : primaryTransition;
   const effectiveSecondary = startInPast
-    ? secondaryTransitions.filter((t) => t.to !== 'PUBLISHED')
+    ? secondaryTransitions.filter((tr) => tr.to !== 'PUBLISHED')
     : secondaryTransitions;
 
   return (
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Event status</CardTitle>
-          <CardDescription>Control the lifecycle of your event</CardDescription>
+          <CardTitle>{t('events:manage.settings.title')}</CardTitle>
+          <CardDescription>{t(`events:statusMeta.${event.status}.description`)}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {startInPast && (
             <Alert variant="warning">
               <CalendarClock className="size-4" />
               <AlertDescription>
-                Start date is in the past. Update the event date before publishing.
+                {t('events:manage.settings.startInPast', {
+                  defaultValue: 'Start date is in the past. Update the event date before publishing.',
+                })}
               </AlertDescription>
             </Alert>
           )}
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <Badge className={`px-3 py-1 text-sm ${statusMeta.colorClass}`}>
-                {statusMeta.label}
+                {t(`common:status.${event.status}`)}
               </Badge>
               <span className="text-sm text-muted-foreground">
-                {statusMeta.description}
+                {t(statusMeta.descriptionKey, { ns: 'events' })}
               </span>
             </div>
             {effectivePrimary ? (
               <SplitButton<EventStatus>
                 primary={{
                   value: effectivePrimary.to,
-                  label: effectivePrimary.label,
+                  label: t(effectivePrimary.labelKey, { ns: 'events' }),
                   variant: effectivePrimary.variant,
                 }}
-                options={effectiveSecondary.map((t) => ({
-                  value: t.to,
-                  label: t.label,
-                  description: t.description,
-                  variant: t.variant,
-                  separator: t.variant === 'destructive',
+                options={effectiveSecondary.map((tr) => ({
+                  value: tr.to,
+                  label: t(tr.labelKey, { ns: 'events' }),
+                  description: t(tr.descriptionKey, { ns: 'events' }),
+                  variant: tr.variant,
+                  separator: tr.variant === 'destructive',
                 }))}
                 onSelect={handleSelect}
                 isLoading={isPending}
               />
             ) : (
               <span className="text-sm italic text-muted-foreground">
-                No further transitions available
+                {t('events:manage.noTransitions', {
+                  defaultValue: 'No further transitions available',
+                })}
               </span>
             )}
           </div>
@@ -148,9 +135,9 @@ export function EventStatusCard({ event }: EventStatusCardProps) {
         <ConfirmModal
           open={!!pendingTransition}
           onOpenChange={(open) => !open && setPendingTransition(null)}
-          title={pendingTransition.requiresConfirmation.title}
-          description={pendingTransition.requiresConfirmation.description}
-          confirmLabel="Confirm"
+          title={t(pendingTransition.requiresConfirmation.titleKey, { ns: 'events' })}
+          description={t(pendingTransition.requiresConfirmation.descriptionKey, { ns: 'events' })}
+          confirmLabel={t('common:actions.confirm')}
           variant={pendingTransition.variant === 'destructive' ? 'destructive' : 'default'}
           onConfirm={() => {
             handleStatusChange(pendingTransition.to);

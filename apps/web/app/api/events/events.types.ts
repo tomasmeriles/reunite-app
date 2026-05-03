@@ -1,4 +1,6 @@
 export type EventType = 'PUBLIC' | 'INVITE_LINK' | 'INVITE_ACCOUNT';
+export type MediaAccess = 'ANYONE' | 'ATTENDEES_ONLY' | 'ORGANIZERS_ONLY' | 'DISABLED';
+export type AttendeeAccess = 'ANYONE' | 'ATTENDEES_ONLY' | 'ORGANIZERS_ONLY' | 'DISABLED';
 export type EventStatus =
   | 'DRAFT'
   | 'PUBLISHED'
@@ -11,9 +13,9 @@ export type AttendeeStatus = 'CONFIRMED' | 'CANCELLED' | 'WAITLISTED';
 export interface EventConfig {
   id: string;
   eventId: string;
-  attendeesPublic: boolean;
+  attendeeAccess: AttendeeAccess;
   chatEnabled: boolean;
-  mediaEnabled: boolean;
+  mediaAccess: MediaAccess;
   prizesEnabled: boolean;
 }
 
@@ -76,8 +78,8 @@ export interface UpdateEventStatusDto {
 }
 
 export interface UpdateEventConfigDto {
-  attendeesPublic?: boolean;
+  attendeeAccess?: AttendeeAccess;
   chatEnabled?: boolean;
-  mediaEnabled?: boolean;
+  mediaAccess?: MediaAccess;
   prizesEnabled?: boolean;
 }

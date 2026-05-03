@@ -2,6 +2,7 @@ import { CalendarDays, Clock, Info, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
 import { Button } from '~/components/ui/button';
 import {
   Card,
@@ -35,6 +36,7 @@ interface EditFormProps {
 }
 
 function WhenEditForm({ event, onSuccess, onCancel }: EditFormProps) {
+  const { t } = useTranslation(['events', 'common']);
   const apiError = useApiError();
   const { mutate: updateEvent, isPending } = useUpdateEvent(event.id);
 
@@ -48,7 +50,7 @@ function WhenEditForm({ event, onSuccess, onCancel }: EditFormProps) {
   const onSubmit = (values: UpdateEventFormValues) => {
     updateEvent(toApiPayload(values), {
       onSuccess: () => {
-        toast.success('Event dates updated');
+        toast.success(t('events:manage.when.updateSuccess'));
         onSuccess();
       },
       onError: (err) => toast.error(apiError(err)),
@@ -61,36 +63,35 @@ function WhenEditForm({ event, onSuccess, onCancel }: EditFormProps) {
         <Alert variant="warning" className="mb-2">
           <Info className="size-4" />
           <AlertDescription>
-            Changing the start date will automatically mark this event as{' '}
-            <strong>Rescheduled</strong> and notify attendees.
+            {t('events:manage.when.rescheduledWarning')}
           </AlertDescription>
         </Alert>
       )}
-      <div className="grid grid-cols-1 gap-4 py-2 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 py-2 sm:grid-cols-2 sm:items-end">
         <FormDateTimeField
           control={form.control}
           name="startAt"
-          label="Start date & time"
+          label={t('events:create.fields.startDate')}
           disablePast
         />
         <FormTimeField
           control={form.control}
           name="duration"
-          label="Duration"
+          label={t('events:create.fields.duration')}
           maxHours={99}
         />
       </div>
       <ModalFooter>
         <Button variant="outline" type="button" onClick={onCancel}>
-          Cancel
+          {t('common:actions.cancel')}
         </Button>
         <LoadingButton
           type="submit"
           isLoading={isPending}
-          loadingText="Saving…"
+          loadingText={t('common:actions.saving')}
           disabled={!isDirty}
         >
-          Save changes
+          {t('common:actions.save')}
         </LoadingButton>
       </ModalFooter>
     </FormContainer>
@@ -104,6 +105,7 @@ interface WhenCardProps {
 }
 
 export function WhenCard({ event }: WhenCardProps) {
+  const { t } = useTranslation('events');
   const { canEdit } = useEventAccess(event.id);
   const tz = event.timezone ?? getSystemTimezone();
   const durationHours = Math.floor(event.duration / 60);
@@ -117,17 +119,16 @@ export function WhenCard({ event }: WhenCardProps) {
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-3">
         <div className="min-w-0">
-          <CardTitle>When</CardTitle>
-          <CardDescription>Start date, time, and duration</CardDescription>
+          <CardTitle>{t('manage.when.title')}</CardTitle>
+          <CardDescription>{t('manage.when.description')}</CardDescription>
         </div>
         {canEdit && (
           <Modal
-            title="When"
-            description="Update the event's start date, time, and duration"
+            title={t('manage.when.title')}
+            description={t('manage.when.description')}
             trigger={
               <Button variant="ghost" size="icon-sm" className="shrink-0">
                 <Pencil className="h-3.5 w-3.5" />
-                <span className="sr-only">Edit dates</span>
               </Button>
             }
           >
@@ -141,14 +142,14 @@ export function WhenCard({ event }: WhenCardProps) {
         <div className="flex items-center gap-2 text-sm">
           <CalendarDays className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
           <span>
-            <span className="text-muted-foreground">From </span>
+            <span className="text-muted-foreground">{t('manage.when.from')} </span>
             {formatDateTime(event.startAt, 'd LLL yyyy, HH:mm', tz)}
           </span>
         </div>
         <div className="flex items-center gap-2 text-sm">
           <Clock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
           <span>
-            <span className="text-muted-foreground">Duration </span>
+            <span className="text-muted-foreground">{t('manage.when.duration')} </span>
             {durationLabel}
           </span>
         </div>

@@ -1,14 +1,16 @@
 import { Link } from '@tanstack/react-router';
 import { Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { DotGrid } from '~/components/decorative/dot-grid';
 import { ThemeToggle } from '~/components/theme-toggle';
 import { Button } from '~/components/ui/button';
 import env from '~/env';
 
 export default function NotFoundPage() {
+  const { t } = useTranslation('common');
+
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-20">
-      {/* Background layer blobs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
           className="absolute -left-32 -top-32 h-96 w-96 animate-blob-1 rounded-full opacity-30 blur-3xl"
@@ -24,12 +26,10 @@ export default function NotFoundPage() {
         />
       </div>
 
-      {/* Dot grid */}
       <div className="pointer-events-none absolute inset-0 text-foreground">
         <DotGrid opacity={0.08} />
       </div>
 
-      {/* Top bar */}
       <div className="absolute inset-x-0 top-0 flex items-center justify-between px-6 py-4">
         <Link
           to="/"
@@ -45,18 +45,17 @@ export default function NotFoundPage() {
         <ThemeToggle />
       </div>
 
-      {/* Content */}
       <div className="relative z-10 w-full max-w-md text-center">
         <div className="rounded-2xl border border-border/60 bg-card/70 px-8 py-12 shadow-xl backdrop-blur-sm">
           <h1 className="mb-3 bg-linear-to-r from-primary via-[oklch(0.88_0.14_84)] to-secondary bg-clip-text text-8xl font-bold text-transparent">
             404
           </h1>
-          <p className="mb-2 text-xl font-semibold">Page not found</p>
+          <p className="mb-2 text-xl font-semibold">{t('notFound.title')}</p>
           <p className="mb-8 text-sm text-muted-foreground">
-            The page you're looking for doesn't exist or has been moved.
+            {t('notFound.subtitle')}
           </p>
           <Button asChild>
-            <Link to="/">Go home</Link>
+            <Link to="/">{t('notFound.goHome')}</Link>
           </Button>
         </div>
       </div>

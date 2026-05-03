@@ -122,26 +122,36 @@ export function FormTimeField<
               )}
             </FormLabel>
             <FormControl>
-              <div className="flex items-center gap-1.5">
-                <PickerInput
-                  value={hours}
-                  min={0}
-                  max={maxHours}
-                  placeholder="HH"
-                  className="w-full"
-                  onCommit={(v) => patch(v, minutes)}
-                />
-                <span className="shrink-0 font-bold text-muted-foreground">
+              <div className="flex items-end gap-1.5">
+                <div className="flex flex-1 flex-col gap-0.5">
+                  <span className="text-center text-[10px] font-medium uppercase tracking-wide text-muted-foreground/60">
+                    hr
+                  </span>
+                  <PickerInput
+                    value={hours}
+                    min={0}
+                    max={maxHours}
+                    placeholder="HH"
+                    className="w-full"
+                    onCommit={(v) => patch(v, minutes)}
+                  />
+                </div>
+                <span className="shrink-0 pb-2 font-bold text-muted-foreground">
                   :
                 </span>
-                <PickerInput
-                  value={minutes}
-                  min={0}
-                  max={59}
-                  placeholder="MM"
-                  className="w-full"
-                  onCommit={(v) => patch(hours, v)}
-                />
+                <div className="flex flex-1 flex-col gap-0.5">
+                  <span className="text-center text-[10px] font-medium uppercase tracking-wide text-muted-foreground/60">
+                    min
+                  </span>
+                  <PickerInput
+                    value={minutes}
+                    min={0}
+                    max={59}
+                    placeholder="MM"
+                    className="w-full"
+                    onCommit={(v) => patch(hours, v)}
+                  />
+                </div>
               </div>
             </FormControl>
             <FormMessage />

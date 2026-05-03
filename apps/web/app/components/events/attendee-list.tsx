@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Crown, SearchX, ShieldCheck, Users } from 'lucide-react';
 import { DebouncedSearchInput } from '~/components/ui/debounced-search-input';
 import { EmptyState } from '~/components/ui/empty-state';
@@ -11,6 +12,7 @@ interface AttendeeListProps {
   eventId: string;
   currentAttendeeId?: string;
   staffRoles?: Record<string, 'OWNER' | 'ORGANIZER'>;
+  guestToken?: string | null;
 }
 
 const STATUS_DOT: Record<string, string> = {
@@ -19,10 +21,11 @@ const STATUS_DOT: Record<string, string> = {
   CANCELLED: 'bg-red-400',
 };
 
-export function AttendeeList({ eventId, currentAttendeeId, staffRoles }: AttendeeListProps) {
+export function AttendeeList({ eventId, currentAttendeeId, staffRoles, guestToken }: AttendeeListProps) {
+  const { t } = useTranslation('events');
   const [search, setSearch] = useState('');
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
-    useAttendeesInfinite(eventId, search || undefined);
+    useAttendeesInfinite(eventId, search || undefined, guestToken);
   const breakpoint = useBreakpoint();
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -59,7 +62,7 @@ export function AttendeeList({ eventId, currentAttendeeId, staffRoles }: Attende
       <DebouncedSearchInput
         value={search}
         onChange={setSearch}
-        placeholder="Search guests…"
+        placeholder={t('detail.attendeeList.search')}
       />
 
       {isLoading && (
@@ -72,8 +75,8 @@ export function AttendeeList({ eventId, currentAttendeeId, staffRoles }: Attende
 
       {!allAttendees.length && !isLoading && (
         search
-          ? <EmptyState icon={SearchX} message="No guests match your search." />
-          : <EmptyState icon={Users} message="No guests yet." description="Share the event link to get people in!" />
+          ? <EmptyState icon={SearchX} message={t('detail.attendeeList.noMatch')} />
+          : <EmptyState icon={Users} message={t('detail.attendeeList.empty')} description={t('detail.attendeeList.emptyDesc')} />
       )}
 
       {/* Header: stacked avatars + total count */}
@@ -99,7 +102,7 @@ export function AttendeeList({ eventId, currentAttendeeId, staffRoles }: Attende
               </div>
             )}
           </div>
-          <span className="text-sm text-muted-foreground">{total} attending</span>
+          <span className="text-sm text-muted-foreground">{t('detail.attendeeList.total', { count: total })}</span>
         </div>
       )}
 
@@ -161,7 +164,7 @@ export function AttendeeList({ eventId, currentAttendeeId, staffRoles }: Attende
                   {name}
                   {isMe && (
                     <span className="ml-1 text-xs text-muted-foreground">
-                      (you)
+                      {t('detail.attendeeList.you')}
                     </span>
                   )}
                 </p>
@@ -172,7 +175,7 @@ export function AttendeeList({ eventId, currentAttendeeId, staffRoles }: Attende
                 )}
                 {sponsorName && (
                   <p className="truncate text-xs text-muted-foreground">
-                    guest of {sponsorName}
+                    {t('detail.attendeeList.guestOf', { name: sponsorName })}
                   </p>
                 )}
               </div>

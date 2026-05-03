@@ -7,6 +7,7 @@ import {
   UserPlus,
   Zap,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '~/components/ui/button';
 import { Badge } from '~/components/ui/badge';
 import {
@@ -50,6 +51,7 @@ export function EventDetailHeader({
   onAddSelf,
   onLeave,
 }: EventDetailHeaderProps) {
+  const { t } = useTranslation(['events', 'common']);
   const breakpoint = useBreakpoint();
   const isMobile = breakpoint === 'xs';
   const navigate = useNavigate();
@@ -61,11 +63,16 @@ export function EventDetailHeader({
 
   const leaveOption: SplitButtonOption = {
     value: 'leave',
-    label: 'Leave event',
+    label: t('events:detail.leaveEvent'),
     icon: <LogOut className="h-3.5 w-3.5" />,
     variant: 'destructive',
     separator: true,
   };
+
+  const bringFriendLabel =
+    inviteLinkRemaining !== null
+      ? `${t('events:detail.bringAFriend')} · ${inviteLinkRemaining} ${t('events:detail.inviteLinkLeft')}`
+      : t('events:detail.bringAFriend');
 
   function renderActions() {
     if (isAttending) {
@@ -74,15 +81,16 @@ export function EventDetailHeader({
           <SplitButton
             primary={{
               value: 'bring-friend',
-              label:
-                inviteLinkRemaining !== null
-                  ? `Bring a friend · ${inviteLinkRemaining} left`
-                  : 'Bring a friend',
+              label: bringFriendLabel,
               icon: <UserPlus className="h-3.5 w-3.5" />,
               variant: 'outline',
             }}
             options={[
-              { value: 'manage', label: 'Manage', icon: <ManageIcon /> },
+              {
+                value: 'manage',
+                label: t('events:detail.manage'),
+                icon: <ManageIcon />,
+              },
               ...(canUnregisterSelf ? [leaveOption] : []),
             ]}
             onSelect={(v) => {
@@ -106,10 +114,7 @@ export function EventDetailHeader({
             <SplitButton
               primary={{
                 value: 'bring-friend',
-                label:
-                  inviteLinkRemaining !== null
-                    ? `Bring a friend · ${inviteLinkRemaining} left`
-                    : 'Bring a friend',
+                label: bringFriendLabel,
                 icon: <UserPlus className="h-3.5 w-3.5" />,
                 variant: 'outline',
               }}
@@ -131,7 +136,7 @@ export function EventDetailHeader({
             disabled={addingGuest}
           >
             <UserPlus className="mr-1.5 h-3.5 w-3.5" />
-            Bring a friend
+            {t('events:detail.bringAFriend')}
             {inviteLinkRemaining !== null && (
               <Badge variant="secondary" className="ml-1.5 text-xs">
                 {inviteLinkRemaining} left
@@ -147,7 +152,7 @@ export function EventDetailHeader({
             <SplitButton
               primary={{
                 value: 'manage',
-                label: 'Manage',
+                label: t('events:detail.manage'),
                 icon: <ManageIcon />,
                 variant: 'outline',
               }}
@@ -168,7 +173,7 @@ export function EventDetailHeader({
           <Button variant="outline" size="sm" asChild>
             <Link to="/events/$id/manage" params={{ id: event.id }}>
               <ManageIcon />
-              Manage
+              {t('events:detail.manage')}
             </Link>
           </Button>
         );
@@ -183,7 +188,7 @@ export function EventDetailHeader({
             className="text-destructive hover:text-destructive"
           >
             <LogOut className="mr-1.5 h-3.5 w-3.5" />
-            Leave event
+            {t('events:detail.leaveEvent')}
           </Button>
         );
       }
@@ -197,14 +202,14 @@ export function EventDetailHeader({
         <SplitButton
           primary={{
             value: 'manage',
-            label: 'Manage',
+            label: t('events:detail.manage'),
             icon: <ManageIcon />,
             variant: 'outline',
           }}
           options={[
             {
               value: 'add-self',
-              label: 'Add me',
+              label: t('events:detail.addMe'),
               icon: <UserCheck className="h-3.5 w-3.5" />,
             },
           ]}
@@ -224,13 +229,13 @@ export function EventDetailHeader({
         <>
           <Button onClick={onJoin} disabled={registering}>
             <Zap className="mr-1.5 h-4 w-4" />
-            Jump in
+            {t('events:detail.jumpIn')}
           </Button>
           {showManage && (
             <Button variant="outline" size="sm" asChild>
               <Link to="/events/$id/manage" params={{ id: event.id }}>
                 {<ManageIcon />}
-                <span className="ml-1.5">Manage</span>
+                <span className="ml-1.5">{t('events:detail.manage')}</span>
               </Link>
             </Button>
           )}
@@ -243,7 +248,7 @@ export function EventDetailHeader({
         <Button variant="outline" size="sm" asChild>
           <Link to="/events/$id/manage" params={{ id: event.id }}>
             {<ManageIcon />}
-            <span className="ml-1.5">Manage</span>
+            <span className="ml-1.5">{t('events:detail.manage')}</span>
           </Link>
         </Button>
       );
@@ -260,7 +265,9 @@ export function EventDetailHeader({
       <div className="min-w-0 space-y-1">
         <div className="flex flex-wrap items-center gap-2">
           <h1 className="text-3xl font-bold leading-tight">{event.title}</h1>
-          <Badge variant={statusMeta.variant}>{statusMeta.label}</Badge>
+          <Badge variant={statusMeta.variant}>
+            {t(`common:status.${event.status}`)}
+          </Badge>
         </div>
         <p className="text-muted-foreground">
           {startDate.toLocaleDateString(undefined, {
@@ -286,7 +293,7 @@ export function EventDetailHeader({
         {isAttending && (
           <Badge className="bg-success text-success-foreground">
             <Check className="mr-1.5 h-3.5 w-3.5" />
-            You&apos;re attending
+            {t('events:detail.attending')}
           </Badge>
         )}
         {renderActions()}

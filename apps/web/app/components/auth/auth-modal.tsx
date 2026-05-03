@@ -46,8 +46,7 @@ function LoginForm({ onSuccess }: LoginFormProps) {
   const onSubmit = (values: LoginFormValues) => {
     login(values, {
       onSuccess,
-      onError: (err) =>
-        toast.error(apiError(err)),
+      onError: (err) => toast.error(apiError(err)),
     });
   };
 
@@ -101,8 +100,7 @@ function RegisterForm({ onSuccess }: RegisterFormProps) {
   const onSubmit = (values: RegisterFormValues) => {
     register(values, {
       onSuccess,
-      onError: (err) =>
-        toast.error(apiError(err)),
+      onError: (err) => toast.error(apiError(err)),
     });
   };
 
@@ -185,6 +183,7 @@ export function AuthModal({
   }, [open]);
 
   return (
+    // TODO: Use modal component instead of dialog
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md" showCloseButton>
         <DialogHeader>

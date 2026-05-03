@@ -56,6 +56,7 @@ export enum ErrorCode {
 
   // --- Media ---
   MEDIA_NOT_FOUND = 'MEDIA_NOT_FOUND',
+  FILE_TOO_LARGE = 'FILE_TOO_LARGE',
 
   // --- Chat ---
   CHAT_NOT_AVAILABLE = 'CHAT_NOT_AVAILABLE',

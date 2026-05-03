@@ -1,11 +1,15 @@
 {
   "list": {
     "title": "Eventos",
+    "subtitle": "Eventos que creaste y organizás",
     "empty": "Todavía no hay eventos",
-    "createFirst": "Creá tu primer evento"
+    "emptySubtitle": "¡Creá tu primer evento y empezá a reunir gente!",
+    "createFirst": "Creá tu primer evento",
+    "new": "Nuevo Evento"
   },
   "create": {
     "title": "Crear un evento",
+    "subtitle": "Completá los datos para publicar tu evento",
     "steps": {
       "about": "Sobre & Acceso",
       "when": "Cuándo",
@@ -13,9 +17,11 @@
     },
     "fields": {
       "title": "Título del evento",
+      "titlePlaceholder": "Mi fiesta de cumpleaños",
       "description": "Descripción",
+      "descriptionPlaceholder": "Contales a tus invitados qué esperar…",
       "accessType": "Tipo de acceso",
-      "maxAttendees": "Máx. asistentes",
+      "maxAttendees": "Máx. invitados",
       "startDate": "Fecha de inicio",
       "duration": "Duración",
       "timezone": "Zona horaria",
@@ -27,7 +33,7 @@
     "error": "Error al crear el evento"
   },
   "detail": {
-    "attendees": "Asistentes",
+    "attendees": "Invitados",
     "register": "Inscribirse",
     "registered": "Estás inscripto",
     "waitlisted": "Estás en lista de espera",
@@ -38,12 +44,96 @@
     "duration": "{{minutes}} minutos",
     "capacity": "{{count}} / {{max}} lugares",
     "capacityFull": "Completo",
+    "bringAFriend": "Invitar un amigo",
+    "manage": "Administrar",
+    "leaveEvent": "Salir del evento",
+    "addMe": "Agregarme",
+    "jumpIn": "Unirme",
+    "attending": "Estás asistiendo",
+    "inviteLinkLeft": "restantes",
     "tabs": {
       "about": "Sobre el evento",
-      "attendees": "Asistentes",
+      "attendees": "Invitados",
       "chat": "Chat",
       "media": "Fotos",
       "prizes": "Premios"
+    },
+    "guestListDisabled": "Lista de invitados desactivada",
+    "organizersOnly": "Solo organizadores",
+    "attendeesOnly": "Solo invitados",
+    "galleryDisabled": "Galería desactivada",
+    "notAvailableYet": "Todavía no disponible",
+    "privateEvent": "Este es un evento privado",
+    "needInviteLink": "Necesitás un link de invitación para unirte",
+    "invitationOnly": "El acceso es solo por invitación",
+    "draftAlert": "Este evento todavía es un borrador y no es accesible aún.",
+    "guestListUnavailable": "Lista de invitados no disponible",
+    "guestListUnavailableDesc": "No tenés acceso a la lista de invitados.",
+    "guestListDisabledDesc": "El organizador desactivó la lista de invitados para este evento.",
+    "guestListOrganizerDesc": "La lista de invitados solo es visible para los organizadores.",
+    "guestListAttendeeDesc": "Únete al evento para ver quién más viene.",
+    "chatNotAvailable": "El chat estará disponible cuando el evento sea publicado.",
+    "galleryNotAvailableDesc": "La galería se abre cuando el evento está en vivo.",
+    "galleryDisabledDesc": "El organizador desactivó la galería para este evento.",
+    "galleryOrganizerDesc": "La galería solo es visible para los organizadores.",
+    "galleryAttendeeDesc": "Únete al evento para ver y compartir fotos.",
+    "eventNotFound": "Evento no encontrado.",
+    "attendeeList": {
+      "search": "Buscar invitados…",
+      "noMatch": "Ningún invitado coincide con tu búsqueda.",
+      "empty": "Todavía no hay invitados.",
+      "emptyDesc": "¡Compartí el link del evento para que se sumen!",
+      "total": "{{count}} asistiendo",
+      "you": "(vos)",
+      "guestOf": "invitado de {{name}}"
+    },
+    "gallery": {
+      "empty": "Todavía no hay fotos",
+      "emptyUpload": "¡Sé el primero en compartir un momento!",
+      "emptyJoin": "¡Unite al evento y compartí una foto!",
+      "deletePhoto": "Eliminar foto",
+      "removeTitle": "¿Eliminar foto?",
+      "removeDesc": "Esta foto se eliminará permanentemente.",
+      "fileTooLarge": "El archivo es demasiado grande (máx. 10 MB)",
+      "uploadSuccess": "¡Foto subida!",
+      "removeSuccess": "Foto eliminada"
+    }
+  },
+  "join": {
+    "invalidLink": "Link inválido",
+    "invalidLinkDesc": "Este link de invitación no existe. Pedile al organizador un link válido.",
+    "youreInvited": "Estás invitado",
+    "alreadyRegistered": "¡Ya estás registrado!",
+    "viewEvent": "Ver evento",
+    "onWaitlist": "Estás en la lista de espera",
+    "waitlistDesc": "Te avisaremos si se libera un lugar.",
+    "helmetInvited": "Estás invitado a {{title}} — Reunite",
+    "capacity": "{{count}} de capacidad",
+    "spotsLeft_one": "{{count}} lugar disponible en este link",
+    "spotsLeft_other": "{{count}} lugares disponibles en este link",
+    "yourName": "Tu nombre",
+    "yourNamePlaceholder": "Tu nombre",
+    "nameHelp": "Podés usar un nombre distinto al de tu perfil para este evento.",
+    "joining": "Uniéndose…",
+    "joinEvent": "Unirse al evento 🎉",
+    "successToast": "¡Ya estás dentro! 🎉",
+    "errors": {
+      "draft": {
+        "title": "Evento no publicado aún",
+        "body": "Este evento todavía no fue publicado. Volvé más tarde."
+      },
+      "unavailable": {
+        "title": "Evento ya no disponible",
+        "body": "Este evento terminó o fue cancelado."
+      },
+      "expired": {
+        "title": "Link expirado",
+        "body": "Este link de invitación expiró. Pedile uno nuevo al organizador."
+      },
+      "max_uses_reached": {
+        "title": "Link lleno",
+        "body": "Este link de invitación alcanzó su límite."
+      }
     }
   },
   "manage": {
@@ -51,15 +141,18 @@
     "tabs": {
       "settings": "Configuración",
       "guestList": "Lista de invitados",
-      "attendees": "Asistentes",
+      "attendees": "Invitados",
       "inviteLinks": "Links de invitación"
     },
     "settings": {
       "title": "Configuración del evento",
       "success": "Configuración actualizada",
       "error": "Error al actualizar la configuración",
+      "autoSave": "Los cambios se guardan automáticamente",
+      "chatDescription": "Permite que los invitados se mensajeen entre sí",
+      "prizesDescription": "Habilita la función de premios para este evento",
       "config": {
-        "publicGuestList": "Lista de asistentes pública",
+        "publicGuestList": "Lista de invitados",
         "chat": "Chat",
         "mediaUploads": "Subida de fotos",
         "prizes": "Premios"
@@ -67,13 +160,22 @@
     },
     "danger": {
       "title": "Zona de peligro",
+      "description": "Estas acciones son permanentes y no se pueden deshacer",
       "delete": "Eliminar evento",
+      "deleteTitle": "¿Eliminar evento?",
+      "deleteSubtitle": "Todos los invitados, fotos y datos se eliminarán permanentemente",
+      "deleteDescNormal": "Se eliminará permanentemente {{title}} y todos sus datos asociados. Esta acción no se puede deshacer.",
+      "deleteDescCancelled": "Se eliminará permanentemente {{title}} y todos sus datos asociados, incluyendo invitados, mensajes y fotos. Esta acción no se puede deshacer.",
+      "deleteConfirmLabel": "Sí, eliminar evento",
       "deleteConfirm": "¿Estás seguro de que querés eliminar este evento? Esta acción no se puede deshacer.",
       "deleteSuccess": "Evento eliminado",
       "deleteError": "Error al eliminar el evento",
       "cancel": "Cancelar evento",
       "cancelSuccess": "Evento cancelado",
-      "cancelError": "Error al cancelar el evento"
+      "cancelError": "Error al cancelar el evento",
+      "blockedPublished": "Despublicá el evento antes de eliminarlo.",
+      "blockedActive": "No podés eliminar un evento en vivo.",
+      "blockedEnded": "Los eventos finalizados no se pueden eliminar."
     },
     "inviteLinks": {
       "create": "Crear link de invitación",
@@ -99,11 +201,53 @@
       "empty": "No hay usuarios en la lista de invitados"
     },
     "attendees": {
-      "title": "Asistentes",
-      "removeSuccess": "Asistente eliminado",
-      "removeError": "No se pudo eliminar el asistente",
-      "search": "Buscar asistentes...",
-      "empty": "Todavía no hay asistentes"
+      "title": "Invitados",
+      "description": "Ver y administrar todos los asistentes al evento",
+      "confirmed": "confirmados",
+      "searchPlaceholder": "Buscar asistentes…",
+      "removeSuccess": "{{name}} eliminado",
+      "removeError": "No se pudo eliminar al asistente",
+      "search": "Buscar invitados...",
+      "empty": "Todavía no hay invitados",
+      "filters": {
+        "all": "Todos",
+        "confirmed": "Confirmados",
+        "waitlisted": "En espera",
+        "cancelled": "Cancelados"
+      },
+      "emptyAll": "Todavía no hay asistentes.",
+      "emptyConfirmed": "Todavía no hay invitados confirmados.",
+      "emptyWaitlisted": "Nadie en lista de espera.",
+      "emptyCancelled": "Sin cancelaciones.",
+      "guest": "invitado",
+      "removeTitle": "¿Eliminar asistente?",
+      "removeDesc": "¿Eliminar a {{name}} de este evento? No recibirá ninguna notificación."
+    },
+    "about": {
+      "title": "Sobre & Acceso",
+      "description": "Título, descripción y quién puede unirse",
+      "updateSuccess": "Detalles del evento actualizados",
+      "maxAttendees": "Máx. {{count}} invitados",
+      "unlimitedAttendees": "Invitados ilimitados"
+    },
+    "when": {
+      "title": "Cuándo",
+      "description": "Fecha de inicio, hora y duración",
+      "updateSuccess": "Fechas del evento actualizadas",
+      "rescheduledWarning": "Cambiar la fecha de inicio marcará automáticamente este evento como Reprogramado y notificará a los invitados.",
+      "from": "Desde",
+      "duration": "Duración"
+    },
+    "where": {
+      "title": "Dónde",
+      "description": "Ubicación",
+      "updateSuccess": "Ubicación del evento actualizada",
+      "noLocation": "Sin ubicación configurada"
+    },
+    "cover": {
+      "title": "Imagen de portada",
+      "description": "Subí una imagen de portada para tu evento",
+      "updateSuccess": "Portada actualizada"
     }
   },
   "status": {
@@ -118,6 +262,111 @@
   "accessType": {
     "PUBLIC": "Público",
     "INVITE_LINK": "Link de invitación",
-    "INVITE_ACCOUNT": "Solo invitados"
+    "INVITE_ACCOUNT": "Solo invitados",
+    "PUBLIC_description": "Cualquiera puede unirse",
+    "INVITE_LINK_description": "Los invitados necesitan un link",
+    "INVITE_ACCOUNT_description": "Solo cuentas pre-aprobadas"
+  },
+  "statusMeta": {
+    "DRAFT": { "description": "Creado pero aún no publicado" },
+    "PUBLISHED": { "description": "Visible y aceptando inscripciones" },
+    "ACTIVE": { "description": "El evento está ocurriendo ahora" },
+    "RESCHEDULED": { "description": "La fecha fue cambiada tras la publicación" },
+    "ENDED": { "description": "El evento ha concluido" },
+    "CANCELLED": { "description": "Cancelado por el organizador" }
+  },
+  "transitions": {
+    "toDraft": {
+      "label": "Despublicar",
+      "description": "Volver a borrador"
+    },
+    "toPublished": {
+      "label": "Publicar",
+      "description": "Hacer el evento visible y abrir inscripciones"
+    },
+    "toPublishedAgain": {
+      "label": "Volver a publicar",
+      "description": "Hacer visible de nuevo con la nueva fecha"
+    },
+    "toActive": {
+      "label": "Iniciar en vivo",
+      "description": "Marcar como ocurriendo ahora"
+    },
+    "toEnded": {
+      "label": "Finalizar evento",
+      "description": "Marcar el evento como concluido"
+    },
+    "toCancelled": {
+      "label": "Cancelar evento",
+      "description": "Cancelar este evento permanentemente"
+    },
+    "toRestored": {
+      "label": "Restaurar a borrador",
+      "description": "Restaurar este evento al estado borrador"
+    },
+    "confirms": {
+      "cancelFromDraft": {
+        "title": "¿Cancelar evento?",
+        "description": "Este evento será cancelado. Los invitados ya no podrán unirse."
+      },
+      "cancelFromPublished": {
+        "title": "¿Cancelar evento?",
+        "description": "Este evento será cancelado. Todos los invitados registrados perderán el acceso."
+      },
+      "cancelFromRescheduled": {
+        "title": "¿Cancelar evento?",
+        "description": "Este evento será cancelado. Todos los invitados registrados perderán el acceso."
+      },
+      "cancelFromActive": {
+        "title": "¿Cancelar evento en vivo?",
+        "description": "El evento está en curso. Cancelarlo lo detendrá inmediatamente para todos los invitados."
+      },
+      "endEvent": {
+        "title": "¿Finalizar evento?",
+        "description": "Esto concluirá el evento. Los invitados ya no podrán unirse ni interactuar."
+      },
+      "restoreFromCancelled": {
+        "title": "¿Restaurar a borrador?",
+        "description": "Todos los datos del evento (invitados, mensajes, fotos) se conservan. El evento permanecerá oculto hasta que lo publiques de nuevo."
+      }
+    }
+  },
+  "accessLevels": {
+    "attendeeAccess": {
+      "ANYONE": {
+        "label": "Cualquiera",
+        "description": "Cualquiera puede ver la lista de invitados"
+      },
+      "ATTENDEES_ONLY": {
+        "label": "Solo invitados",
+        "description": "Solo los invitados registrados pueden ver la lista"
+      },
+      "ORGANIZERS_ONLY": {
+        "label": "Solo organizadores",
+        "description": "Solo el equipo del evento puede ver la lista"
+      },
+      "DISABLED": {
+        "label": "Desactivado",
+        "description": "La lista de invitados está oculta para todos"
+      }
+    },
+    "mediaAccess": {
+      "ANYONE": {
+        "label": "Cualquiera",
+        "description": "Cualquiera puede ver y subir fotos"
+      },
+      "ATTENDEES_ONLY": {
+        "label": "Solo invitados",
+        "description": "Solo los invitados registrados pueden acceder"
+      },
+      "ORGANIZERS_ONLY": {
+        "label": "Solo organizadores",
+        "description": "Solo el equipo del evento puede acceder"
+      },
+      "DISABLED": {
+        "label": "Desactivado",
+        "description": "La galería está desactivada"
+      }
+    }
   }
 }

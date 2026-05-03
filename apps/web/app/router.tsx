@@ -175,6 +175,9 @@ const eventDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/events/$id',
   component: EventDetailPage,
+  validateSearch: z.object({
+    tab: z.string().optional(),
+  }),
 });
 
 const eventManageRoute = createRoute({

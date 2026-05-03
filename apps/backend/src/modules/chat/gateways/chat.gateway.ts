@@ -6,7 +6,7 @@ import {
   WebSocketGateway,
 } from '@nestjs/websockets';
 import type { Server } from 'socket.io';
-import { EventStatus } from '@prisma/client';
+import { AttendeeStatus, EventStatus } from '@prisma/client';
 import { BaseGateway } from '../../../rtc/base/base.gateway';
 import { RtcAuthMiddleware } from '../../../rtc/middleware/rtc-auth.middleware';
 import type { RtcSocket } from '../../../rtc/interfaces/rtc-socket.interface';
@@ -41,11 +41,16 @@ export class ChatGateway extends BaseGateway implements OnGatewayInit {
 
     const event = await this.prisma.event.findUnique({
       where: { id: payload.eventId },
-      select: { status: true },
+      select: { status: true, config: { select: { chatEnabled: true } } },
     });
 
     const historyStatuses: EventStatus[] = [EventStatus.ACTIVE, EventStatus.ENDED];
-    if (!event || !historyStatuses.includes(event.status)) {
+    if (!event || !historyStatuses.includes(event.status) || !event.config?.chatEnabled) {
+      socket.emit('chat:history', []);
+      return;
+    }
+
+    if (!(await this.canAccessChat(socket, payload.eventId))) {
       socket.emit('chat:history', []);
       return;
     }
@@ -104,16 +109,43 @@ export class ChatGateway extends BaseGateway implements OnGatewayInit {
   ) {
     const event = await this.prisma.event.findUnique({
       where: { id: payload.eventId },
-      select: { status: true },
+      select: { status: true, config: { select: { chatEnabled: true } } },
     });
 
     const historyStatuses: EventStatus[] = [EventStatus.ACTIVE, EventStatus.ENDED];
-    if (!event || !historyStatuses.includes(event.status)) {
+    if (!event || !historyStatuses.includes(event.status) || !event.config?.chatEnabled) {
+      socket.emit('chat:history', []);
+      return;
+    }
+
+    if (!(await this.canAccessChat(socket, payload.eventId))) {
       socket.emit('chat:history', []);
       return;
     }
 
     const history = await this.chat.getHistory(payload.eventId, payload.cursor);
     socket.emit('chat:history', history);
+  }
+
+  private async canAccessChat(socket: RtcSocket, eventId: string): Promise<boolean> {
+    const guest = socket.data?.guest;
+    if (guest) {
+      return guest.eventId === eventId && guest.status === AttendeeStatus.CONFIRMED;
+    }
+
+    const userId = this.getUserId(socket);
+    if (userId) {
+      const isStaff = await this.prisma.eventStaff.findUnique({
+        where: { eventId_userId: { eventId, userId } },
+      });
+      if (isStaff) return true;
+
+      const isAttendee = await this.prisma.eventAttendee.findFirst({
+        where: { eventId, userId, status: AttendeeStatus.CONFIRMED },
+      });
+      return !!isAttendee;
+    }
+
+    return false;
   }
 }

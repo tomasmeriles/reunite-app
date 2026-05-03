@@ -1,17 +1,18 @@
-import { IsBoolean, IsOptional } from 'class-validator';
+import { IsBoolean, IsEnum, IsOptional } from 'class-validator';
+import { AttendeeAccess, MediaAccess } from '@prisma/client';
 
 export class UpdateEventConfigDto {
   @IsOptional()
-  @IsBoolean()
-  attendeesPublic?: boolean;
+  @IsEnum(AttendeeAccess)
+  attendeeAccess?: AttendeeAccess;
 
   @IsOptional()
   @IsBoolean()
   chatEnabled?: boolean;
 
   @IsOptional()
-  @IsBoolean()
-  mediaEnabled?: boolean;
+  @IsEnum(MediaAccess)
+  mediaAccess?: MediaAccess;
 
   @IsOptional()
   @IsBoolean()

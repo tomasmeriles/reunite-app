@@ -1,4 +1,5 @@
 import {
+  Inject,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
@@ -11,6 +12,7 @@ import { requireEventStatus } from '../../../common/helpers/event-status.helper'
 import { defined } from '../../../common/helpers/prisma.helpers';
 import type { CreateInviteLinkDto } from '../dto/create-invite-link.dto';
 import { DateTime } from 'luxon';
+import { StorageService } from '../../../storage/services/storage.service';
 
 type UnavailableReason =
   | 'draft'
@@ -20,6 +22,8 @@ type UnavailableReason =
 
 @Injectable()
 export class InviteLinksService extends TransactionalService {
+  @Inject(StorageService)
+  private readonly storage!: StorageService;
   @Transactional()
   async create(eventId: string, dto: CreateInviteLinkDto) {
     await requireEventStatus(
@@ -86,12 +90,16 @@ export class InviteLinksService extends TransactionalService {
       reason = 'max_uses_reached';
     }
 
+    const coverImage = link.event.coverImage
+      ? await this.storage.getPresignedUrl(link.event.coverImage)
+      : null;
+
     const payload = {
       event: {
         id: link.event.id,
         title: link.event.title,
         description: link.event.description,
-        coverImage: link.event.coverImage,
+        coverImage,
         location: link.event.location,
         timezone: link.event.timezone,
         startDate: link.event.startAt,

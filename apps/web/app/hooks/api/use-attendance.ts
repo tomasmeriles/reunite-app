@@ -15,11 +15,11 @@ export const attendanceKeys = {
   mine: (eventId: string) => ['attendance', eventId, 'me'] as const,
 };
 
-export function useAttendeesInfinite(eventId: string, search?: string) {
+export function useAttendeesInfinite(eventId: string, search?: string, guestToken?: string | null) {
   return useInfiniteQuery({
-    queryKey: [...attendanceKeys.attendeesPaged(eventId), search ?? ''] as const,
+    queryKey: [...attendanceKeys.attendeesPaged(eventId), search ?? '', guestToken ?? ''] as const,
     queryFn: ({ pageParam = 1 }) =>
-      attendanceApi.getAttendees(eventId, pageParam as number, PAGE_SIZE, search),
+      attendanceApi.getAttendees(eventId, pageParam as number, PAGE_SIZE, search, guestToken ?? undefined),
     initialPageParam: 1,
     getNextPageParam: (last) => (last.meta.hasNext ? last.meta.page + 1 : undefined),
     enabled: !!eventId,

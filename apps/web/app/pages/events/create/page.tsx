@@ -1,6 +1,7 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import type { FieldPath } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { useLocationPicker } from '~/hooks/use-location-picker';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
@@ -46,27 +47,6 @@ import {
 } from '~/lib/schemas/event.schema';
 import type { EventType } from '~/api/events/events.types';
 
-const EVENT_TYPE_OPTIONS: CardSelectOption<EventType>[] = [
-  {
-    value: 'PUBLIC',
-    label: 'Public',
-    description: 'Anyone can join',
-    icon: Globe,
-  },
-  {
-    value: 'INVITE_LINK',
-    label: 'Invite link',
-    description: 'Guests need a link to join',
-    icon: Link,
-  },
-  {
-    value: 'INVITE_ACCOUNT',
-    label: 'Guest list',
-    description: 'Pre-approved accounts only',
-    icon: Users,
-  },
-];
-
 // Fields validated per step (0-indexed)
 const STEP_FIELDS: FieldPath<CreateEventFormValues>[][] = [
   ['title', 'description', 'eventType', 'maxAttendees'],
@@ -74,29 +54,51 @@ const STEP_FIELDS: FieldPath<CreateEventFormValues>[][] = [
   ['location'],
 ];
 
-const STEPS: StepDef[] = [
-  {
-    icon: Ticket,
-    title: 'About & Access',
-    description: 'Name, description and who can join',
-  },
-  {
-    icon: CalendarDays,
-    title: 'When',
-    description: 'Start and end date & time',
-  },
-  {
-    icon: MapPin,
-    title: 'Where',
-    description: 'Location name and address',
-  },
-];
-
 export default function EventCreatePage() {
+  const { t } = useTranslation('events');
   const apiError = useApiError();
   const navigate = useNavigate();
   const { mutate: createEvent, isPending } = useCreateEvent();
   const picker = useLocationPicker();
+
+  const EVENT_TYPE_OPTIONS: CardSelectOption<EventType>[] = [
+    {
+      value: 'PUBLIC',
+      label: t('accessType.PUBLIC'),
+      description: t('accessType.PUBLIC_description'),
+      icon: Globe,
+    },
+    {
+      value: 'INVITE_LINK',
+      label: t('accessType.INVITE_LINK'),
+      description: t('accessType.INVITE_LINK_description'),
+      icon: Link,
+    },
+    {
+      value: 'INVITE_ACCOUNT',
+      label: t('accessType.INVITE_ACCOUNT'),
+      description: t('accessType.INVITE_ACCOUNT_description'),
+      icon: Users,
+    },
+  ];
+
+  const STEPS: StepDef[] = [
+    {
+      icon: Ticket,
+      title: t('create.steps.about'),
+      description: t('create.fields.title'),
+    },
+    {
+      icon: CalendarDays,
+      title: t('create.steps.when'),
+      description: t('create.fields.startDate'),
+    },
+    {
+      icon: MapPin,
+      title: t('create.steps.where'),
+      description: t('create.fields.location'),
+    },
+  ];
 
   const form = useForm<CreateEventFormValues>({
     resolver: zodResolver(createEventSchema),
@@ -117,15 +119,13 @@ export default function EventCreatePage() {
   const onSubmit = (values: CreateEventFormValues) => {
     createEvent(toApiPayload(values), {
       onSuccess: (event) => {
-        toast.success('Event created!');
+        toast.success(t('create.success'));
         void navigate({ to: '/events/$id/manage', params: { id: event.id } });
       },
-      onError: (err) =>
-        toast.error(apiError(err)),
+      onError: (err) => toast.error(apiError(err)),
     });
   };
 
-  // ── Live values for step summaries ──
   const watched = form.watch();
 
   const activeTypeOption = EVENT_TYPE_OPTIONS.find(
@@ -148,7 +148,6 @@ export default function EventCreatePage() {
   });
 
   const summaries = [
-    // Step 1 — About & Access
     watched.title ? (
       <div className="space-y-1">
         <p className="text-sm font-medium text-foreground leading-tight">
@@ -166,23 +165,15 @@ export default function EventCreatePage() {
       </div>
     ) : null,
 
-    // Step 2 — When
     watched.startAt ? (
       <div className="space-y-0.5 text-xs text-muted-foreground">
-        <p>
-          <span className="font-medium text-foreground">From</span>{' '}
-          {formatDateTime(watched.startAt)}
-        </p>
+        <p>{formatDateTime(watched.startAt)}</p>
         {watched.duration && (
-          <p>
-            <span className="font-medium text-foreground">Duration</span>{' '}
-            {formatHHMMDuration(watched.duration)}
-          </p>
+          <p>{formatHHMMDuration(watched.duration)}</p>
         )}
       </div>
     ) : null,
 
-    // Step 3 — Where
     watched.location ? (
       <div className="space-y-0.5 text-xs text-muted-foreground">
         <p className="font-medium text-foreground">{watched.location}</p>
@@ -194,10 +185,10 @@ export default function EventCreatePage() {
     <div className="mx-auto max-w-lg space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">
-          Create an event
+          {t('create.title')}
         </h1>
         <p className="text-muted-foreground">
-          Fill in the details below to get your event live.
+          {t('create.subtitle')}
         </p>
       </div>
 
@@ -216,27 +207,27 @@ export default function EventCreatePage() {
                 <FormTextField
                   control={form.control}
                   name="title"
-                  label="Event title"
-                  placeholder="My Birthday Party 🎂"
+                  label={t('create.fields.title')}
+                  placeholder={t('create.fields.titlePlaceholder')}
                 />
                 <FormTextareaField
                   control={form.control}
                   name="description"
-                  label="Description"
-                  placeholder="Tell your guests what to expect…"
+                  label={t('create.fields.description')}
+                  placeholder={t('create.fields.descriptionPlaceholder')}
                   rows={3}
                   optional
                 />
                 <FormCardSelectField
                   control={form.control}
                   name="eventType"
-                  label="Access type"
+                  label={t('create.fields.accessType')}
                   options={EVENT_TYPE_OPTIONS}
                 />
                 <FormNumberField
                   control={form.control}
                   name="maxAttendees"
-                  label="Max attendees"
+                  label={t('create.fields.maxAttendees')}
                   placeholder="Unlimited"
                   min={1}
                   optional
@@ -246,17 +237,17 @@ export default function EventCreatePage() {
 
               {/* ── Step 2: When ── */}
               <div className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-end">
                   <FormDateTimeField
                     control={form.control}
                     name="startAt"
-                    label="Start date & time"
+                    label={t('create.fields.startDate')}
                     disablePast
                   />
                   <FormTimeField
                     control={form.control}
                     name="duration"
-                    label="Duration"
+                    label={t('create.fields.duration')}
                     maxHours={99}
                   />
                 </div>
@@ -272,7 +263,7 @@ export default function EventCreatePage() {
                   latName="latitude"
                   lngName="longitude"
                   timezoneName="timezone"
-                  label="Location"
+                  label={t('create.fields.location')}
                   optional
                 />
                 {picker.selected && (
@@ -303,7 +294,7 @@ export default function EventCreatePage() {
                 <StepActions
                   onBack={handleBack}
                   isSubmit
-                  submitLabel="Create Event"
+                  submitLabel={t('create.submit')}
                   submitIcon={TicketPlus}
                   isPending={isPending}
                 />

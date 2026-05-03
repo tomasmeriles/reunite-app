@@ -42,9 +42,9 @@ export function useCreateEvent() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (dto: CreateEventDto) => eventsApi.create(dto),
-    onSuccess: () => {
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: authKeys.me() });
       queryClient.invalidateQueries({ queryKey: eventKeys.mine() });
-      queryClient.invalidateQueries({ queryKey: authKeys.me() });
     },
   });
 }

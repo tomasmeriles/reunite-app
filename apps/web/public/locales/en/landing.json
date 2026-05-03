@@ -1,0 +1,75 @@
+{
+  "nav": {
+    "signIn": "Sign in",
+    "getStarted": "Get started",
+    "dashboard": "Dashboard",
+    "greeting": "Hey, {{name}}"
+  },
+  "hero": {
+    "badge": "Turn plans into memories",
+    "headline1": "Create",
+    "headline2": "moments.",
+    "headline3": "Connect people.",
+    "description": "Plan your event, invite your guests, manage attendance, share photos and celebrate together — all in one place.",
+    "cta": "Create my first event",
+    "signIn": "Sign in",
+    "goToDashboard": "Go to dashboard"
+  },
+  "features": {
+    "title": "Everything you need to run a great event",
+    "description": "From planning to celebration — one platform, zero hassle.",
+    "items": {
+      "attendees": {
+        "title": "Attendee management",
+        "description": "Track RSVPs, manage waitlists, and control capacity with ease."
+      },
+      "chat": {
+        "title": "Real-time chat",
+        "description": "Let your guests connect before, during and after the event."
+      },
+      "photos": {
+        "title": "Photo gallery",
+        "description": "Collect and share memories. Guests can upload directly from their phones."
+      },
+      "prizes": {
+        "title": "Prizes & giveaways",
+        "description": "Run draws and award prizes to keep the energy high all night."
+      },
+      "access": {
+        "title": "Flexible access control",
+        "description": "Public events, private invite-only, or link-based access — your choice."
+      },
+      "analytics": {
+        "title": "Insights & analytics",
+        "description": "See who attended, engagement stats, and post-event summaries."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "How it works",
+    "description": "Three simple steps to your perfect event.",
+    "steps": {
+      "create": {
+        "title": "Create your event",
+        "description": "Fill in the details — title, date, location, cover image, access rules. Takes less than 2 minutes."
+      },
+      "share": {
+        "title": "Share the link",
+        "description": "Send your unique event link. Guests can RSVP, join the chat and see the schedule instantly."
+      },
+      "enjoy": {
+        "title": "Enjoy together",
+        "description": "During and after the event, everyone shares photos, wins prizes and keeps the vibe going."
+      }
+    }
+  },
+  "cta": {
+    "title": "Ready to create something special?",
+    "description": "Join thousands of event creators. Free to start, no credit card required.",
+    "startFree": "Start for free",
+    "createEvent": "Create an event"
+  },
+  "footer": {
+    "rights": "All rights reserved."
+  }
+}

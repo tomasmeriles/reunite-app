@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { createMongoAbility, subject } from '@casl/ability';
-import { EventRole, EventStatus, GlobalRole } from '@prisma/client';
+import { EventRole, EventStatus, GlobalRole, MediaAccess } from '@prisma/client';
 import type {
   AppAbility,
   PackedAbility,
@@ -104,7 +104,7 @@ export class CaslAbilityFactory {
               rules.push({ action: 'create', subject: 'ChatMessage', conditions: { eventId } });
               rules.push({ action: 'read', subject: 'ChatMessage', conditions: { eventId } });
             }
-            if (config?.mediaEnabled) {
+            if (config?.mediaAccess && config.mediaAccess !== MediaAccess.DISABLED) {
               rules.push({ action: 'manage', subject: 'MediaItem', conditions: { eventId } });
             }
             if (config?.prizesEnabled) {

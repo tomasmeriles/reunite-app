@@ -8,6 +8,7 @@ import {
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
 import { Button } from '~/components/ui/button';
 import {
   Card,
@@ -43,26 +44,11 @@ import {
 import type { CardSelectOption } from '~/components/forms';
 import type { Event, EventType } from '~/api/events/events.types';
 
-const EVENT_TYPE_OPTIONS: CardSelectOption<EventType>[] = [
-  {
-    value: 'PUBLIC',
-    label: 'Public',
-    description: 'Anyone can join',
-    icon: Globe,
-  },
-  {
-    value: 'INVITE_LINK',
-    label: 'Invite link',
-    description: 'Guests need a link to join',
-    icon: LinkIcon,
-  },
-  {
-    value: 'INVITE_ACCOUNT',
-    label: 'Guest list',
-    description: 'Pre-approved accounts only',
-    icon: Users,
-  },
-];
+const TYPE_ICON = {
+  PUBLIC: Globe,
+  INVITE_LINK: LinkIcon,
+  INVITE_ACCOUNT: Users,
+} as const;
 
 // ── Edit form ─────────────────────────────────────────────────────────────────
 
@@ -73,8 +59,30 @@ interface EditFormProps {
 }
 
 function AboutAccessEditForm({ event, onSuccess, onCancel }: EditFormProps) {
+  const { t } = useTranslation(['events', 'common']);
   const apiError = useApiError();
   const { mutate: updateEvent, isPending } = useUpdateEvent(event.id);
+
+  const EVENT_TYPE_OPTIONS: CardSelectOption<EventType>[] = [
+    {
+      value: 'PUBLIC',
+      label: t('events:accessType.PUBLIC'),
+      description: t('events:accessType.PUBLIC_description'),
+      icon: Globe,
+    },
+    {
+      value: 'INVITE_LINK',
+      label: t('events:accessType.INVITE_LINK'),
+      description: t('events:accessType.INVITE_LINK_description'),
+      icon: LinkIcon,
+    },
+    {
+      value: 'INVITE_ACCOUNT',
+      label: t('events:accessType.INVITE_ACCOUNT'),
+      description: t('events:accessType.INVITE_ACCOUNT_description'),
+      icon: Users,
+    },
+  ];
 
   const form = useForm<UpdateEventFormValues>({
     resolver: zodResolver(updateEventSchema),
@@ -89,7 +97,7 @@ function AboutAccessEditForm({ event, onSuccess, onCancel }: EditFormProps) {
       { title, description, eventType, maxAttendees },
       {
         onSuccess: () => {
-          toast.success('Event details updated');
+          toast.success(t('events:manage.about.updateSuccess'));
           onSuccess();
         },
         onError: (err) => toast.error(apiError(err)),
@@ -103,21 +111,21 @@ function AboutAccessEditForm({ event, onSuccess, onCancel }: EditFormProps) {
         <FormTextField
           control={form.control}
           name="title"
-          label="Event title"
-          placeholder="My Birthday Party 🎂"
+          label={t('events:create.fields.title')}
+          placeholder={t('events:create.fields.titlePlaceholder')}
         />
         <FormTextareaField
           control={form.control}
           name="description"
-          label="Description"
-          placeholder="Tell your guests what to expect…"
+          label={t('events:create.fields.description')}
+          placeholder={t('events:create.fields.descriptionPlaceholder')}
           rows={4}
           optional
         />
         <FormCardSelectField
           control={form.control}
           name="eventType"
-          label="Access type"
+          label={t('events:create.fields.accessType')}
           options={EVENT_TYPE_OPTIONS}
           columns={3}
         />
@@ -127,13 +135,12 @@ function AboutAccessEditForm({ event, onSuccess, onCancel }: EditFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                Max attendees{' '}
+                {t('events:create.fields.maxAttendees')}{' '}
                 <span className="text-[11px] font-normal text-muted-foreground/60 tracking-wide">
                   optional
                 </span>
               </FormLabel>
               <FormControl>
-                {/* // TODO: Move this to a separate input number component */}
                 <Input
                   type="number"
                   min={1}
@@ -156,15 +163,15 @@ function AboutAccessEditForm({ event, onSuccess, onCancel }: EditFormProps) {
       </div>
       <ModalFooter>
         <Button variant="outline" type="button" onClick={onCancel}>
-          Cancel
+          {t('common:actions.cancel')}
         </Button>
         <LoadingButton
           type="submit"
           isLoading={isPending}
-          loadingText="Saving…"
+          loadingText={t('common:actions.saving')}
           disabled={!isDirty}
         >
-          Save changes
+          {t('common:actions.save')}
         </LoadingButton>
       </ModalFooter>
     </FormContainer>
@@ -177,34 +184,25 @@ interface AboutAccessCardProps {
   event: Event;
 }
 
-const TYPE_ICON = {
-  PUBLIC: Globe,
-  INVITE_LINK: LinkIcon,
-  INVITE_ACCOUNT: Users,
-} as const;
-
 export function AboutAccessCard({ event }: AboutAccessCardProps) {
+  const { t } = useTranslation('events');
   const { canEdit } = useEventAccess(event.id);
   const Icon = TYPE_ICON[event.eventType];
-  const typeOption = EVENT_TYPE_OPTIONS.find(
-    (o) => o.value === event.eventType,
-  );
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-3">
         <div className="min-w-0">
-          <CardTitle>About &amp; Access</CardTitle>
-          <CardDescription>Title, description and who can join</CardDescription>
+          <CardTitle>{t('manage.about.title')}</CardTitle>
+          <CardDescription>{t('manage.about.description')}</CardDescription>
         </div>
         {canEdit && (
           <Modal
-            title="About & Access"
-            description="Edit event title, description and access type"
+            title={t('manage.about.title')}
+            description={t('manage.about.description')}
             trigger={
               <Button variant="ghost" size="icon-sm" className="shrink-0">
                 <Pencil className="h-3.5 w-3.5" />
-                <span className="sr-only">Edit about & access</span>
               </Button>
             }
           >
@@ -230,15 +228,15 @@ export function AboutAccessCard({ event }: AboutAccessCardProps) {
         <div className="flex items-center gap-2">
           <Icon className="h-3.5 w-3.5 text-muted-foreground" />
           <span className="text-sm text-muted-foreground">
-            {typeOption?.description ?? event.eventType}
+            {t(`accessType.${event.eventType}_description`)}
           </span>
         </div>
         <div className="flex items-center gap-2">
           <UserRoundCheck className="h-3.5 w-3.5 text-muted-foreground" />
           <span className="text-sm text-muted-foreground">
             {event.maxAttendees != null
-              ? `Max ${event.maxAttendees} attendees`
-              : 'Unlimited attendees'}
+              ? t('manage.about.maxAttendees', { count: event.maxAttendees })
+              : t('manage.about.unlimitedAttendees')}
           </span>
         </div>
       </CardContent>

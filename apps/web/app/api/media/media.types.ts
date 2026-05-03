@@ -1,11 +1,13 @@
 export interface MediaItem {
   id: string;
   eventId: string;
-  uploadedById: string;
-  fullUrl: string;
-  thumbnailUrl: string;
+  uploadedByUserId: string | null;
+  uploaderName: string | null;
+  isOwn: boolean;
+  url: string;
+  thumbnailUrl: string | null;
   caption: string | null;
-  uploadedAt: string;
+  createdAt: string;
 }
 
 export interface UploadMediaResponse {

@@ -1,6 +1,7 @@
 import { useParams, Link } from '@tanstack/react-router';
 import { useQueryState, parseAsStringLiteral } from 'nuqs';
 import { Helmet } from 'react-helmet-async';
+import { useTranslation } from 'react-i18next';
 import { LayoutDashboard, Settings2, ExternalLink, Users } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { Skeleton } from '~/components/ui/skeleton';
@@ -15,6 +16,7 @@ const TABS = ['overview', 'config', 'attendees'] as const;
 type TabValue = (typeof TABS)[number];
 
 export default function EventManagePage() {
+  const { t } = useTranslation(['events', 'common']);
   const { id } = useParams({ from: '/app/events/$id/manage' });
   const [tab, setTab] = useQueryState<TabValue>(
     'tab',
@@ -47,7 +49,7 @@ export default function EventManagePage() {
   if (!event) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-muted-foreground">Event not found.</p>
+        <p className="text-muted-foreground">{t('events:detail.eventNotFound')}</p>
       </div>
     );
   }
@@ -55,7 +57,7 @@ export default function EventManagePage() {
   return (
     <>
       <Helmet>
-        <title>Manage · {event.title} — Reunite</title>
+        <title>{t('events:manage.title')} · {event.title} — Reunite</title>
       </Helmet>
 
       <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 w-full">
@@ -65,7 +67,7 @@ export default function EventManagePage() {
               {event.title}
             </h1>
             <p className="mt-0.5 text-sm text-muted-foreground">
-              Event management
+              {t('events:manage.title')}
             </p>
           </div>
           <Button
@@ -76,7 +78,7 @@ export default function EventManagePage() {
           >
             <Link to="/events/$id" params={{ id }}>
               <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
-              View event
+              {t('common:actions.view')}
             </Link>
           </Button>
         </div>
@@ -85,15 +87,15 @@ export default function EventManagePage() {
           <TabsList className="w-full">
             <TabsTrigger value="overview" className="flex-1 gap-1.5">
               <LayoutDashboard className="h-3.5 w-3.5" />
-              Overview
+              {t('events:manage.tabs.settings')}
             </TabsTrigger>
             <TabsTrigger value="config" className="flex-1 gap-1.5">
               <Settings2 className="h-3.5 w-3.5" />
-              Config
+              {t('events:manage.tabs.guestList')}
             </TabsTrigger>
             <TabsTrigger value="attendees" className="flex-1 gap-1.5">
               <Users className="h-3.5 w-3.5" />
-              Attendees
+              {t('events:manage.tabs.attendees')}
             </TabsTrigger>
           </TabsList>
 

@@ -93,9 +93,9 @@ export class EventsService extends TransactionalService {
         },
         config: {
           create: {
-            attendeesPublic: true,
+            attendeeAccess: 'ATTENDEES_ONLY',
             chatEnabled: true,
-            mediaEnabled: true,
+            mediaAccess: 'ATTENDEES_ONLY',
             prizesEnabled: true,
           },
         },
@@ -114,7 +114,8 @@ export class EventsService extends TransactionalService {
       include: eventDetailInclude,
     });
 
-    if (!event) throw new NotFoundException({ code: ErrorCode.EVENT_NOT_FOUND });
+    if (!event)
+      throw new NotFoundException({ code: ErrorCode.EVENT_NOT_FOUND });
 
     return event;
   }
@@ -127,7 +128,8 @@ export class EventsService extends TransactionalService {
       include: eventPublicInclude,
     });
 
-    if (!event) throw new NotFoundException({ code: ErrorCode.EVENT_NOT_FOUND });
+    if (!event)
+      throw new NotFoundException({ code: ErrorCode.EVENT_NOT_FOUND });
 
     return event;
   }
@@ -222,7 +224,8 @@ export class EventsService extends TransactionalService {
       select: { status: true, startAt: true, endAt: true, timezone: true },
     });
 
-    if (!event) throw new NotFoundException({ code: ErrorCode.EVENT_NOT_FOUND });
+    if (!event)
+      throw new NotFoundException({ code: ErrorCode.EVENT_NOT_FOUND });
 
     assertValidTransition(event.status, dto.status);
 
@@ -322,7 +325,8 @@ export class EventsService extends TransactionalService {
       select: { status: true },
     });
 
-    if (!event) throw new NotFoundException({ code: ErrorCode.EVENT_NOT_FOUND });
+    if (!event)
+      throw new NotFoundException({ code: ErrorCode.EVENT_NOT_FOUND });
     assertEventStatus(event.status, EventStatus.DRAFT, EventStatus.CANCELLED);
 
     const members = await this.db.eventStaff.findMany({
