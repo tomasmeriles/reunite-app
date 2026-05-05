@@ -14,8 +14,8 @@ export interface EventConfig {
   id: string;
   eventId: string;
   attendeeAccess: AttendeeAccess;
-  chatEnabled: boolean;
   mediaAccess: MediaAccess;
+  registrationsEnabled: boolean;
   prizesEnabled: boolean;
 }
 
@@ -43,6 +43,7 @@ export interface Event {
   updatedAt: string;
   config?: EventConfig;
   staff?: { userId: string; role: 'OWNER' | 'ORGANIZER' }[];
+  myRole?: 'OWNER' | 'ORGANIZER' | 'ATTENDEE';
 }
 
 export interface CreateEventDto {
@@ -79,7 +80,7 @@ export interface UpdateEventStatusDto {
 
 export interface UpdateEventConfigDto {
   attendeeAccess?: AttendeeAccess;
-  chatEnabled?: boolean;
   mediaAccess?: MediaAccess;
+  registrationsEnabled?: boolean;
   prizesEnabled?: boolean;
 }

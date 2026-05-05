@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { eventsApi } from '~/api/events/events.api';
-import { authKeys } from '~/hooks/api/use-auth';
 import type {
   Event,
   CreateEventDto,
@@ -8,6 +7,7 @@ import type {
   UpdateEventStatusDto,
   UpdateEventConfigDto,
 } from '~/api/events/events.types';
+import { syncAuthPermissions } from '~/lib/auth-sync';
 
 export const eventKeys = {
   all: () => ['events'] as const,
@@ -43,8 +43,8 @@ export function useCreateEvent() {
   return useMutation({
     mutationFn: (dto: CreateEventDto) => eventsApi.create(dto),
     onSuccess: async () => {
-      await queryClient.refetchQueries({ queryKey: authKeys.me() });
-      queryClient.invalidateQueries({ queryKey: eventKeys.mine() });
+      await syncAuthPermissions(queryClient);
+      await queryClient.invalidateQueries({ queryKey: eventKeys.mine() });
     },
   });
 }
@@ -63,9 +63,10 @@ export function useUpdateEventStatus(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (dto: UpdateEventStatusDto) => eventsApi.updateStatus(id, dto),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: eventKeys.detail(id) });
-      queryClient.invalidateQueries({ queryKey: eventKeys.mine() });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: eventKeys.detail(id) });
+      await queryClient.invalidateQueries({ queryKey: eventKeys.mine() });
+      await syncAuthPermissions(queryClient);
     },
   });
 }
@@ -74,11 +75,10 @@ export function useUpdateEventConfig(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (dto: UpdateEventConfigDto) => eventsApi.updateConfig(id, dto),
-    onSuccess: () => {
+    onSuccess: async () => {
       // Invalidate the event so attendee config-gated permissions update
-      queryClient.invalidateQueries({ queryKey: eventKeys.detail(id) });
-      // Invalidate /auth/me so CASL abilities rebuild with new config gates
-      queryClient.invalidateQueries({ queryKey: authKeys.me() });
+      await queryClient.invalidateQueries({ queryKey: eventKeys.detail(id) });
+      await syncAuthPermissions(queryClient);
     },
   });
 }

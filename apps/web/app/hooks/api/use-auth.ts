@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { authApi } from '~/api/auth/auth.api';
 import type { LoginDto, RegisterDto } from '~/api/auth/auth.types';
+import { syncAuthPermissions } from '~/lib/auth-sync';
 
 export const authKeys = {
   me: () => ['auth', 'me'] as const,
@@ -20,8 +21,8 @@ export function useLogin() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (dto: LoginDto) => authApi.login(dto),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: authKeys.me() });
+    onSuccess: async () => {
+      await syncAuthPermissions(queryClient);
     },
   });
 }
@@ -30,8 +31,8 @@ export function useRegister() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (dto: RegisterDto) => authApi.register(dto),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: authKeys.me() });
+    onSuccess: async () => {
+      await syncAuthPermissions(queryClient);
     },
   });
 }

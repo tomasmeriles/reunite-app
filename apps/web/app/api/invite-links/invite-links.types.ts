@@ -33,7 +33,13 @@ export interface ResolveInviteLinkResponse {
 }
 
 export interface ResolveInviteLinkError {
-  reason: 'draft' | 'expired' | 'max_uses_reached' | 'unavailable';
+  reason:
+    | 'draft'
+    | 'event_type_changed'
+    | 'expired'
+    | 'max_uses_reached'
+    | 'registrations_closed'
+    | 'unavailable';
   event: ResolveInviteLinkEvent;
   link: Pick<InviteLink, 'label' | 'expiresAt' | 'maxUses' | 'useCount'>;
 }

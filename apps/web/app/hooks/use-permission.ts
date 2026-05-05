@@ -3,6 +3,10 @@ import type { Action, Subject } from '~/lib/types';
 import { useAuth } from '~/contexts/auth';
 import { useMyAttendance } from '~/hooks/api/use-attendance';
 import { useEvent } from '~/hooks/api/use-events';
+import {
+  canEditEventAccess,
+  isEventEditable,
+} from '~/lib/event-state-machine';
 
 // ---------------------------------------------------------------------------
 // Primitive hooks
@@ -40,6 +44,7 @@ export interface EventAccess {
   // ── Staff-only actions (CASL) ──────────────────────────────────────────────
   isStaff: boolean;
   canEdit: boolean;
+  canEditAccess: boolean;
   canDelete: boolean;
   canManageAttendees: boolean;
   canManageInvites: boolean;
@@ -47,8 +52,6 @@ export interface EventAccess {
   canManageStaff: boolean;
 
   // ── Merged actions (staff OR attendee depending on config) ─────────────────
-  /** ACTIVE or PUBLISHED; organizers always, attendees only when chatEnabled */
-  canChat: boolean;
   /** Only during ACTIVE; staff always (unless DISABLED), attendees when ATTENDEES_ONLY or ANYONE */
   canUploadMedia: boolean;
   /** Organizers always; attendees only when prizesEnabled */
@@ -57,8 +60,6 @@ export interface EventAccess {
   canSeeAttendees: boolean;
 
   // ── Archival access (ACTIVE and ENDED) ────────────────────────────────────
-  /** Can read/send chat: ACTIVE, PUBLISHED, or ENDED */
-  canReadChatHistory: boolean;
   /** Can view media gallery: ACTIVE or ENDED */
   canViewMedia: boolean;
 }
@@ -70,7 +71,7 @@ export interface EventAccess {
  * Rule changes only need to be made here — callers never need to OR two hooks.
  *
  * @example
- * const { isOwner, canChat, canEdit } = useEventAccess(eventId);
+ * const { isStaff, canEdit, canViewMedia } = useEventAccess(eventId);
  */
 export function useEventAccess(eventId: string): EventAccess {
   const { ability } = useAuth();
@@ -104,10 +105,6 @@ export function useEventAccess(eventId: string): EventAccess {
   );
 
   // ── Merged actions ─────────────────────────────────────────────────────────
-  const staffCanChat = ability.can(
-    'create',
-    subject('ChatMessage', { eventId }),
-  );
   const staffCanMedia = ability.can(
     'manage',
     subject('MediaItem', { eventId }),
@@ -121,23 +118,20 @@ export function useEventAccess(eventId: string): EventAccess {
   const status = event?.status;
   const isLive = status === 'ACTIVE';
   const isEnded = status === 'ENDED';
-  const isPublished = status === 'PUBLISHED';
-  const isEditable =
-    status === 'DRAFT' || status === 'PUBLISHED' || status === 'RESCHEDULED';
+  const isEditable = status ? isEventEditable(status) : false;
+  const isAccessEditable = status ? canEditEventAccess(status) : false;
 
   return {
     isStaff,
     canEdit: canEdit && isEditable,
+    canEditAccess: canEdit && isAccessEditable,
     canDelete: canDelete && (status === 'DRAFT' || status === 'CANCELLED'),
     canManageAttendees:
       canManageAttendees && !isEnded && status !== 'CANCELLED',
     canManageInvites: canManageInvites && isEditable,
-    canManageConfig: canManageConfig && !isEnded,
+    canManageConfig: canManageConfig && isEditable,
     canManageStaff: canManageStaff && !isEnded && status !== 'CANCELLED',
 
-    canChat:
-      (staffCanChat || (isConfirmedAttendee && !!config?.chatEnabled)) &&
-      (isLive || isPublished),
     canUploadMedia:
       (staffCanMedia ||
         (isConfirmedAttendee &&
@@ -153,8 +147,6 @@ export function useEventAccess(eventId: string): EventAccess {
       (isConfirmedAttendee &&
         (config?.attendeeAccess === 'ATTENDEES_ONLY' ||
           config?.attendeeAccess === 'ANYONE')),
-
-    canReadChatHistory: isLive || isEnded || isPublished,
     canViewMedia:
       (staffCanMedia ||
         config?.mediaAccess === 'ANYONE' ||
