@@ -9,6 +9,7 @@ import {
 } from '~/components/ui/tooltip';
 import { ThemeToggle } from '~/components/theme-toggle';
 import { UserMenu } from '~/components/layout/user-menu';
+import { NotificationBell } from '~/components/layout/notification-bell';
 import { LanguageSwitcher } from '~/components/layout/language-switcher';
 import { useAuth } from '~/contexts/auth';
 import env from '~/env';
@@ -106,6 +107,7 @@ export function NavRail() {
         </div>
 
         <div className="flex flex-col items-center gap-2 py-3 border-t shrink-0">
+          <NotificationBell />
           <LanguageSwitcher side="right" align="end" />
           <ThemeToggle />
           <UserMenu />

@@ -3,6 +3,7 @@ import { Outlet, useNavigate } from '@tanstack/react-router';
 import { NavRail } from '~/components/layout/nav-rail';
 import { BottomNav } from '~/components/layout/bottom-nav';
 import { useAuth } from '~/contexts/auth';
+import { useNotificationSocket } from '~/hooks/use-websocket';
 
 export default function AppLayout() {
   const { isAuthenticated } = useAuth();
@@ -19,6 +20,9 @@ export default function AppLayout() {
       void navigate({ to: '/login', replace: true });
     }
   }, [isAuthenticated, navigate]);
+
+  // Initialize WebSocket for real-time notifications
+  useNotificationSocket();
 
   return (
     <div className="min-h-svh">

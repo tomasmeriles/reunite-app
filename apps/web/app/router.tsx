@@ -16,8 +16,8 @@ const TanStackRouterDevtools = import.meta.env.PROD
         default: m.TanStackRouterDevtools,
       })),
     );
-import AuthLayout from '~/layouts/auth-layout';
-import AppLayout from '~/layouts/app-layout';
+import AuthLayout from '~/components/layout/auth-layout';
+import AppLayout from '~/components/layout/app-layout';
 const LandingPage = lazy(() => import('~/pages/landing/page'));
 import LoginPage from '~/pages/auth/login/page';
 import RegisterPage from '~/pages/auth/register/page';
