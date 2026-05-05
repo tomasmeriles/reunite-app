@@ -1,0 +1,61 @@
+{
+  "FALLBACK": "Ocurrió un error inesperado",
+
+  "INVALID_CREDENTIALS": "Email o contraseña incorrectos",
+  "INVALID_REFRESH_TOKEN": "Sesión expirada, por favor volvé a iniciar sesión",
+  "REFRESH_TOKEN_EXPIRED": "Sesión expirada, por favor volvé a iniciar sesión",
+  "REFRESH_TOKEN_REUSE": "Sesión expirada, por favor volvé a iniciar sesión",
+  "REFRESH_TOKEN_USED": "Sesión expirada, por favor volvé a iniciar sesión",
+  "NO_REFRESH_TOKEN": "Sesión expirada, por favor volvé a iniciar sesión",
+  "MISSING_CSRF_TOKEN": "Token de seguridad faltante, por favor recargá la página",
+  "INVALID_CSRF_TOKEN": "Token de seguridad inválido, por favor recargá la página",
+  "UNAUTHORIZED": "Tenés que iniciar sesión para hacer eso",
+
+  "USER_NOT_FOUND": "Usuario no encontrado",
+  "EMAIL_TAKEN": "Este email ya está en uso",
+  "USERNAME_TAKEN": "Este nombre de usuario ya está en uso",
+
+  "EVENT_NOT_FOUND": "Evento no encontrado",
+  "EVENT_CANCELLED": "Este evento fue cancelado",
+  "EVENT_ENDED": "Este evento ya finalizó",
+  "EVENT_START_IN_PAST": "La fecha de inicio está en el pasado — actualizá la fecha antes de publicar",
+  "EVENT_STATUS_NOT_ALLOWED": "Esta acción no está permitida en el estado actual del evento",
+  "INVALID_STATUS_TRANSITION": "Transición de estado inválida",
+  "REGISTRATION_CLOSED": "Este evento aún no está abierto para inscripciones",
+  "REGISTRATIONS_DISABLED": "Las nuevas inscripciones están cerradas para este evento",
+  "NO_FILE_PROVIDED": "No se proporcionó ningún archivo",
+
+  "ALREADY_REGISTERED": "Ya estás inscripto en este evento",
+  "NOT_REGISTERED": "Inscripción no encontrada",
+  "ATTENDEE_NOT_FOUND": "Asistente no encontrado",
+  "ATTENDEE_ALREADY_REMOVED": "Este asistente ya fue removido",
+  "CAPACITY_FULL": "Este evento está completo",
+  "NOT_ATTENDING": "Tenés que estar inscripto en el evento para hacer eso",
+  "GUESTS_NOT_ALLOWED": "No se pueden llevar invitados a este evento",
+  "GUEST_NAME_REQUIRED": "Se requiere un nombre para inscripciones como invitado",
+  "ACCOUNT_REQUIRED": "Necesitás una cuenta para inscribirte en este evento",
+  "NO_IDENTITY_PROVIDED": "No se proporcionó identidad",
+
+  "INVITE_LINK_NOT_FOUND": "Link de invitación no encontrado",
+  "INVITE_LINK_INVALID": "Link de invitación inválido",
+  "INVITE_LINK_INACTIVE": "Este link de invitación ya no está activo para este evento",
+  "INVITE_LINK_EXPIRED": "Este link de invitación expiró",
+  "INVITE_LINK_EXHAUSTED": "Este link de invitación alcanzó su límite de usos",
+  "INVITE_TOKEN_REQUIRED": "Se requiere un token de invitación para este evento",
+
+  "NOT_INVITED": "No estás en la lista de invitados de este evento",
+  "ALREADY_ON_WHITELIST": "Este usuario ya está en la lista de invitados",
+  "WHITELIST_ENTRY_NOT_FOUND": "Entrada de lista de invitados no encontrada",
+
+  "PRIZE_NOT_FOUND": "Premio no encontrado",
+  "WINNER_ALREADY_ASSIGNED": "Ya se asignó un ganador a este premio",
+  "NO_ATTENDEES": "No hay asistentes confirmados para elegir",
+
+  "MEDIA_NOT_FOUND": "Elemento multimedia no encontrado",
+  "FILE_TOO_LARGE": "El archivo es demasiado grande (máx. 10 MB)",
+
+  "FORBIDDEN": "No tenés permiso para hacer eso",
+  "RESOURCE_NOT_FOUND": "Recurso no encontrado",
+  "VALIDATION_ERROR": "Solicitud inválida",
+  "INTERNAL_ERROR": "Ocurrió un error inesperado"
+}

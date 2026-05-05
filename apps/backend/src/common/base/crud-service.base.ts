@@ -1,4 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
+import { ErrorCode } from '../errors/error-codes.enum';
 import { Transactional } from '../decorators/transactional.decorator';
 import { paginate } from '../helpers/prisma.helpers';
 import type { Page } from '../interfaces/page.interface';
@@ -160,7 +161,8 @@ export abstract class CrudService<
   /** Returns a single record by `id`. Throws `NotFoundException` if not found. */
   async findByIdOrFail(id: string): Promise<TDetail> {
     const record = await this.findById(id);
-    if (!record) throw new NotFoundException();
+    if (!record)
+      throw new NotFoundException({ code: ErrorCode.RESOURCE_NOT_FOUND });
     return record;
   }
 

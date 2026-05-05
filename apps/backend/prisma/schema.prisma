@@ -8,10 +8,11 @@ datasource db {
 }
 
 /// Represents a platform user. Auth supports both OAuth and local email/password.
-/// globalRole controls platform-level access; tenant-level access is managed via TenantMember.
+/// globalRole controls platform-level access; event-level access is managed via EventStaff.
 model User {
   id              String     @id @default(cuid())
   email           String     @unique
+  username        String     @unique // @handle used for invite lookups, e.g. "juanperez"
   name            String?
   avatar          String?
   passwordHash    String? // null for OAuth-only accounts
@@ -20,10 +21,14 @@ model User {
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 
-  oauthAccounts OAuthAccount[]
-  refreshTokens RefreshToken[]
-  auditLogs     AuditLog[]
-  memberships   TenantMember[] // which tenants this user belongs to
+  oauthAccounts    OAuthAccount[]
+  refreshTokens    RefreshToken[]
+  auditLogs        AuditLog[]
+  memberships      EventStaff[] // which events this user is an organizer of
+  whitelistEntries EventWhitelistEntry[]
+  attendees        EventAttendee[]
+  uploadedMedia    MediaItem[]
+  notifications    Notification[]
 
   @@map("users")
 }
@@ -93,6 +98,10 @@ enum AuditAction {
   REGISTER
   UPDATE
   DELETE
+  EVENT_CREATED
+  EVENT_UPDATED
+  ATTENDEE_REGISTERED
+  ATTENDEE_CANCELLED
 }
 
 /// Resources that audit events can target.
@@ -100,6 +109,9 @@ enum AuditResource {
   USER
   SESSION
   OAUTH_ACCOUNT
+  EVENT
+  INVITE_LINK
+  ATTENDEE
 }
 
 /// Append-only log of security-relevant events. userId is nullable to capture
@@ -131,68 +143,289 @@ model AuditLog {
 //
 // Tier 1 – GlobalRole: platform-wide, stored on User.
 //   SUPER_ADMIN     -> unrestricted access to everything (CASL: manage all)
-//   TENANT_MANAGER  -> can create, update, and delete any Tenant and its members,
+//   MODERATOR       -> can create, update, and delete any Event and its members,
 //                      but has no special access to other resources
-//   MEMBER          -> access determined entirely by TenantMember roles
+//   MEMBER          -> access determined entirely by EventStaff roles
 //
-// Tier 2 – TenantRole: scoped to a single Tenant, stored on TenantMember.
-//   OWNER  -> full control over the tenant and its members
-//   ADMIN  -> can manage members but cannot delete the tenant
-//   MEMBER -> read-only access to tenant data
+// Tier 2 – EventRole: scoped to a single Event, stored on EventStaff.
+//   OWNER     -> event creator / full control
+//   ORGANIZER -> co-organizer / manage attendees, modules, prizes (cannot delete event)
 // ---------------------------------------------------------------------------
 
 enum GlobalRole {
   SUPER_ADMIN
-  TENANT_MANAGER
+  MODERATOR
   MEMBER
 }
 
 // ---------------------------------------------------------------------------
-// Tenant + TenantMember - multi-tenancy (infrastructure layer)
-//
-// A Tenant is the top-level isolation boundary.
-//
-// Domain-specific data should be stored in
-// a separate 1-to-1 profile model rather than here, so
-// this table stays generic and auth/permission code never needs to change.
-//
-// Future sub-resource permissions should follow the
-// same pattern: a ResourceMember join table with (userId, tenantId, resourceType,
-// resourceId, role) rather than nesting more columns here.
+// EventStaff - RBAC join table between User and Event
 // ---------------------------------------------------------------------------
 
-enum TenantRole {
-  OWNER // full control: manage tenant settings, members, and sub-resources
-  ADMIN // manage members; cannot delete the tenant itself
-  MEMBER // read-only access to tenant data
+enum EventRole {
+  OWNER // full control: manage event settings, members, and sub-resources
+  ORGANIZER // manage attendees, modules, prizes; cannot delete the event
 }
 
-// Top-level isolation unit. Represents an organization (e.g. a port authority).
-// Name is display-only; use a separate profile model for domain-specific fields.
-model Tenant {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  members TenantMember[]
-
-  @@map("tenants")
-}
-
-/// Join table between User and Tenant. One row = one membership with a specific role.
-/// A user can belong to multiple tenants simultaneously (different rows, different roles).
-model TenantMember {
-  id       String     @id @default(cuid())
+/// Join table between User and Event. One row = one organizer membership.
+/// Attendees are tracked separately in EventAttendee.
+model EventStaff {
+  id       String    @id @default(cuid())
+  eventId  String
   userId   String
-  tenantId String
-  role     TenantRole @default(MEMBER)
-  joinedAt DateTime   @default(now())
+  role     EventRole @default(ORGANIZER)
+  joinedAt DateTime  @default(now())
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, tenantId]) // a user can only have one role per tenant
-  @@index([tenantId])
-  @@map("tenant_members")
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@map("event_staff")
+}
+
+// ---------------------------------------------------------------------------
+// Events
+// ---------------------------------------------------------------------------
+
+/// Controls who can register for an event.
+enum EventType {
+  PUBLIC // anyone with the link can register (no account required)
+  INVITE_LINK // only people with a valid InviteLink token can register
+  INVITE_ACCOUNT // only whitelisted accounts (@username) can register
+}
+
+/// Lifecycle state of an event.
+enum EventStatus {
+  DRAFT // created but not published
+  PUBLISHED // visible and accepting registrations
+  ACTIVE // event is currently happening
+  RESCHEDULED // date was changed after publishing (auto-set)
+  ENDED // event has concluded
+  CANCELLED // cancelled by organizer
+}
+
+/// Type of a dynamic event rule value.
+enum EventRuleType {
+  STRING
+  BOOL
+  NUMBER
+}
+
+/// Status of an attendee's registration.
+enum AttendeeStatus {
+  CONFIRMED
+  CANCELLED
+  WAITLISTED
+}
+
+enum MediaAccess {
+  ANYONE          // anyone can view; only attendees can upload
+  ATTENDEES_ONLY  // confirmed attendees and staff can view and upload
+  ORGANIZERS_ONLY // only staff can view and upload
+  DISABLED        // gallery hidden for everyone
+}
+
+enum AttendeeAccess {
+  ANYONE          // anyone can view the attendee list; public events only
+  ATTENDEES_ONLY  // confirmed attendees and staff can view
+  ORGANIZERS_ONLY // only staff can view
+  DISABLED        // attendee list hidden for everyone
+}
+
+/// The main event record. Organizers are tracked in EventStaff.
+model Event {
+  id              String      @id @default(cuid())
+  title           String
+  description     String?
+  coverImage      String? // S3 key or public URL
+  location        String?
+  latitude        Float? // WGS-84 decimal degrees
+  longitude       Float? // WGS-84 decimal degrees
+  timezone        String // IANA timezone, e.g. "America/New_York"
+  startAt         DateTime
+  endAt           DateTime // always set by service as startAt + duration
+  duration        Int       @default(60) // minutes
+  startedAt       DateTime? // actual activation time (set when status → ACTIVE)
+  endedAt         DateTime? // actual end time (set when status → ENDED)
+  maxAttendees    Int? // null = unlimited
+  eventType       EventType   @default(PUBLIC)
+  status          EventStatus @default(DRAFT)
+  preEventText    String? // shown before the event
+  postEventText   String? // shown after the event
+  previousEventId String? // chain: this event comes after previousEvent
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  staff         EventStaff[]
+  previousEvent Event?                @relation("EventChain", fields: [previousEventId], references: [id])
+  nextEvents    Event[]               @relation("EventChain")
+  config        EventConfig?
+  rules         EventRule[]
+  inviteLinks   InviteLink[]
+  whitelist     EventWhitelistEntry[]
+  attendees     EventAttendee[]
+  mediaItems    MediaItem[]
+  prizes        Prize[]
+
+  @@index([status])
+  @@index([startAt])
+  @@map("events")
+}
+
+/// Per-event feature toggles and visibility settings (1-to-1 with Event).
+model EventConfig {
+  id              String  @id @default(cuid())
+  eventId         String  @unique
+  attendeeAccess  AttendeeAccess @default(ATTENDEES_ONLY)
+  mediaAccess     MediaAccess @default(ATTENDEES_ONLY)
+  registrationsEnabled Boolean   @default(true)
+  prizesEnabled   Boolean     @default(true)
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("event_configs")
+}
+
+/// Dynamic rule attached to an event (e.g. dress code, age restriction).
+model EventRule {
+  id       String        @id @default(cuid())
+  eventId  String
+  name     String
+  ruleType EventRuleType
+  value    String // stored as string; parsed on read according to ruleType
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("event_rules")
+}
+
+/// A shareable invite link for INVITE_LINK events.
+/// One link can be used up to maxUses times (null = unlimited).
+model InviteLink {
+  id        String    @id @default(cuid())
+  eventId   String
+  token     String    @unique @default(uuid())
+  maxUses   Int? // null = unlimited
+  useCount  Int       @default(0)
+  expiresAt DateTime?
+  label     String?
+  createdAt DateTime  @default(now())
+
+  event     Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  attendees EventAttendee[]
+
+  @@index([eventId])
+  @@map("invite_links")
+}
+
+/// Whitelist entry for INVITE_ACCOUNT events.
+/// Created by the organizer by searching @username; user accepts by registering.
+model EventWhitelistEntry {
+  id        String         @id @default(cuid())
+  eventId   String
+  userId    String
+  status    AttendeeStatus @default(WAITLISTED)
+  createdAt DateTime       @default(now())
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@map("event_whitelist_entries")
+}
+
+/// Represents a single person attending an event.
+/// Either a registered User (userId set) or an anonymous guest (guestToken set).
+model EventAttendee {
+  id           String         @id @default(cuid())
+  eventId      String
+  userId       String? // null for guests
+  guestToken   String?        @unique // UUID stored in client localStorage
+  guestName    String? // display name for guests
+  addedById    String? // attendee who added this person (for group add)
+  inviteLinkId String? // which invite link was used
+  status               AttendeeStatus @default(CONFIRMED)
+  cancellationReason   String?
+  registeredAt         DateTime       @default(now())
+
+  event           Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user            User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  inviteLink      InviteLink?    @relation(fields: [inviteLinkId], references: [id], onDelete: SetNull)
+  sponsoredBy     EventAttendee? @relation("SponsoredGuests", fields: [addedById], references: [id], onDelete: SetNull)
+  sponsoredGuests EventAttendee[] @relation("SponsoredGuests")
+  mediaItems      MediaItem[]
+  prizes          Prize[]        @relation("PrizeWinner")
+
+  @@unique([eventId, userId]) // a user can only attend once per event
+  @@index([eventId])
+  @@index([guestToken])
+  @@map("event_attendees")
+}
+
+// ---------------------------------------------------------------------------
+// Modules — Media, Prizes
+// ---------------------------------------------------------------------------
+
+/// An image or media item uploaded to an event's gallery.
+model MediaItem {
+  id               String   @id @default(cuid())
+  eventId          String
+  attendeeId       String? // null when uploaded by staff (not registered as attendee)
+  uploadedByUserId String? // set for staff uploads; null for attendee uploads
+  s3Key            String // full S3 object key
+  thumbnailKey     String? // S3 key for the generated thumbnail
+  caption          String?
+  createdAt        DateTime @default(now())
+
+  event    Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  attendee EventAttendee? @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
+  uploader User?          @relation(fields: [uploadedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([eventId, createdAt])
+  @@map("media_items")
+}
+
+/// A prize that can be awarded to an attendee at an event.
+model Prize {
+  id          String   @id @default(cuid())
+  eventId     String
+  name        String
+  description String?
+  imageUrl    String?
+  winnerId    String? // EventAttendee.id of the winner
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  event  Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  winner EventAttendee? @relation("PrizeWinner", fields: [winnerId], references: [id], onDelete: SetNull)
+
+  @@index([eventId])
+  @@map("prizes")
+}
+
+// ---------------------------------------------------------------------------
+// Notification - in-app notifications for users
+// ---------------------------------------------------------------------------
+
+enum NotificationType {
+  EVENT_RESCHEDULED
+  EVENT_CANCELLED
+  EVENT_LIVE
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String
+  data      Json? // metadata: { eventId, eventTitle, oldDate, newDate }
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, readAt])
+  @@map("notifications")
 }

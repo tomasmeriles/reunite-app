@@ -1,0 +1,17 @@
+{
+  "title": "Notifications",
+  "empty": "No notifications yet",
+  "markAllRead": "Mark all as read",
+  "types": {
+    "EVENT_RESCHEDULED": "Event Rescheduled",
+    "EVENT_CANCELLED": "Event Cancelled",
+    "EVENT_LIVE": "Event is Live!"
+  },
+  "messages": {
+    "eventRescheduled": "{{eventTitle}} has been rescheduled from {{oldDate}} to {{newDate}}",
+    "eventCancelled": "{{eventTitle}} has been cancelled",
+    "eventLive": "{{eventTitle}} is now live!"
+  },
+  "types.EVENT_RESCHEDULED": "{{eventTitle}}",
+  "messages.eventRescheduled": "{{eventTitle}} has been rescheduled from {{oldDate}} to {{newDate}}"
+}

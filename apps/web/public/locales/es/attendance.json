@@ -1,0 +1,51 @@
+{
+  "register": {
+    "submit": "Inscribirse",
+    "submitting": "Inscribiendo...",
+    "success": "¡Estás adentro! Nos vemos en la fiesta 🎉",
+    "error": "No se pudo completar la inscripción",
+    "guestName": "Tu nombre",
+    "guestNamePlaceholder": "Ingresá tu nombre"
+  },
+  "unregister": {
+    "title": "Cancelar inscripción",
+    "reason": "Motivo (opcional)",
+    "submit": "Cancelar inscripción",
+    "submitting": "Cancelando...",
+    "success": "Inscripción cancelada",
+    "error": "No se pudo cancelar la inscripción"
+  },
+  "leave": {
+    "dialogTitle": "¿Salir de este evento?",
+    "dialogDescription": "Podés volver a unirte después si el evento sigue abierto.",
+    "reason": "Motivo",
+    "reasonOptional": "(opcional)",
+    "reasonPlaceholder": "Contale al organizador por qué te vas…",
+    "stay": "Quedarme",
+    "confirm": "Salir del evento",
+    "success": "Saliste del evento",
+    "error": "No se pudo salir del evento"
+  },
+  "bringGuest": {
+    "title": "Traer un invitado",
+    "guestName": "Nombre del invitado",
+    "submit": "Agregar invitado",
+    "submitting": "Agregando...",
+    "success": "¡{{name}} agregado!",
+    "error": "No se pudo agregar el invitado"
+  },
+  "list": {
+    "title": "Invitados",
+    "empty": "Todavía no hay invitados",
+    "search": "Buscar invitados...",
+    "guest": "Invitado",
+    "via": "vía {{sponsor}}",
+    "waitlisted": "En espera",
+    "cancelled": "Cancelado"
+  },
+  "status": {
+    "CONFIRMED": "Confirmado",
+    "WAITLISTED": "En espera",
+    "CANCELLED": "Cancelado"
+  }
+}

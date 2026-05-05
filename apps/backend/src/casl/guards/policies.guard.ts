@@ -6,6 +6,7 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ErrorCode } from '../../common/errors/error-codes.enum';
 import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
 import { CaslAbilityFactory } from '../factories/casl-ability.factory';
@@ -43,31 +44,21 @@ export class PoliciesGuard implements CanActivate {
     const userId = req.user?.id;
 
     if (!userId) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException({ code: ErrorCode.UNAUTHORIZED });
     }
 
-    const tenantId = this.extractTenantId(req);
-
-    const ability = await this.resolveAbility(userId, tenantId);
+    const ability = await this.resolveAbility(userId);
 
     const allowed = handlers.every((handler) => handler(ability, req));
 
-    if (!allowed) throw new ForbiddenException();
+    if (!allowed) throw new ForbiddenException({ code: ErrorCode.FORBIDDEN });
 
     return true;
   }
 
-  private extractTenantId(req: Request): string | null {
-    const header = req.headers['x-tenant-id'];
-    return typeof header === 'string' && header.length > 0 ? header : null;
-  }
-
-  private async resolveAbility(
-    userId: string,
-    tenantId: string | null,
-  ): Promise<AppAbility> {
+  private async resolveAbility(userId: string): Promise<AppAbility> {
     // 1. Try Redis cache
-    const cached = await this.abilityCache.get(userId, tenantId);
+    const cached = await this.abilityCache.get(userId);
     if (cached) {
       return createMongoAbility<AppAbility>(cached);
     }
@@ -75,13 +66,13 @@ export class PoliciesGuard implements CanActivate {
     // 2. Build from DB
     const user = await this.users.findWithMemberships(userId);
     if (!user) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException({ code: ErrorCode.UNAUTHORIZED });
     }
 
-    const ability = this.abilityFactory.buildAbilities(user, tenantId);
+    const ability = this.abilityFactory.buildAbilities(user);
 
     // 3. Cache the raw rules
-    await this.abilityCache.set(userId, tenantId, ability.rules);
+    await this.abilityCache.set(userId, ability.rules);
 
     return ability;
   }

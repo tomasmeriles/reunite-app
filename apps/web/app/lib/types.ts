@@ -1,12 +1,23 @@
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
-export type GlobalRole = 'SUPER_ADMIN' | 'TENANT_MANAGER' | 'MEMBER';
-export type TenantRole = 'OWNER' | 'ADMIN' | 'MEMBER';
+export type GlobalRole = 'SUPER_ADMIN' | 'MODERATOR' | 'MEMBER';
+export type EventRole = 'OWNER' | 'ORGANIZER';
 
 // ─── CASL ─────────────────────────────────────────────────────────────────────
 
 export type Action = 'manage' | 'create' | 'read' | 'update' | 'delete';
-export type Subject = 'User' | 'Tenant' | 'TenantMember' | 'AuditLog' | 'all';
+export type Subject =
+  | 'User'
+  | 'EventStaff'
+  | 'AuditLog'
+  | 'Event'
+  | 'EventConfig'
+  | 'InviteLink'
+  | 'EventWhitelistEntry'
+  | 'EventAttendee'
+  | 'MediaItem'
+  | 'Prize'
+  | 'all';
 
 export interface PackedAbility {
   action: Action | Action[];
@@ -21,6 +32,7 @@ export interface SafeUser {
   id: string;
   email: string;
   name: string | null;
+  username: string;
   avatar: string | null;
   globalRole: GlobalRole;
   emailVerifiedAt: string | null;
@@ -54,7 +66,8 @@ export interface Page<T> {
 
 export interface ApiError {
   statusCode: number;
-  message: string;
-  error: string;
+  message?: string;
+  code?: string;
+  error?: string;
   requestId: string | null;
 }

@@ -13,7 +13,17 @@ export type Action = 'manage' | 'create' | 'read' | 'update' | 'delete';
 // be assignable to Subject without "as unknown as Subject" casts.
 // ---------------------------------------------------------------------------
 
-type SubjectStr = 'User' | 'Tenant' | 'TenantMember' | 'AuditLog';
+type SubjectStr =
+  | 'User'
+  | 'EventStaff'
+  | 'AuditLog'
+  | 'Event'
+  | 'EventConfig'
+  | 'InviteLink'
+  | 'EventWhitelistEntry'
+  | 'EventAttendee'
+  | 'MediaItem'
+  | 'Prize';
 export type Subject = SubjectStr | ForcedSubject<SubjectStr> | 'all';
 
 // ---------------------------------------------------------------------------

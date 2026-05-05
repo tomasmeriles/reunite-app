@@ -2,16 +2,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
-import { Button } from '~/components/ui/button';
-import { Input } from '~/components/ui/input';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '~/components/ui/form';
+import { useTranslation } from 'react-i18next';
+import { Separator } from '~/components/ui/separator';
 import {
   Card,
   CardContent,
@@ -19,103 +11,98 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card';
+import {
+  FormContainer,
+  FormTextField,
+  FormPasswordField,
+} from '~/components/forms';
+import { GoogleButton, LoadingButton } from '~/components/buttons';
 import { useRegister } from '~/hooks/api/use-auth';
 import {
   registerSchema,
   type RegisterFormValues,
 } from '~/lib/schemas/auth.schema';
-import { getApiErrorMessage } from '~/lib/axios';
+import { useApiError } from '~/hooks/use-api-error';
 
 export default function RegisterPage() {
+  const { t } = useTranslation('auth');
+  const apiError = useApiError();
   const navigate = useNavigate();
   const { mutate: register, isPending } = useRegister();
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { email: '', name: '', password: '' },
+    defaultValues: { email: '', name: '', username: '', password: '' },
   });
 
   const onSubmit = (values: RegisterFormValues) => {
     register(values, {
       onSuccess: () => navigate({ to: '/dashboard', replace: true }),
-      onError: (err) =>
-        toast.error(getApiErrorMessage(err, 'Registration failed')),
+      onError: (err) => toast.error(apiError(err)),
     });
   };
 
   return (
-    <Card>
+    <Card className="border-border/60 bg-card/70 shadow-xl backdrop-blur-sm">
       <CardHeader>
-        <CardTitle>Create an account</CardTitle>
-        <CardDescription>Fill in your details to get started</CardDescription>
+        <CardTitle className="text-2xl font-semibold bg-linear-to-r from-primary via-[oklch(0.88_0.14_84)] to-secondary bg-clip-text text-transparent">
+          {t('register.title')}
+        </CardTitle>
+        <CardDescription>{t('register.subtitle')}</CardDescription>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Full name</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="John Doe"
-                      autoComplete="name"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="you@example.com"
-                      autoComplete="email"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      autoComplete="new-password"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" className="w-full" disabled={isPending}>
-              {isPending ? 'Creating account…' : 'Create account'}
-            </Button>
-          </form>
-        </Form>
+        <GoogleButton />
+        <div className="relative my-4">
+          <Separator />
+          <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card/70 px-2 text-xs text-muted-foreground">
+            {t('register.or')}
+          </span>
+        </div>
+        <FormContainer form={form} onSubmit={onSubmit}>
+          <FormTextField
+            control={form.control}
+            name="name"
+            label={t('register.name')}
+            placeholder="John Doe"
+            autoComplete="name"
+          />
+          <FormTextField
+            control={form.control}
+            name="email"
+            label={t('register.email')}
+            type="email"
+            placeholder="you@example.com"
+            autoComplete="email"
+          />
+          <FormTextField
+            control={form.control}
+            name="username"
+            label={t('register.username')}
+            placeholder="yourhandle"
+            autoComplete="username"
+          />
+          <FormPasswordField
+            control={form.control}
+            name="password"
+            label={t('register.password')}
+            autoComplete="new-password"
+          />
+          <LoadingButton
+            loadingText={t('register.submitting')}
+            isLoading={isPending}
+            type="submit"
+            className="w-full"
+          >
+            {t('register.submit')}
+          </LoadingButton>
+        </FormContainer>
         <p className="mt-4 text-center text-sm text-muted-foreground">
-          Already have an account?{' '}
+          {t('register.alreadyHaveAccount')}{' '}
           <Link
             to="/login"
             className="font-medium text-foreground underline-offset-4 hover:underline"
           >
-            Sign in
+            {t('register.signIn')}
           </Link>
         </p>
       </CardContent>

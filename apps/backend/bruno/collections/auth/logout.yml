@@ -6,6 +6,10 @@ info:
 http:
   method: POST
   url: '{{baseUrl}}/auth/logout'
+  headers:
+    - name: x-csrf-token
+      value: '{{csrfToken}}'
+      enabled: true
 
 settings:
   encodeUrl: true

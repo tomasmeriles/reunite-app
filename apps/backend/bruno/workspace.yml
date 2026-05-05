@@ -1,6 +1,6 @@
 opencollection: 1.0.0
 info:
-  name: "Boilerplate"
+  name: "Reunite"
   type: workspace
 
 collections:
@@ -10,9 +10,11 @@ collections:
     path: "collections/audit"
   - name: "health"
     path: "collections/health"
+  - name: "events"
+    path: "collections/events"
 
 specs:
 
 docs: ''
 
-activeEnvironmentUid: 1whnjcd00000000000000
+activeEnvironmentUid: 1369scv00000000000000

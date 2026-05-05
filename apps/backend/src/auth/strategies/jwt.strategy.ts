@@ -5,6 +5,7 @@ import { ConfigService } from '../../config/services/config.service';
 import { UsersService } from '../../modules/users/services/users.service';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import type { SafeUser } from '../../modules/users/selects/user.select';
+import { ErrorCode } from '../../common/errors/error-codes.enum';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -26,7 +27,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   async validate(payload: JwtPayload): Promise<SafeUser> {
     const user = await this.users.findById(payload.sub);
     if (!user) {
-      throw new UnauthorizedException('User not found');
+      throw new UnauthorizedException({ code: ErrorCode.USER_NOT_FOUND });
     }
     return user;
   }

@@ -1,0 +1,28 @@
+info:
+  name: create event
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: '{{baseUrl}}/events'
+  headers:
+    - name: x-csrf-token
+      value: '{{csrfToken}}'
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "title": "Test Event",
+        "startAt": "2026-06-01T10:00:00.000Z",
+        "timezone": "America/Argentina/Buenos_Aires",
+        "description": "Evento de prueba para verificar permisos"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

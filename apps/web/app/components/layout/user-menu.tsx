@@ -1,4 +1,4 @@
-import { LogOut, User } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
 import {
@@ -51,11 +51,6 @@ export function UserMenu() {
             <p className="text-xs text-muted-foreground">{user.email}</p>
           </div>
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => navigate({ to: '/profile' })}>
-          <User className="mr-2 h-4 w-4" />
-          Profile
-        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={handleLogout}

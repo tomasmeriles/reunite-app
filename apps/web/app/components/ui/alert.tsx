@@ -4,13 +4,16 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "~/lib/utils"
 
 const alertVariants = cva(
-  "group/alert relative grid w-full gap-0.5 rounded-lg border px-2.5 py-2 text-left text-sm has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pr-18 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-2 *:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg]:text-current *:[svg:not([class*='size-'])]:size-4",
+  "group/alert relative grid w-full gap-1 rounded-lg border px-3 py-2.5 text-left text-sm shadow-xs has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pr-18 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-2.5 *:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg]:text-current *:[svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         default: "bg-card text-card-foreground",
         destructive:
-          "bg-card text-destructive *:data-[slot=alert-description]:text-destructive/90 *:[svg]:text-current",
+          "border-destructive/25 bg-destructive/8 text-destructive *:data-[slot=alert-description]:text-destructive/90 *:[svg]:text-current dark:bg-destructive/12",
+        info: "border-info/25 bg-info/12 text-info *:data-[slot=alert-description]:text-info/80 *:[svg]:text-info",
+        warning: "border-warning/35 bg-warning/14 text-warning *:data-[slot=alert-description]:text-warning/80 *:[svg]:text-warning",
+        success: "border-success/25 bg-success/12 text-success *:data-[slot=alert-description]:text-success/80 *:[svg]:text-success",
       },
     },
     defaultVariants: {
@@ -39,7 +42,7 @@ function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="alert-title"
       className={cn(
-        "font-heading font-medium group-has-[>svg]/alert:col-start-2 [&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:text-foreground",
+        "font-heading font-medium leading-tight group-has-[>svg]/alert:col-start-2 [&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:opacity-80",
         className
       )}
       {...props}
@@ -55,7 +58,7 @@ function AlertDescription({
     <div
       data-slot="alert-description"
       className={cn(
-        "text-sm text-balance text-muted-foreground md:text-pretty [&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:text-foreground [&_p:not(:last-child)]:mb-4",
+        "text-sm leading-relaxed text-balance md:text-pretty [&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:opacity-80 [&_p:not(:last-child)]:mb-4",
         className
       )}
       {...props}

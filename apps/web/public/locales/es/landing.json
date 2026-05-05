@@ -1,0 +1,75 @@
+{
+  "nav": {
+    "signIn": "Iniciar sesión",
+    "getStarted": "Empezar",
+    "dashboard": "Inicio",
+    "greeting": "Hola, {{name}}"
+  },
+  "hero": {
+    "badge": "Convertí planes en recuerdos",
+    "headline1": "Creá",
+    "headline2": "momentos.",
+    "headline3": "Conectá personas.",
+    "description": "Planeá tu evento, invitá a tus amigos, gestioná la asistencia, compartí fotos y celebrá juntos — todo en un solo lugar.",
+    "cta": "Crear mi primer evento",
+    "signIn": "Iniciar sesión",
+    "goToDashboard": "Ir al inicio"
+  },
+  "features": {
+    "title": "Todo lo que necesitás para un gran evento",
+    "description": "Desde la planificación hasta la celebración — una plataforma, sin complicaciones.",
+    "items": {
+      "attendees": {
+        "title": "Gestión de asistentes",
+        "description": "Seguí RSVPs, manejá listas de espera y controlá la capacidad fácilmente."
+      },
+      "chat": {
+        "title": "Chat en tiempo real",
+        "description": "Que tus invitados se conecten antes, durante y después del evento."
+      },
+      "photos": {
+        "title": "Galería de fotos",
+        "description": "Colectá y compartí recuerdos. Los invitados pueden subir fotos desde sus celulares."
+      },
+      "prizes": {
+        "title": "Premios y sorteos",
+        "description": "Hacé sorteos y entregá premios para mantener la energía toda la noche."
+      },
+      "access": {
+        "title": "Control de acceso flexible",
+        "description": "Eventos públicos, privados solo por invitación, o acceso por link — vos elegís."
+      },
+      "analytics": {
+        "title": "Métricas e informes",
+        "description": "Mirá quién asistió, estadísticas de participación y resúmenes del evento."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "Cómo funciona",
+    "description": "Tres simples pasos para tu evento perfecto.",
+    "steps": {
+      "create": {
+        "title": "Creá tu evento",
+        "description": "Completá los datos — título, fecha, lugar, imagen, reglas de acceso. Menos de 2 minutos."
+      },
+      "share": {
+        "title": "Compartí el link",
+        "description": "Enviá tu link único del evento. Los invitados pueden confirmar, unirse al chat y ver el cronograma al instante."
+      },
+      "enjoy": {
+        "title": "Disfrutá juntos",
+        "description": "Durante y después del evento, todos comparten fotos, ganan premios y el ambiente sigue."
+      }
+    }
+  },
+  "cta": {
+    "title": "¿Listo para crear algo especial?",
+    "description": "Unite a miles de organizadores. Gratis para empezar, sin tarjeta de crédito.",
+    "startFree": "Empezar gratis",
+    "createEvent": "Crear un evento"
+  },
+  "footer": {
+    "rights": "Todos los derechos reservados."
+  }
+}

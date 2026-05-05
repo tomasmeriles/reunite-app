@@ -2,9 +2,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
 import { Badge } from '~/components/ui/badge';
-import { Button } from '~/components/ui/button';
 import {
   Card,
   CardContent,
@@ -22,15 +22,18 @@ import {
   FormLabel,
   FormMessage,
 } from '~/components/ui/form';
+import { LoadingButton } from '~/components/buttons';
 import { useAuth } from '~/contexts/auth';
 import { useUpdateUser } from '~/hooks/api/use-users';
 import {
   updateProfileSchema,
   type UpdateProfileFormValues,
 } from '~/lib/schemas/profile.schema';
-import { getApiErrorMessage } from '~/lib/axios';
+import { useApiError } from '~/hooks/use-api-error';
 
 export default function ProfilePage() {
+  const { t } = useTranslation('common');
+  const apiError = useApiError();
   const { user } = useAuth();
   const { mutate: updateUser, isPending } = useUpdateUser();
 
@@ -53,9 +56,8 @@ export default function ProfilePage() {
         dto: { name: values.name, avatar: values.avatar || undefined },
       },
       {
-        onSuccess: () => toast.success('Profile updated successfully'),
-        onError: (err) =>
-          toast.error(getApiErrorMessage(err, 'Failed to update profile')),
+        onSuccess: () => toast.success(t('profile.success')),
+        onError: (err) => toast.error(apiError(err)),
       },
     );
   };
@@ -65,8 +67,8 @@ export default function ProfilePage() {
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Profile</h1>
-        <p className="text-muted-foreground">Manage your account settings.</p>
+        <h1 className="text-2xl font-bold">{t('profile.title')}</h1>
+        <p className="text-muted-foreground">{t('profile.subtitle')}</p>
       </div>
 
       <Card>
@@ -85,7 +87,7 @@ export default function ProfilePage() {
               <CardTitle>{user.name ?? 'Unnamed User'}</CardTitle>
               <CardDescription>{user.email}</CardDescription>
               <Badge variant="secondary" className="mt-1">
-                {user.globalRole.replace('_', ' ')}
+                {t(`roles.${user.globalRole}`)}
               </Badge>
             </div>
           </div>
@@ -99,7 +101,7 @@ export default function ProfilePage() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Full name</FormLabel>
+                    <FormLabel>{t('profile.name')}</FormLabel>
                     <FormControl>
                       <Input placeholder="John Doe" {...field} />
                     </FormControl>
@@ -112,7 +114,7 @@ export default function ProfilePage() {
                 name="avatar"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Avatar URL</FormLabel>
+                    <FormLabel>{t('profile.avatarUrl')}</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="https://example.com/avatar.png"
@@ -123,9 +125,13 @@ export default function ProfilePage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={isPending}>
-                {isPending ? 'Saving…' : 'Save changes'}
-              </Button>
+              <LoadingButton
+                type="submit"
+                isLoading={isPending}
+                loadingText={t('profile.submitting')}
+              >
+                {t('profile.submit')}
+              </LoadingButton>
             </form>
           </Form>
         </CardContent>

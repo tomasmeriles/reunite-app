@@ -8,15 +8,21 @@
 async function seedSuperAdmin(prisma) {
   const email = process.env.SUPER_ADMIN_EMAIL;
   const name = process.env.SUPER_ADMIN_NAME ?? 'Super Admin';
-
+  
   if (!email) {
     console.log('[seed] SUPER_ADMIN_EMAIL not set \u2014 skipping super admin seed.');
     return;
   }
-
+  const username = (email.split('@')[0] ?? 'user')
+              .toLowerCase()
+              .replace(/[^a-z0-9_]/g, '_')
+              .slice(0, 28) +
+            '_' +
+            Math.random().toString(36).slice(2, 6);
+  
   const user = await prisma.user.upsert({
     where: { email },
-    create: { email, name, globalRole: 'SUPER_ADMIN' },
+    create: { email, name, globalRole: 'SUPER_ADMIN', username },
     update: { globalRole: 'SUPER_ADMIN' },
   });
 

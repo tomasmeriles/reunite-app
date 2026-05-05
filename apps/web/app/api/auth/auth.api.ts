@@ -38,4 +38,9 @@ export const authApi = {
     apiClient.get<{ csrfToken: string }>('/auth/csrf-token').then((r) => {
       setCsrfToken(r.data.csrfToken);
     }),
+
+  claimGuestSessions: (guestTokens: string[]) =>
+    apiClient
+      .post<{ claimed: string[] }>('/auth/claim-guest-sessions', { guestTokens })
+      .then((r) => r.data),
 };

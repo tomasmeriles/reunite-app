@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm --filter backend check-types)",
+      "Bash(pnpm --filter web typecheck)",
+      "Bash(pnpm tsc *)",
+      "Bash(pnpm --filter web lint)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
+    ],
+    "additionalDirectories": [
+      "d:\\reunite-app\\apps\\web\\app\\pages\\events\\[id]\\manage\\components"
+    ]
+  }
+}

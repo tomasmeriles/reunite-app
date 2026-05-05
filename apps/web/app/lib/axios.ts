@@ -1,4 +1,5 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
+import type { TFunction } from 'i18next';
 import env from '~/env';
 import type { ApiError } from '~/lib/types';
 
@@ -40,17 +41,22 @@ function drainQueue(error: unknown) {
 }
 
 // ─── Request interceptor ──────────────────────────────────────────────────────
-// 1. Forwards tenantId as a header when provided in config.
-// 2. Injects the CSRF token for state-changing requests.
+// 1. Injects the CSRF token for state-changing requests.
+// 2. Injects x-guest-token for event-scoped guest identity.
 
 const SAFE_METHODS = new Set(['get', 'head', 'options']);
 
 apiClient.interceptors.request.use((config) => {
-  const tenantId = (
-    config as InternalAxiosRequestConfig & { tenantId?: string }
-  ).tenantId;
-  if (tenantId) {
-    config.headers['x-tenant-id'] = tenantId;
+  const extended = config as InternalAxiosRequestConfig & {
+    eventId?: string;
+  };
+
+  // Attach guest token for event-scoped routes
+  if (extended.eventId) {
+    const guestToken = localStorage.getItem(`guest_token_${extended.eventId}`);
+    if (guestToken) {
+      config.headers['x-guest-token'] = guestToken;
+    }
   }
 
   if (csrfToken && !SAFE_METHODS.has(config.method?.toLowerCase() ?? '')) {
@@ -99,10 +105,21 @@ apiClient.interceptors.response.use(
       return apiClient(original);
     } catch (refreshError) {
       drainQueue(refreshError);
-      if (
-        typeof window !== 'undefined' &&
-        window.location.pathname !== '/login'
-      ) {
+      // Only hard-redirect to /login on protected routes.
+      // Public routes (landing, auth pages, event/join pages) stay put —
+      // the user is simply unauthenticated and there is nothing to redirect from.
+      const PUBLIC_PATHS = [
+        '/',
+        '/login',
+        '/register',
+        '/forgot-password',
+        '/reset-password',
+      ];
+      const isPublicPath =
+        PUBLIC_PATHS.includes(window.location.pathname) ||
+        window.location.pathname.startsWith('/events/') ||
+        window.location.pathname.startsWith('/join/');
+      if (typeof window !== 'undefined' && !isPublicPath) {
         window.location.href = '/login';
       }
       return Promise.reject(refreshError);
@@ -116,10 +133,16 @@ apiClient.interceptors.response.use(
 
 export function getApiErrorMessage(
   error: unknown,
-  fallback = 'An error occurred',
+  t: TFunction,
+  fallbackKey = 'errors:FALLBACK',
 ): string {
   if (axios.isAxiosError(error)) {
-    return (error.response?.data as ApiError | undefined)?.message ?? fallback;
+    const data = error.response?.data as ApiError | undefined;
+    if (data?.code) {
+      const translated = t(`errors:${data.code}`, { defaultValue: '' });
+      if (translated) return translated;
+    }
+    if (data?.message) return data.message;
   }
-  return fallback;
+  return t(fallbackKey);
 }

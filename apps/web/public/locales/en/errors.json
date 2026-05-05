@@ -1,0 +1,61 @@
+{
+  "FALLBACK": "An unexpected error occurred",
+
+  "INVALID_CREDENTIALS": "Invalid email or password",
+  "INVALID_REFRESH_TOKEN": "Session expired, please log in again",
+  "REFRESH_TOKEN_EXPIRED": "Session expired, please log in again",
+  "REFRESH_TOKEN_REUSE": "Session expired, please log in again",
+  "REFRESH_TOKEN_USED": "Session expired, please log in again",
+  "NO_REFRESH_TOKEN": "Session expired, please log in again",
+  "MISSING_CSRF_TOKEN": "Security token missing, please refresh the page",
+  "INVALID_CSRF_TOKEN": "Invalid security token, please refresh the page",
+  "UNAUTHORIZED": "You must be logged in to do that",
+
+  "USER_NOT_FOUND": "User not found",
+  "EMAIL_TAKEN": "This email is already in use",
+  "USERNAME_TAKEN": "This username is already taken",
+
+  "EVENT_NOT_FOUND": "Event not found",
+  "EVENT_CANCELLED": "This event has been cancelled",
+  "EVENT_ENDED": "This event has already ended",
+  "EVENT_START_IN_PAST": "Start date is in the past — update the date before publishing",
+  "EVENT_STATUS_NOT_ALLOWED": "This action is not allowed for the current event status",
+  "INVALID_STATUS_TRANSITION": "Invalid status transition",
+  "REGISTRATION_CLOSED": "This event is not yet open for registration",
+  "REGISTRATIONS_DISABLED": "New registrations are currently closed for this event",
+  "NO_FILE_PROVIDED": "No file provided",
+
+  "ALREADY_REGISTERED": "You are already registered for this event",
+  "NOT_REGISTERED": "Registration not found",
+  "ATTENDEE_NOT_FOUND": "Attendee not found",
+  "ATTENDEE_ALREADY_REMOVED": "This attendee has already been removed",
+  "CAPACITY_FULL": "This event is at full capacity",
+  "NOT_ATTENDING": "You must be attending this event to do that",
+  "GUESTS_NOT_ALLOWED": "Bringing guests is not allowed for this event",
+  "GUEST_NAME_REQUIRED": "A name is required for guest registrations",
+  "ACCOUNT_REQUIRED": "You need an account to register for this event",
+  "NO_IDENTITY_PROVIDED": "No identity provided",
+
+  "INVITE_LINK_NOT_FOUND": "Invite link not found",
+  "INVITE_LINK_INVALID": "Invalid invite link",
+  "INVITE_LINK_INACTIVE": "This invite link is no longer active for this event",
+  "INVITE_LINK_EXPIRED": "This invite link has expired",
+  "INVITE_LINK_EXHAUSTED": "This invite link has reached its maximum uses",
+  "INVITE_TOKEN_REQUIRED": "An invite token is required for this event",
+
+  "NOT_INVITED": "You are not on the guest list for this event",
+  "ALREADY_ON_WHITELIST": "This user is already on the guest list",
+  "WHITELIST_ENTRY_NOT_FOUND": "Guest list entry not found",
+
+  "PRIZE_NOT_FOUND": "Prize not found",
+  "WINNER_ALREADY_ASSIGNED": "A winner has already been assigned to this prize",
+  "NO_ATTENDEES": "No confirmed attendees to pick from",
+
+  "MEDIA_NOT_FOUND": "Media item not found",
+  "FILE_TOO_LARGE": "File is too large (max 10 MB)",
+
+  "FORBIDDEN": "You don't have permission to do that",
+  "RESOURCE_NOT_FOUND": "Resource not found",
+  "VALIDATION_ERROR": "Invalid request",
+  "INTERNAL_ERROR": "An unexpected error occurred"
+}

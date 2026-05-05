@@ -18,6 +18,14 @@ import { CsrfGuard } from './auth/guards/csrf.guard';
 import { PoliciesGuard } from './casl/guards/policies.guard';
 import { CaslModule } from './casl/casl.module';
 import { QueueModule } from './queue/queue.module';
+import { EventsModule } from './modules/events/events.module';
+import { AttendanceModule } from './modules/attendance/attendance.module';
+import { InviteLinksModule } from './modules/invite-links/invite-links.module';
+import { WhitelistModule } from './modules/whitelist/whitelist.module';
+import { MediaModule } from './modules/media/media.module';
+import { PrizesModule } from './modules/prizes/prizes.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { GeoModule } from './modules/geo/geo.module';
 
 @Module({
   imports: [
@@ -51,6 +59,14 @@ import { QueueModule } from './queue/queue.module';
     CaslModule,
     QueueModule,
     HealthModule,
+    GeoModule,
+    EventsModule,
+    AttendanceModule,
+    InviteLinksModule,
+    WhitelistModule,
+    MediaModule,
+    PrizesModule,
+    NotificationsModule,
     ThrottlerModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({

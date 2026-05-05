@@ -5,6 +5,8 @@ import {
   Outlet,
   redirect,
 } from '@tanstack/react-router';
+import { subject } from '@casl/ability';
+import { z } from 'zod';
 import { lazy } from 'react';
 
 const TanStackRouterDevtools = import.meta.env.PROD
@@ -14,24 +16,35 @@ const TanStackRouterDevtools = import.meta.env.PROD
         default: m.TanStackRouterDevtools,
       })),
     );
-import AuthLayout from '~/layouts/auth-layout';
-import AppLayout from '~/layouts/app-layout';
-import IndexPage from '~/pages/index/page';
+import AuthLayout from '~/components/layout/auth-layout';
+import AppLayout from '~/components/layout/app-layout';
+const LandingPage = lazy(() => import('~/pages/landing/page'));
 import LoginPage from '~/pages/auth/login/page';
 import RegisterPage from '~/pages/auth/register/page';
 import ForgotPasswordPage from '~/pages/auth/forgot-password/page';
 import ResetPasswordPage from '~/pages/auth/reset-password/page';
 import DashboardPage from '~/pages/dashboard/page';
-import ProfilePage from '~/pages/profile/page';
+const EventsPage = lazy(() => import('~/pages/events/page'));
 import UsersPage from '~/pages/users/page';
 import UserDetailPage from '~/pages/users/[id]/page';
 import AuditLogsPage from '~/pages/audit/logs/page';
 import ForbiddenPage from '~/pages/forbidden/page';
 import NotFoundPage from '~/pages/not-found/page';
+// Event pages (lazy-loaded)
+const EventCreatePage = lazy(() => import('~/pages/events/create/page'));
+const EventDetailPage = lazy(() => import('~/pages/events/[id]/page'));
+const EventManagePage = lazy(() => import('~/pages/events/[id]/manage/page'));
+const JoinPage = lazy(() => import('~/pages/join/[token]/page'));
+import type { QueryClient } from '@tanstack/react-query';
 import type { AuthContextValue } from '~/contexts/auth';
+import { eventKeys } from '~/hooks/api/use-events';
+import { inviteLinkKeys } from '~/hooks/api/use-invite-links';
+import { eventsApi } from '~/api/events/events.api';
+import { inviteLinksApi } from '~/api/invite-links/invite-links.api';
 
 interface RouterContext {
   auth: AuthContextValue;
+  queryClient: QueryClient;
 }
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
@@ -51,7 +64,7 @@ const rootRoute = createRootRouteWithContext<RouterContext>()({
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: IndexPage,
+  component: LandingPage,
 });
 
 // ─── Auth layout (public) ─────────────────────────────────────────────────────
@@ -110,10 +123,10 @@ const dashboardRoute = createRoute({
   component: DashboardPage,
 });
 
-const profileRoute = createRoute({
+const eventsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
-  path: '/profile',
-  component: ProfilePage,
+  path: '/events',
+  component: EventsPage,
 });
 
 const usersRoute = createRoute({
@@ -150,6 +163,57 @@ const forbiddenRoute = createRoute({
   component: ForbiddenPage,
 });
 
+// ─── Event routes (protected) ─────────────────────────────────────────────────
+
+const eventCreateRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/events/create',
+  component: EventCreatePage,
+});
+
+const eventDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/events/$id',
+  component: EventDetailPage,
+  validateSearch: z.object({
+    tab: z.string().optional(),
+  }),
+});
+
+const eventManageRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/events/$id/manage',
+  component: EventManagePage,
+  validateSearch: z.object({
+    tab: z.string().optional(),
+  }),
+  beforeLoad: ({ context: { auth }, params: { id } }) => {
+    const isStaff =
+      auth.ability.can('update', subject('Event', { id })) ||
+      auth.ability.can('manage', subject('EventAttendee', { eventId: id }));
+    if (!isStaff) throw redirect({ to: '/403' });
+  },
+  loader: ({ context: { queryClient }, params: { id } }) =>
+    Promise.all([
+      queryClient.ensureQueryData({
+        queryKey: eventKeys.detail(id),
+        queryFn: () => eventsApi.getById(id),
+      }),
+      queryClient.ensureQueryData({
+        queryKey: inviteLinkKeys.byEvent(id),
+        queryFn: () => inviteLinksApi.getByEvent(id),
+      }),
+    ]),
+});
+
+// ─── Join route (public) ──────────────────────────────────────────────────────
+
+const joinRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/join/$token',
+  component: JoinPage,
+});
+
 // ─── Route tree ───────────────────────────────────────────────────────────────
 
 const routeTree = rootRoute.addChildren([
@@ -162,19 +226,23 @@ const routeTree = rootRoute.addChildren([
   ]),
   appLayoutRoute.addChildren([
     dashboardRoute,
-    profileRoute,
+    eventsRoute,
     usersRoute,
     userDetailRoute,
     auditLogsRoute,
     forbiddenRoute,
+    eventCreateRoute,
+    eventManageRoute,
   ]),
+  eventDetailRoute,
+  joinRoute,
 ]);
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 
 export const router = createRouter({
   routeTree,
-  context: { auth: undefined! },
+  context: { auth: undefined!, queryClient: undefined! },
 });
 
 declare module '@tanstack/react-router' {

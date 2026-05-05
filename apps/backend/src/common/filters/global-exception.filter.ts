@@ -8,31 +8,41 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import type { Request, Response } from 'express';
+import { ErrorCode } from '../errors/error-codes.enum';
 
-const PRISMA_ERROR_MAP: Record<string, { status: number; message: string }> = {
+const PRISMA_ERROR_MAP: Record<
+  string,
+  { status: number; message: string; code: ErrorCode }
+> = {
   P2000: {
     status: HttpStatus.BAD_REQUEST,
     message: 'Value too long for column',
+    code: ErrorCode.VALIDATION_ERROR,
   },
   P2002: {
     status: HttpStatus.CONFLICT,
     message: 'Resource already exists',
+    code: ErrorCode.RESOURCE_NOT_FOUND,
   },
   P2003: {
     status: HttpStatus.BAD_REQUEST,
     message: 'Foreign key constraint failed',
+    code: ErrorCode.VALIDATION_ERROR,
   },
   P2011: {
     status: HttpStatus.BAD_REQUEST,
     message: 'Null constraint violation',
+    code: ErrorCode.VALIDATION_ERROR,
   },
   P2014: {
     status: HttpStatus.BAD_REQUEST,
     message: 'Required relation violation',
+    code: ErrorCode.VALIDATION_ERROR,
   },
   P2025: {
     status: HttpStatus.NOT_FOUND,
     message: 'Resource not found',
+    code: ErrorCode.RESOURCE_NOT_FOUND,
   },
 };
 
@@ -54,6 +64,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       res.status(status).json({
         statusCode: status,
         message,
+        code: mapped?.code ?? ErrorCode.INTERNAL_ERROR,
         error: mapped ? exception.code : 'Internal Server Error',
         requestId,
       });
@@ -96,21 +107,19 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       const status = exception.getStatus();
       const raw = exception.getResponse();
-      const body =
-        typeof raw === 'string'
-          ? { message: raw }
-          : (raw as Record<string, unknown>);
-      const message = (body.message as string | undefined) ?? exception.message;
-      const error =
-        (body.error as string | undefined) ?? (HttpStatus[status] as string);
 
       if (status >= 500) {
         this.logger.error(`HTTP ${status}: ${exception.message}`);
       }
 
-      res
-        .status(status)
-        .json({ statusCode: status, message, error, requestId });
+      if (typeof raw === 'string') {
+        res
+          .status(status)
+          .json({ statusCode: status, message: raw, requestId });
+      } else {
+        const body = raw as Record<string, unknown>;
+        res.status(status).json({ statusCode: status, requestId, ...body });
+      }
       return;
     }
 

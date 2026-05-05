@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  NotFoundException,
   Param,
   Patch,
   Query,
@@ -18,6 +19,7 @@ import type { SafeUser } from '../selects/user.select';
 import { UsersService } from '../services/users.service';
 import { Audit } from '../../audit/decorators/audit.decorator';
 import { AuditAction, AuditResource } from '@prisma/client';
+import { ErrorCode } from '../../../common/errors/error-codes.enum';
 
 @Controller('users')
 export class UsersController {
@@ -27,6 +29,15 @@ export class UsersController {
   @CheckPolicies((ability) => ability.can('manage', 'User'))
   getUsers(@Query() query: UsersQueryDto): Promise<Page<SafeUser>> {
     return this.users.findMany(query);
+  }
+
+  @Get('by-username/:username')
+  async getUserByUsername(
+    @Param('username') username: string,
+  ): Promise<SafeUser> {
+    const user = await this.users.findByUsername(username);
+    if (!user) throw new NotFoundException({ code: ErrorCode.USER_NOT_FOUND });
+    return user;
   }
 
   @Patch(':id')

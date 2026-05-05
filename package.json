@@ -1,5 +1,5 @@
 {
-  "name": "my-boilerplate",
+  "name": "reunite-app",
   "private": true,
   "scripts": {
     "build": "turbo run build",

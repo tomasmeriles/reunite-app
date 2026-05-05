@@ -1,0 +1,308 @@
+import { useNavigate } from '@tanstack/react-router';
+import { useForm } from 'react-hook-form';
+import type { FieldPath } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { useLocationPicker } from '~/hooks/use-location-picker';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
+import {
+  CalendarDays,
+  MapPin,
+  Globe,
+  Link,
+  Users,
+  Ticket,
+  TicketPlus,
+  Clock,
+} from 'lucide-react';
+import { Card, CardContent } from '~/components/ui/card';
+import { GoogleMap } from '~/components/ui/google-map';
+import { Stepper } from '~/components/ui/stepper';
+import type { StepDef } from '~/components/ui/stepper';
+import {
+  FormContainer,
+  FormTextField,
+  FormTextareaField,
+  FormDateTimeField,
+  FormCardSelectField,
+  FormLocationField,
+  FormTimeField,
+  FormNumberField,
+  StepActions,
+} from '~/components/forms';
+import type { CardSelectOption } from '~/components/forms';
+import { useCreateEvent } from '~/hooks/api/use-events';
+import { useSteppedForm } from '~/hooks/use-stepped-form';
+import { useApiError } from '~/hooks/use-api-error';
+import {
+  formatDateTime,
+  formatHHMMDuration,
+  getSystemTimezone,
+} from '~/lib/datetime';
+import {
+  createEventSchema,
+  createEventBaseSchema,
+  toApiPayload,
+  type CreateEventFormValues,
+} from '~/lib/schemas/event.schema';
+import type { EventType } from '~/api/events/events.types';
+
+// Fields validated per step (0-indexed)
+const STEP_FIELDS: FieldPath<CreateEventFormValues>[][] = [
+  ['title', 'description', 'eventType', 'maxAttendees'],
+  ['startAt', 'duration'],
+  ['location'],
+];
+
+export default function EventCreatePage() {
+  const { t } = useTranslation('events');
+  const apiError = useApiError();
+  const navigate = useNavigate();
+  const { mutateAsync: createEvent, isPending } = useCreateEvent();
+  const picker = useLocationPicker();
+
+  const EVENT_TYPE_OPTIONS: CardSelectOption<EventType>[] = [
+    {
+      value: 'PUBLIC',
+      label: t('accessType.PUBLIC'),
+      description: t('accessType.PUBLIC_description'),
+      icon: Globe,
+    },
+    {
+      value: 'INVITE_LINK',
+      label: t('accessType.INVITE_LINK'),
+      description: t('accessType.INVITE_LINK_description'),
+      icon: Link,
+    },
+    {
+      value: 'INVITE_ACCOUNT',
+      label: t('accessType.INVITE_ACCOUNT'),
+      description: t('accessType.INVITE_ACCOUNT_description'),
+      icon: Users,
+    },
+  ];
+
+  const STEPS: StepDef[] = [
+    {
+      icon: Ticket,
+      title: t('create.steps.about'),
+      description: t('create.fields.title'),
+    },
+    {
+      icon: CalendarDays,
+      title: t('create.steps.when'),
+      description: t('create.fields.startDate'),
+    },
+    {
+      icon: MapPin,
+      title: t('create.steps.where'),
+      description: t('create.fields.location'),
+    },
+  ];
+
+  const form = useForm<CreateEventFormValues>({
+    resolver: zodResolver(createEventSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      eventType: 'PUBLIC',
+      location: '',
+      latitude: undefined,
+      longitude: undefined,
+      startAt: '',
+      duration: '01:00',
+      timezone: getSystemTimezone(),
+      maxAttendees: undefined,
+    },
+  });
+
+  const onSubmit = async (values: CreateEventFormValues) => {
+    try {
+      const event = await createEvent(toApiPayload(values));
+      toast.success(t('create.success'));
+      await navigate({ to: '/events/$id/manage', params: { id: event.id } });
+    } catch (err) {
+      toast.error(apiError(err));
+    }
+  };
+
+  const watched = form.watch();
+
+  const activeTypeOption = EVENT_TYPE_OPTIONS.find(
+    (o) => o.value === watched.eventType,
+  );
+  const typeLabel = activeTypeOption?.label ?? '';
+  const TypeIcon = activeTypeOption?.icon ?? Globe;
+
+  const stepSchemas = [
+    createEventBaseSchema.pick({ title: true }),
+    createEventBaseSchema.pick({ startAt: true, duration: true }),
+  ];
+
+  const { currentStep, handleNext, handleBack, goToStep } = useSteppedForm({
+    form,
+    stepFields: STEP_FIELDS,
+    onSubmit,
+    isStepValid: (step) =>
+      stepSchemas[step]?.safeParse(watched).success ?? true,
+  });
+
+  const summaries = [
+    watched.title ? (
+      <div className="space-y-1">
+        <p className="text-sm font-medium text-foreground leading-tight">
+          {watched.title}
+        </p>
+        {watched.description && (
+          <p className="text-xs text-muted-foreground line-clamp-1">
+            {watched.description}
+          </p>
+        )}
+        <span className="inline-flex items-center gap-1 text-[10px] font-medium leading-none text-primary/80">
+          <TypeIcon className="h-3 w-3" />
+          {typeLabel}
+        </span>
+      </div>
+    ) : null,
+
+    watched.startAt ? (
+      <div className="space-y-0.5 text-xs text-muted-foreground">
+        <p>{formatDateTime(watched.startAt)}</p>
+        {watched.duration && (
+          <p>{formatHHMMDuration(watched.duration)}</p>
+        )}
+      </div>
+    ) : null,
+
+    watched.location ? (
+      <div className="space-y-0.5 text-xs text-muted-foreground">
+        <p className="font-medium text-foreground">{watched.location}</p>
+      </div>
+    ) : null,
+  ];
+
+  return (
+    <div className="mx-auto max-w-lg space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {t('create.title')}
+        </h1>
+        <p className="text-muted-foreground">
+          {t('create.subtitle')}
+        </p>
+      </div>
+
+      <Card className="overflow-visible">
+        <CardContent className="pt-6">
+          <FormContainer form={form} onSubmit={onSubmit}>
+            <Stepper
+              vertical
+              steps={STEPS}
+              currentStep={currentStep}
+              onStepClick={goToStep}
+              summaries={summaries}
+            >
+              {/* ── Step 1: About & Access ── */}
+              <div className="space-y-4">
+                <FormTextField
+                  control={form.control}
+                  name="title"
+                  label={t('create.fields.title')}
+                  placeholder={t('create.fields.titlePlaceholder')}
+                />
+                <FormTextareaField
+                  control={form.control}
+                  name="description"
+                  label={t('create.fields.description')}
+                  placeholder={t('create.fields.descriptionPlaceholder')}
+                  rows={3}
+                  optional
+                />
+                <FormCardSelectField
+                  control={form.control}
+                  name="eventType"
+                  label={t('create.fields.accessType')}
+                  options={EVENT_TYPE_OPTIONS}
+                />
+                <FormNumberField
+                  control={form.control}
+                  name="maxAttendees"
+                  label={t('create.fields.maxAttendees')}
+                  placeholder="Unlimited"
+                  min={1}
+                  optional
+                />
+                <StepActions onNext={handleNext} />
+              </div>
+
+              {/* ── Step 2: When ── */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-end">
+                  <FormDateTimeField
+                    control={form.control}
+                    name="startAt"
+                    label={t('create.fields.startDate')}
+                    disablePast
+                  />
+                  <FormTimeField
+                    control={form.control}
+                    name="duration"
+                    label={t('create.fields.duration')}
+                    maxHours={99}
+                  />
+                </div>
+                <StepActions onNext={handleNext} onBack={handleBack} />
+              </div>
+
+              {/* ── Step 3: Where ── */}
+              <div className="space-y-4">
+                <FormLocationField
+                  control={form.control}
+                  name="location"
+                  picker={picker}
+                  latName="latitude"
+                  lngName="longitude"
+                  timezoneName="timezone"
+                  label={t('create.fields.location')}
+                  optional
+                />
+                {picker.selected && (
+                  <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <MapPin className="h-3.5 w-3.5 shrink-0" />
+                    {[
+                      picker.selected.city,
+                      picker.selected.state,
+                      picker.selected.country,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </p>
+                )}
+                {watched.timezone && (
+                  <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Clock className="h-3.5 w-3.5" />
+                    {watched.timezone}
+                  </p>
+                )}
+                {picker.selected && (
+                  <GoogleMap
+                    lat={picker.selected.lat}
+                    lng={picker.selected.lng}
+                    className="h-36 rounded-lg overflow-hidden"
+                  />
+                )}
+                <StepActions
+                  onBack={handleBack}
+                  isSubmit
+                  submitLabel={t('create.submit')}
+                  submitIcon={TicketPlus}
+                  isPending={isPending}
+                />
+              </div>
+            </Stepper>
+          </FormContainer>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

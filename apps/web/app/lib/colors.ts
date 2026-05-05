@@ -1,0 +1,41 @@
+/**
+ * Domain color maps — single source of truth for all semantic color classes.
+ *
+ * Rules:
+ *  - Only use Tailwind classes backed by CSS variables (design tokens).
+ *  - Never use raw palette classes like `bg-green-500` or `text-red-700`.
+ *  - To change a color, update `app.css`. To change a mapping, update this file.
+ */
+
+import type { AttendeeStatus } from '~/api/events/events.types';
+import type { GlobalRole, EventRole } from '~/lib/types';
+import type { AuditAction } from '~/api/audit/audit.types';
+
+// ─── Badge classes (background + foreground) ──────────────────────────────────
+
+export const ATTENDEE_STATUS_COLORS: Record<AttendeeStatus, string> = {
+  CONFIRMED: 'bg-success text-success-foreground',
+  WAITLISTED: 'bg-warning text-warning-foreground',
+  CANCELLED: 'bg-destructive text-destructive-foreground',
+};
+
+export const GLOBAL_ROLE_COLORS: Record<GlobalRole, string> = {
+  SUPER_ADMIN: 'bg-destructive text-destructive-foreground',
+  MODERATOR: 'bg-warning text-warning-foreground',
+  MEMBER: 'bg-secondary text-secondary-foreground',
+};
+
+export const EVENT_ROLE_COLORS: Record<EventRole, string> = {
+  OWNER: 'bg-info text-info-foreground',
+  ORGANIZER: 'bg-warning text-warning-foreground',
+};
+
+export const AUDIT_ACTION_COLORS: Record<AuditAction, string> = {
+  LOGIN: 'bg-info text-info-foreground',
+  LOGOUT: 'bg-muted text-muted-foreground',
+  REGISTER: 'bg-success text-success-foreground',
+  TOKEN_REVOKED: 'bg-warning text-warning-foreground',
+  UPDATE: 'bg-accent text-accent-foreground',
+  DELETE: 'bg-destructive text-destructive-foreground',
+};
+

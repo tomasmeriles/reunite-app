@@ -1,5 +1,9 @@
 {
   "extends": "@repo/typescript-config/nest.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "ignoreDeprecations": "5.0"
+  },
   "include": ["src", "prisma.config.ts", "prisma"],
   "exclude": ["node_modules", "dist"]
 }

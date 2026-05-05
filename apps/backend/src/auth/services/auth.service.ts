@@ -57,6 +57,7 @@ export class AuthService extends TransactionalService {
     const passwordHash = await this.password.hash(dto.password);
     const user = await this.users.createLocalUser({
       email: dto.email,
+      username: dto.username,
       name: dto.name,
       passwordHash,
     });
@@ -147,29 +148,25 @@ export class AuthService extends TransactionalService {
   async logout(refreshToken: string | undefined): Promise<string | null> {
     if (!refreshToken) return null;
     const userId = await this.refreshTokens.revoke(refreshToken);
-    if (userId) await this.abilityCache.delAll(userId);
+    if (userId) await this.abilityCache.del(userId);
     return userId;
   }
 
   /**
-   * Returns the current user profile and their CASL abilities for the given tenant.
-   * Uses Redis cache; falls back to DB if not cached.
+   * Returns the current user profile and their full CASL ability set across all
+   * event memberships. Uses Redis cache; falls back to DB if not cached.
    */
   async getMe(
     user: SafeUser,
-    tenantId: string | null,
   ): Promise<{ user: SafeUser; abilities: PackedAbility[] }> {
-    let abilities = await this.abilityCache.get(user.id, tenantId);
+    let abilities = await this.abilityCache.get(user.id);
 
     if (!abilities) {
       const userWithMemberships = await this.users.findWithMemberships(user.id);
       if (userWithMemberships) {
-        const built = this.abilityFactory.buildAbilities(
-          userWithMemberships,
-          tenantId,
-        );
+        const built = this.abilityFactory.buildAbilities(userWithMemberships);
         abilities = built.rules;
-        await this.abilityCache.set(user.id, tenantId, abilities);
+        await this.abilityCache.set(user.id, abilities);
       } else {
         abilities = [];
       }
@@ -234,6 +231,42 @@ export class AuthService extends TransactionalService {
     const secret = this.config.get('CSRF_SECRET');
     const signature = createHmac('sha256', secret).update(random).digest('hex');
     return `${random}.${signature}`;
+  }
+
+  /**
+   * Links guest attendances (identified by guestTokens) to the authenticated user.
+   * Skips tokens where the user already has an attendance record for that event.
+   * guestName is left unchanged — the userId linkage is enough for display logic.
+   */
+  async claimGuestSessions(
+    userId: string,
+    guestTokens: string[],
+  ): Promise<{ claimed: string[] }> {
+    const claimed: string[] = [];
+
+    for (const guestToken of guestTokens) {
+      const attendee = await this.db.eventAttendee.findUnique({
+        where: { guestToken },
+        select: { id: true, eventId: true },
+      });
+      if (!attendee) continue;
+
+      const conflict = await this.db.eventAttendee.findUnique({
+        where: {
+          eventId_userId: { eventId: attendee.eventId, userId },
+        },
+        select: { id: true },
+      });
+      if (conflict) continue;
+
+      await this.db.eventAttendee.update({
+        where: { guestToken },
+        data: { userId, guestToken: null },
+      });
+      claimed.push(attendee.eventId);
+    }
+
+    return { claimed };
   }
 
   /** Frontend URL for post-login redirect */

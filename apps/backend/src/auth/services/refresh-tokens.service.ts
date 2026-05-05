@@ -5,6 +5,7 @@ import { DateTime } from 'luxon';
 import { TransactionalService } from '../../common/base/transactional-service.base';
 import { Transactional } from '../../common/decorators/transactional.decorator';
 import { RefreshTokenWithUser } from '../interfaces/refresh-token.interface';
+import { ErrorCode } from '../../common/errors/error-codes.enum';
 
 @Injectable()
 export class RefreshTokensService extends TransactionalService {
@@ -38,7 +39,9 @@ export class RefreshTokensService extends TransactionalService {
     });
 
     if (!record) {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException({
+        code: ErrorCode.INVALID_REFRESH_TOKEN,
+      });
     }
 
     if (record.revokedAt) {
@@ -47,13 +50,15 @@ export class RefreshTokensService extends TransactionalService {
         // Revoke all tokens for this user to force re-login.
         await this.revokeAllForUser(record.userId);
       }
-      throw new UnauthorizedException('Refresh token reuse detected');
+      throw new UnauthorizedException({ code: ErrorCode.REFRESH_TOKEN_REUSE });
     }
 
     if (
       DateTime.fromJSDate(record.expiresAt, { zone: 'utc' }) < DateTime.utc()
     ) {
-      throw new UnauthorizedException('Refresh token expired');
+      throw new UnauthorizedException({
+        code: ErrorCode.REFRESH_TOKEN_EXPIRED,
+      });
     }
 
     return record;
@@ -83,7 +88,7 @@ export class RefreshTokensService extends TransactionalService {
         err.code === 'P2025'
       ) {
         // Another concurrent request already rotated this token
-        throw new UnauthorizedException('Refresh token already used');
+        throw new UnauthorizedException({ code: ErrorCode.REFRESH_TOKEN_USED });
       }
       throw err;
     }

@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ErrorCode } from '../../../common/errors/error-codes.enum';
 import { TransactionalService } from '../../../common/base/transactional-service.base';
 import { Transactional } from '../../../common/decorators/transactional.decorator';
 import {
@@ -44,8 +45,13 @@ export class UsersService extends TransactionalService {
   findWithMemberships(id: string): Promise<UserWithMemberships | null> {
     return this.db.user.findUnique({
       where: { id },
-      select: { ...userSelect, memberships: true },
-    });
+      select: {
+        ...userSelect,
+        memberships: {
+          include: { event: { select: { config: true, status: true } } },
+        },
+      },
+    }) as Promise<UserWithMemberships | null>;
   }
 
   findMany(query: UsersQueryDto): Promise<Page<SafeUser>> {
@@ -69,7 +75,7 @@ export class UsersService extends TransactionalService {
 
   async findByIdOrFail(id: string): Promise<SafeUser> {
     const user = await this.findById(id);
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException({ code: ErrorCode.USER_NOT_FOUND });
     return user;
   }
 
@@ -91,18 +97,32 @@ export class UsersService extends TransactionalService {
    * Creates a new user with a hashed password (local auth).
    * Throws ConflictException if the email already exists.
    */
+  findByUsername(username: string): Promise<SafeUser | null> {
+    return this.db.user.findUnique({ where: { username }, select: userSelect });
+  }
+
   @Transactional()
   async createLocalUser(input: CreateLocalUserInput): Promise<SafeUser> {
-    const existing = await this.db.user.findUnique({
-      where: { email: input.email },
-      select: { id: true },
-    });
-    if (existing) {
-      throw new ConflictException('Email already in use');
+    const [existingEmail, existingUsername] = await Promise.all([
+      this.db.user.findUnique({
+        where: { email: input.email },
+        select: { id: true },
+      }),
+      this.db.user.findUnique({
+        where: { username: input.username },
+        select: { id: true },
+      }),
+    ]);
+    if (existingEmail) {
+      throw new ConflictException({ code: ErrorCode.EMAIL_TAKEN });
+    }
+    if (existingUsername) {
+      throw new ConflictException({ code: ErrorCode.USERNAME_TAKEN });
     }
     return this.db.user.create({
       data: {
         email: input.email,
+        username: input.username,
         name: input.name,
         passwordHash: input.passwordHash,
       },
@@ -133,7 +153,19 @@ export class UsersService extends TransactionalService {
 
     const user = await this.db.user.upsert({
       where: { email },
-      create: { email, name, avatar, emailVerifiedAt: new Date() },
+      create: {
+        email,
+        name,
+        avatar,
+        emailVerifiedAt: new Date(),
+        username:
+          (email.split('@')[0] ?? 'user')
+            .toLowerCase()
+            .replace(/[^a-z0-9_]/g, '_')
+            .slice(0, 28) +
+          '_' +
+          Math.random().toString(36).slice(2, 6),
+      },
       update: defined({
         name,
         avatar,

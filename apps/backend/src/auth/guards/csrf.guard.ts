@@ -9,6 +9,7 @@ import { createHmac, timingSafeEqual } from 'crypto';
 import type { Request } from 'express';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { ConfigService } from '../../config/services/config.service';
+import { ErrorCode } from '../../common/errors/error-codes.enum';
 
 export const CSRF_COOKIE = 'csrf_token';
 export const CSRF_HEADER = 'x-csrf-token';
@@ -53,7 +54,7 @@ export class CsrfGuard implements CanActivate {
     const headerToken = req.headers[CSRF_HEADER] as string | undefined;
 
     if (!cookieToken || !headerToken) {
-      throw new ForbiddenException('Missing CSRF token');
+      throw new ForbiddenException({ code: ErrorCode.MISSING_CSRF_TOKEN });
     }
 
     // 1. Double-submit: cookie and header must carry the same value.
@@ -64,14 +65,14 @@ export class CsrfGuard implements CanActivate {
       cookieBuf.length !== headerBuf.length ||
       !timingSafeEqual(cookieBuf, headerBuf)
     ) {
-      throw new ForbiddenException('Invalid CSRF token');
+      throw new ForbiddenException({ code: ErrorCode.INVALID_CSRF_TOKEN });
     }
 
     // 2. Verify HMAC signature so injected cookies are rejected.
     //    Expected format: "<random>.<signature>"
     const dotIndex = cookieToken.lastIndexOf('.');
     if (dotIndex === -1) {
-      throw new ForbiddenException('Invalid CSRF token');
+      throw new ForbiddenException({ code: ErrorCode.INVALID_CSRF_TOKEN });
     }
 
     const random = cookieToken.slice(0, dotIndex);
@@ -89,7 +90,7 @@ export class CsrfGuard implements CanActivate {
       providedBuf.length !== expectedBuf.length ||
       !timingSafeEqual(providedBuf, expectedBuf)
     ) {
-      throw new ForbiddenException('Invalid CSRF token');
+      throw new ForbiddenException({ code: ErrorCode.INVALID_CSRF_TOKEN });
     }
 
     return true;
