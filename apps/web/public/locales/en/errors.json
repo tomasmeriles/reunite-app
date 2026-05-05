@@ -22,6 +22,7 @@
   "EVENT_STATUS_NOT_ALLOWED": "This action is not allowed for the current event status",
   "INVALID_STATUS_TRANSITION": "Invalid status transition",
   "REGISTRATION_CLOSED": "This event is not yet open for registration",
+  "REGISTRATIONS_DISABLED": "New registrations are currently closed for this event",
   "NO_FILE_PROVIDED": "No file provided",
 
   "ALREADY_REGISTERED": "You are already registered for this event",
@@ -37,6 +38,7 @@
 
   "INVITE_LINK_NOT_FOUND": "Invite link not found",
   "INVITE_LINK_INVALID": "Invalid invite link",
+  "INVITE_LINK_INACTIVE": "This invite link is no longer active for this event",
   "INVITE_LINK_EXPIRED": "This invite link has expired",
   "INVITE_LINK_EXHAUSTED": "This invite link has reached its maximum uses",
   "INVITE_TOKEN_REQUIRED": "An invite token is required for this event",
@@ -51,8 +53,6 @@
 
   "MEDIA_NOT_FOUND": "Media item not found",
   "FILE_TOO_LARGE": "File is too large (max 10 MB)",
-
-  "CHAT_NOT_AVAILABLE": "Chat is only available during the live event",
 
   "FORBIDDEN": "You don't have permission to do that",
   "RESOURCE_NOT_FOUND": "Resource not found",

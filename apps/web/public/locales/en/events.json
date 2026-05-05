@@ -1,11 +1,20 @@
 {
   "list": {
     "title": "Events",
-    "subtitle": "Events you've created and organized",
+    "subtitle": "All your events",
     "empty": "No events yet",
     "emptySubtitle": "Create your first event and start bringing people together!",
     "createFirst": "Create your first event",
-    "new": "New Event"
+    "new": "New Event",
+    "role": {
+      "owner": "Owner",
+      "organizer": "Organizer",
+      "attendee": "Attendee"
+    },
+    "sections": {
+      "organizing": "Organizing",
+      "attending": "Attending"
+    }
   },
   "create": {
     "title": "Create an event",
@@ -32,6 +41,23 @@
     "success": "Event created!",
     "error": "Failed to create event"
   },
+  "rsvp": {
+    "joinTitle": "Join this event",
+    "bringGuestTitle": "Bring a guest",
+    "joinDescLoggedIn": "You can use a different name just for this event.",
+    "joinDescGuest": "You'll join as a guest. No account needed!",
+    "bringGuestDesc": "Enter the name of the person you're bringing.",
+    "yourName": "Your name",
+    "guestName": "Guest's name",
+    "yourNamePlaceholder": "Enter your name",
+    "guestNamePlaceholder": "Jane Smith",
+    "cancel": "Cancel",
+    "confirm": "Count me in! 🎉",
+    "confirmGuest": "Add guest",
+    "loading": "Adding…",
+    "signInPrompt": "Have an account?",
+    "signIn": "Sign in"
+  },
   "detail": {
     "attendees": "Attendees",
     "register": "Register",
@@ -54,7 +80,6 @@
     "tabs": {
       "about": "About",
       "attendees": "Attendees",
-      "chat": "Chat",
       "media": "Media",
       "prizes": "Prizes"
     },
@@ -72,7 +97,8 @@
     "guestListDisabledDesc": "The organizer has turned off the guest list for this event.",
     "guestListOrganizerDesc": "Guest list is only visible to organizers.",
     "guestListAttendeeDesc": "Join the event to see who else is coming.",
-    "chatNotAvailable": "Chat is available once the event is published.",
+    "registrationsClosedAlert": "Registrations are currently closed for this event.",
+    "registrationsClosedDesc": "The organizer has closed new registrations for this event.",
     "galleryNotAvailableDesc": "Gallery opens once the event goes live.",
     "galleryDisabledDesc": "The organizer has turned off the gallery for this event.",
     "galleryOrganizerDesc": "Gallery is only visible to organizers.",
@@ -96,7 +122,15 @@
       "removeDesc": "This photo will be permanently deleted.",
       "fileTooLarge": "File is too large (max 10 MB)",
       "uploadSuccess": "Photo uploaded!",
-      "removeSuccess": "Photo removed"
+      "removeSuccess": "Photo removed",
+      "addPhoto": "Add Photo",
+      "chooseFromGallery": "Choose from gallery",
+      "takePhoto": "Take a photo",
+      "uploading": "Uploading…",
+      "lightbox": {
+        "download": "Download",
+        "delete": "Delete"
+      }
     }
   },
   "join": {
@@ -117,10 +151,20 @@
     "joining": "Joining…",
     "joinEvent": "Join event 🎉",
     "successToast": "You're in! 🎉",
+    "signInPrompt": "Have an account?",
+    "signIn": "Sign in",
     "errors": {
       "draft": {
         "title": "Event not published yet",
         "body": "This event hasn't been published yet. Check back later."
+      },
+      "event_type_changed": {
+        "title": "Invite link no longer active",
+        "body": "This event no longer accepts invite-link access. Use the public event page instead."
+      },
+      "registrations_closed": {
+        "title": "Registrations are closed",
+        "body": "The organizer has closed new registrations for this event."
       },
       "unavailable": {
         "title": "Event no longer available",
@@ -149,11 +193,11 @@
       "success": "Settings updated",
       "error": "Failed to update settings",
       "autoSave": "Changes are saved automatically",
-      "chatDescription": "Allow attendees to message each other",
+      "registrationsDescription": "Allow new attendees and invite-link joins for this event",
       "prizesDescription": "Enable the prizes feature for this event",
       "config": {
+        "registrations": "Registrations open",
         "publicGuestList": "Guest list",
-        "chat": "Chat",
         "mediaUploads": "Media uploads",
         "prizes": "Prizes"
       }
@@ -173,23 +217,35 @@
       "cancel": "Cancel event",
       "cancelSuccess": "Event cancelled",
       "cancelError": "Failed to cancel event",
-      "blockedPublished": "Unpublish the event before deleting.",
+      "blockedPublished": "Cancel the event before deleting it.",
       "blockedActive": "You cannot delete a live event.",
       "blockedEnded": "Ended events cannot be deleted."
     },
     "inviteLinks": {
       "create": "Create invite link",
+      "createDescription": "All fields are optional. Leave them blank to create a simple unlimited link.",
       "createSuccess": "Invite link created",
       "createError": "Could not create link",
+      "description": "Anyone with a link can join. Create multiple links to track different groups.",
+      "empty": "No invite links yet.",
+      "emptyDescription": "Create one to start inviting people.",
       "deleteSuccess": "Link deleted",
       "deleteError": "Could not delete link",
+      "delete": "Delete link",
       "label": "Label",
+      "labelPlaceholder": "e.g. Friends from work",
       "maxUses": "Max uses",
       "expiresAt": "Expires at",
       "unlimited": "Unlimited",
       "noExpiry": "No expiry",
       "copy": "Copy link",
-      "copied": "Copied!"
+      "copied": "Copied!",
+      "unnamed": "Unnamed link",
+      "expired": "Expired",
+      "expires": "Expires",
+      "useCount_one": "{{count}} use",
+      "useCount_other": "{{count}} uses",
+      "useCountOfMax": "{{count}} / {{max}} uses"
     },
     "guestList": {
       "addUser": "Add user",
@@ -227,6 +283,10 @@
       "title": "About & Access",
       "description": "Title, description and who can join",
       "updateSuccess": "Event details updated",
+      "accessLocked": "Access type and capacity can only be changed while the event is still a draft.",
+      "privateAccessWarning": "Changing this event to private will change {{targets}} access from Anyone to Attendees only.",
+      "guestList": "guest list",
+      "gallery": "gallery",
       "maxAttendees": "Max {{count}} attendees",
       "unlimitedAttendees": "Unlimited attendees"
     },
@@ -241,8 +301,14 @@
     "where": {
       "title": "Where",
       "description": "Location",
+      "editDescription": "Update the event location",
+      "editLocation": "Edit location",
       "updateSuccess": "Event location updated",
       "noLocation": "No location set"
+    },
+    "shareLink": {
+      "title": "Share link",
+      "description": "Send this to anyone you want to invite"
     },
     "cover": {
       "title": "Cover image",
@@ -276,17 +342,13 @@
     "CANCELLED": { "description": "Cancelled by the organizer" }
   },
   "transitions": {
-    "toDraft": {
-      "label": "Unpublish",
-      "description": "Move back to draft"
-    },
     "toPublished": {
       "label": "Publish",
       "description": "Make the event visible and open for registrations"
     },
-    "toPublishedAgain": {
-      "label": "Re-publish",
-      "description": "Make visible again at the new date"
+    "toActiveFromRescheduled": {
+      "label": "Go live",
+      "description": "Event will go live at the new scheduled time"
     },
     "toActive": {
       "label": "Go live",
@@ -299,10 +361,6 @@
     "toCancelled": {
       "label": "Cancel event",
       "description": "Cancel this event permanently"
-    },
-    "toRestored": {
-      "label": "Restore to draft",
-      "description": "Restore this event to draft state"
     },
     "confirms": {
       "cancelFromDraft": {
@@ -324,10 +382,6 @@
       "endEvent": {
         "title": "End event?",
         "description": "This will conclude the event. Attendees will no longer be able to join or interact."
-      },
-      "restoreFromCancelled": {
-        "title": "Restore to draft?",
-        "description": "All event data (attendees, messages, media) is preserved. The event will stay hidden until you publish again."
       }
     }
   },

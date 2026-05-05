@@ -10,6 +10,7 @@
     "cancel": "Cancelar",
     "delete": "Eliminar",
     "edit": "Editar",
+    "copy": "Copiar",
     "confirm": "Confirmar",
     "back": "Volver",
     "next": "Siguiente",
@@ -93,5 +94,8 @@
     "success": "¡Te uniste al evento!",
     "invalid": "Este link de invitación es inválido o expiró.",
     "goToEvent": "Ir al evento"
+  },
+  "labels": {
+    "you": "Vos"
   }
 }

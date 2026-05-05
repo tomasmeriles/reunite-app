@@ -1,11 +1,20 @@
 {
   "list": {
     "title": "Eventos",
-    "subtitle": "Eventos que creaste y organizás",
+    "subtitle": "Todos tus eventos",
     "empty": "Todavía no hay eventos",
     "emptySubtitle": "¡Creá tu primer evento y empezá a reunir gente!",
     "createFirst": "Creá tu primer evento",
-    "new": "Nuevo Evento"
+    "new": "Nuevo Evento",
+    "role": {
+      "owner": "Propietario",
+      "organizer": "Organizador",
+      "attendee": "Asistente"
+    },
+    "sections": {
+      "organizing": "Organizando",
+      "attending": "Asistiendo"
+    }
   },
   "create": {
     "title": "Crear un evento",
@@ -32,6 +41,23 @@
     "success": "¡Evento creado!",
     "error": "Error al crear el evento"
   },
+  "rsvp": {
+    "joinTitle": "Unirse al evento",
+    "bringGuestTitle": "Traer un invitado",
+    "joinDescLoggedIn": "Podés usar un nombre distinto al de tu perfil para este evento.",
+    "joinDescGuest": "Te unís como invitado. ¡Sin cuenta necesaria!",
+    "bringGuestDesc": "Ingresá el nombre de la persona que vas a traer.",
+    "yourName": "Tu nombre",
+    "guestName": "Nombre del invitado",
+    "yourNamePlaceholder": "Ingresá tu nombre",
+    "guestNamePlaceholder": "Jane Smith",
+    "cancel": "Cancelar",
+    "confirm": "¡Voy! 🎉",
+    "confirmGuest": "Agregar invitado",
+    "loading": "Agregando…",
+    "signInPrompt": "¿Tenés cuenta?",
+    "signIn": "Iniciá sesión"
+  },
   "detail": {
     "attendees": "Invitados",
     "register": "Inscribirse",
@@ -54,7 +80,6 @@
     "tabs": {
       "about": "Sobre el evento",
       "attendees": "Invitados",
-      "chat": "Chat",
       "media": "Fotos",
       "prizes": "Premios"
     },
@@ -72,7 +97,8 @@
     "guestListDisabledDesc": "El organizador desactivó la lista de invitados para este evento.",
     "guestListOrganizerDesc": "La lista de invitados solo es visible para los organizadores.",
     "guestListAttendeeDesc": "Únete al evento para ver quién más viene.",
-    "chatNotAvailable": "El chat estará disponible cuando el evento sea publicado.",
+    "registrationsClosedAlert": "Las inscripciones están cerradas en este evento.",
+    "registrationsClosedDesc": "El organizador cerró las nuevas inscripciones para este evento.",
     "galleryNotAvailableDesc": "La galería se abre cuando el evento está en vivo.",
     "galleryDisabledDesc": "El organizador desactivó la galería para este evento.",
     "galleryOrganizerDesc": "La galería solo es visible para los organizadores.",
@@ -96,7 +122,15 @@
       "removeDesc": "Esta foto se eliminará permanentemente.",
       "fileTooLarge": "El archivo es demasiado grande (máx. 10 MB)",
       "uploadSuccess": "¡Foto subida!",
-      "removeSuccess": "Foto eliminada"
+      "removeSuccess": "Foto eliminada",
+      "addPhoto": "Agregar Foto",
+      "chooseFromGallery": "Elegir de la galería",
+      "takePhoto": "Tomar una foto",
+      "uploading": "Subiendo…",
+      "lightbox": {
+        "download": "Descargar",
+        "delete": "Eliminar"
+      }
     }
   },
   "join": {
@@ -117,10 +151,20 @@
     "joining": "Uniéndose…",
     "joinEvent": "Unirse al evento 🎉",
     "successToast": "¡Ya estás dentro! 🎉",
+    "signInPrompt": "¿Tenés cuenta?",
+    "signIn": "Iniciá sesión",
     "errors": {
       "draft": {
         "title": "Evento no publicado aún",
         "body": "Este evento todavía no fue publicado. Volvé más tarde."
+      },
+      "event_type_changed": {
+        "title": "El link ya no está activo",
+        "body": "Este evento ya no acepta acceso por link de invitación. Usá la página pública del evento."
+      },
+      "registrations_closed": {
+        "title": "Inscripciones cerradas",
+        "body": "El organizador cerró las nuevas inscripciones para este evento."
       },
       "unavailable": {
         "title": "Evento ya no disponible",
@@ -149,11 +193,11 @@
       "success": "Configuración actualizada",
       "error": "Error al actualizar la configuración",
       "autoSave": "Los cambios se guardan automáticamente",
-      "chatDescription": "Permite que los invitados se mensajeen entre sí",
+      "registrationsDescription": "Permite nuevas inscripciones y accesos desde links de invitación para este evento",
       "prizesDescription": "Habilita la función de premios para este evento",
       "config": {
+        "registrations": "Inscripciones abiertas",
         "publicGuestList": "Lista de invitados",
-        "chat": "Chat",
         "mediaUploads": "Subida de fotos",
         "prizes": "Premios"
       }
@@ -173,23 +217,35 @@
       "cancel": "Cancelar evento",
       "cancelSuccess": "Evento cancelado",
       "cancelError": "Error al cancelar el evento",
-      "blockedPublished": "Despublicá el evento antes de eliminarlo.",
+      "blockedPublished": "Cancelá el evento antes de eliminarlo.",
       "blockedActive": "No podés eliminar un evento en vivo.",
       "blockedEnded": "Los eventos finalizados no se pueden eliminar."
     },
     "inviteLinks": {
       "create": "Crear link de invitación",
+      "createDescription": "Todos los campos son opcionales. Dejalos vacíos para crear un link simple sin límite.",
       "createSuccess": "Link de invitación creado",
       "createError": "No se pudo crear el link",
+      "description": "Cualquiera con el link puede unirse. Creá varios links para seguir distintos grupos.",
+      "empty": "Todavía no hay links de invitación.",
+      "emptyDescription": "Creá uno para empezar a invitar gente.",
       "deleteSuccess": "Link eliminado",
       "deleteError": "No se pudo eliminar el link",
+      "delete": "Eliminar link",
       "label": "Etiqueta",
+      "labelPlaceholder": "ej. Amigos del trabajo",
       "maxUses": "Usos máximos",
       "expiresAt": "Vence el",
       "unlimited": "Sin límite",
       "noExpiry": "Sin vencimiento",
       "copy": "Copiar link",
-      "copied": "¡Copiado!"
+      "copied": "¡Copiado!",
+      "unnamed": "Link sin nombre",
+      "expired": "Vencido",
+      "expires": "Vence",
+      "useCount_one": "{{count}} uso",
+      "useCount_other": "{{count}} usos",
+      "useCountOfMax": "{{count}} / {{max}} usos"
     },
     "guestList": {
       "addUser": "Agregar usuario",
@@ -227,6 +283,10 @@
       "title": "Sobre & Acceso",
       "description": "Título, descripción y quién puede unirse",
       "updateSuccess": "Detalles del evento actualizados",
+      "accessLocked": "El tipo de acceso y la capacidad solo pueden cambiarse mientras el evento siga en borrador.",
+      "privateAccessWarning": "Cambiar este evento a privado hará que el acceso de {{targets}} pase de Cualquiera a Solo asistentes.",
+      "guestList": "la lista de invitados",
+      "gallery": "la galería",
       "maxAttendees": "Máx. {{count}} invitados",
       "unlimitedAttendees": "Invitados ilimitados"
     },
@@ -241,8 +301,14 @@
     "where": {
       "title": "Dónde",
       "description": "Ubicación",
+      "editDescription": "Actualizá la ubicación del evento",
+      "editLocation": "Editar ubicación",
       "updateSuccess": "Ubicación del evento actualizada",
       "noLocation": "Sin ubicación configurada"
+    },
+    "shareLink": {
+      "title": "Compartir link",
+      "description": "Mandáselo a cualquiera que quieras invitar"
     },
     "cover": {
       "title": "Imagen de portada",
@@ -276,17 +342,13 @@
     "CANCELLED": { "description": "Cancelado por el organizador" }
   },
   "transitions": {
-    "toDraft": {
-      "label": "Despublicar",
-      "description": "Volver a borrador"
-    },
     "toPublished": {
       "label": "Publicar",
       "description": "Hacer el evento visible y abrir inscripciones"
     },
-    "toPublishedAgain": {
-      "label": "Volver a publicar",
-      "description": "Hacer visible de nuevo con la nueva fecha"
+    "toActiveFromRescheduled": {
+      "label": "Iniciar en vivo",
+      "description": "El evento se iniciará en vivo con la nueva fecha programada"
     },
     "toActive": {
       "label": "Iniciar en vivo",
@@ -299,10 +361,6 @@
     "toCancelled": {
       "label": "Cancelar evento",
       "description": "Cancelar este evento permanentemente"
-    },
-    "toRestored": {
-      "label": "Restaurar a borrador",
-      "description": "Restaurar este evento al estado borrador"
     },
     "confirms": {
       "cancelFromDraft": {
@@ -324,10 +382,6 @@
       "endEvent": {
         "title": "¿Finalizar evento?",
         "description": "Esto concluirá el evento. Los invitados ya no podrán unirse ni interactuar."
-      },
-      "restoreFromCancelled": {
-        "title": "¿Restaurar a borrador?",
-        "description": "Todos los datos del evento (invitados, mensajes, fotos) se conservan. El evento permanecerá oculto hasta que lo publiques de nuevo."
       }
     }
   },

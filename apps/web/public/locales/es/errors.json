@@ -22,6 +22,7 @@
   "EVENT_STATUS_NOT_ALLOWED": "Esta acción no está permitida en el estado actual del evento",
   "INVALID_STATUS_TRANSITION": "Transición de estado inválida",
   "REGISTRATION_CLOSED": "Este evento aún no está abierto para inscripciones",
+  "REGISTRATIONS_DISABLED": "Las nuevas inscripciones están cerradas para este evento",
   "NO_FILE_PROVIDED": "No se proporcionó ningún archivo",
 
   "ALREADY_REGISTERED": "Ya estás inscripto en este evento",
@@ -37,6 +38,7 @@
 
   "INVITE_LINK_NOT_FOUND": "Link de invitación no encontrado",
   "INVITE_LINK_INVALID": "Link de invitación inválido",
+  "INVITE_LINK_INACTIVE": "Este link de invitación ya no está activo para este evento",
   "INVITE_LINK_EXPIRED": "Este link de invitación expiró",
   "INVITE_LINK_EXHAUSTED": "Este link de invitación alcanzó su límite de usos",
   "INVITE_TOKEN_REQUIRED": "Se requiere un token de invitación para este evento",
@@ -51,8 +53,6 @@
 
   "MEDIA_NOT_FOUND": "Elemento multimedia no encontrado",
   "FILE_TOO_LARGE": "El archivo es demasiado grande (máx. 10 MB)",
-
-  "CHAT_NOT_AVAILABLE": "El chat solo está disponible durante el evento en vivo",
 
   "FORBIDDEN": "No tenés permiso para hacer eso",
   "RESOURCE_NOT_FOUND": "Recurso no encontrado",

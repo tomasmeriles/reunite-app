@@ -10,6 +10,7 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "edit": "Edit",
+    "copy": "Copy",
     "confirm": "Confirm",
     "back": "Back",
     "next": "Next",
@@ -93,5 +94,8 @@
     "success": "You've joined the event!",
     "invalid": "This invite link is invalid or has expired.",
     "goToEvent": "Go to event"
+  },
+  "labels": {
+    "you": "You"
   }
 }
