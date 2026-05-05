@@ -1,5 +1,6 @@
 import { Copy } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { Button } from '~/components/ui/button';
 import {
   Card,
@@ -21,6 +22,7 @@ interface OverviewTabProps {
 }
 
 export function OverviewTab({ event }: OverviewTabProps) {
+  const { t } = useTranslation(['events', 'common']);
   const eventUrl = `${window.location.origin}/events/${event.id}`;
 
   return (
@@ -33,9 +35,9 @@ export function OverviewTab({ event }: OverviewTabProps) {
       {event.eventType === 'PUBLIC' && (
         <Card>
           <CardHeader>
-            <CardTitle>Share link</CardTitle>
+            <CardTitle>{t('events:manage.shareLink.title')}</CardTitle>
             <CardDescription>
-              Send this to anyone you want to invite
+              {t('events:manage.shareLink.description')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -47,11 +49,13 @@ export function OverviewTab({ event }: OverviewTabProps) {
                 size="sm"
                 onClick={() => {
                   void navigator.clipboard.writeText(eventUrl);
-                  toast.success('Link copied!');
+                  toast.success(t('events:manage.inviteLinks.copied'));
                 }}
               >
                 <Copy className="h-3.5 w-3.5" />
-                <span className="sr-only sm:not-sr-only sm:ml-1.5">Copy</span>
+                <span className="sr-only sm:not-sr-only sm:ml-1.5">
+                  {t('common:actions.copy')}
+                </span>
               </Button>
             </div>
           </CardContent>

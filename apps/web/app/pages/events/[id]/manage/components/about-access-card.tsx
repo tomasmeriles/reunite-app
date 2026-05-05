@@ -1,5 +1,6 @@
 import {
   Globe,
+  Info,
   Link as LinkIcon,
   Users,
   Pencil,
@@ -18,6 +19,7 @@ import {
   CardDescription,
 } from '~/components/ui/card';
 import { Input } from '~/components/ui/input';
+import { Alert, AlertDescription } from '~/components/ui/alert';
 import {
   FormField,
   FormItem,
@@ -54,11 +56,17 @@ const TYPE_ICON = {
 
 interface EditFormProps {
   event: Event;
+  canEditAccess: boolean;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-function AboutAccessEditForm({ event, onSuccess, onCancel }: EditFormProps) {
+function AboutAccessEditForm({
+  event,
+  canEditAccess,
+  onSuccess,
+  onCancel,
+}: EditFormProps) {
   const { t } = useTranslation(['events', 'common']);
   const apiError = useApiError();
   const { mutate: updateEvent, isPending } = useUpdateEvent(event.id);
@@ -89,12 +97,22 @@ function AboutAccessEditForm({ event, onSuccess, onCancel }: EditFormProps) {
     defaultValues: eventToFormDefaults(event),
   });
 
+  const watchedEventType = form.watch('eventType');
   const { isDirty } = form.formState;
+  const willBecomePrivate = watchedEventType !== 'PUBLIC';
+  const guestListWillNormalize = event.config?.attendeeAccess === 'ANYONE';
+  const galleryWillNormalize = event.config?.mediaAccess === 'ANYONE';
+  const shouldWarnAboutAccessNormalization =
+    willBecomePrivate && (guestListWillNormalize || galleryWillNormalize);
 
   const onSubmit = (values: UpdateEventFormValues) => {
     const { title, description, eventType, maxAttendees } = values;
     updateEvent(
-      { title, description, eventType, maxAttendees },
+      {
+        title,
+        description,
+        ...(canEditAccess ? { eventType, maxAttendees } : {}),
+      },
       {
         onSuccess: () => {
           toast.success(t('events:manage.about.updateSuccess'));
@@ -128,7 +146,27 @@ function AboutAccessEditForm({ event, onSuccess, onCancel }: EditFormProps) {
           label={t('events:create.fields.accessType')}
           options={EVENT_TYPE_OPTIONS}
           columns={3}
+          disabled={!canEditAccess}
         />
+        {shouldWarnAboutAccessNormalization && (
+          <Alert variant="warning">
+            <Info className="size-4" />
+            <AlertDescription>
+              {t('events:manage.about.privateAccessWarning', {
+                targets: [
+                  guestListWillNormalize
+                    ? t('events:manage.about.guestList')
+                    : null,
+                  galleryWillNormalize
+                    ? t('events:manage.about.gallery')
+                    : null,
+                ]
+                  .filter(Boolean)
+                  .join(', '),
+              })}
+            </AlertDescription>
+          </Alert>
+        )}
         <FormField
           control={form.control}
           name="maxAttendees"
@@ -147,6 +185,7 @@ function AboutAccessEditForm({ event, onSuccess, onCancel }: EditFormProps) {
                   placeholder="Unlimited"
                   value={field.value ?? ''}
                   onBlur={field.onBlur}
+                  disabled={!canEditAccess}
                   onChange={(e) =>
                     field.onChange(
                       e.target.value === ''
@@ -160,6 +199,12 @@ function AboutAccessEditForm({ event, onSuccess, onCancel }: EditFormProps) {
             </FormItem>
           )}
         />
+        {!canEditAccess && (
+          <Alert variant="info">
+            <Info className="size-4" />
+            {t('events:manage.about.accessLocked')}
+          </Alert>
+        )}
       </div>
       <ModalFooter>
         <Button variant="outline" type="button" onClick={onCancel}>
@@ -186,7 +231,7 @@ interface AboutAccessCardProps {
 
 export function AboutAccessCard({ event }: AboutAccessCardProps) {
   const { t } = useTranslation('events');
-  const { canEdit } = useEventAccess(event.id);
+  const { canEdit, canEditAccess } = useEventAccess(event.id);
   const Icon = TYPE_ICON[event.eventType];
 
   return (
@@ -209,6 +254,7 @@ export function AboutAccessCard({ event }: AboutAccessCardProps) {
             {({ close }) => (
               <AboutAccessEditForm
                 event={event}
+                canEditAccess={canEditAccess}
                 onSuccess={close}
                 onCancel={close}
               />

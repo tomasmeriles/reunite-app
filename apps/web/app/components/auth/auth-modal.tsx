@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -35,6 +36,7 @@ interface LoginFormProps {
 }
 
 function LoginForm({ onSuccess }: LoginFormProps) {
+  const { t } = useTranslation('auth');
   const { mutate: login, isPending } = useLogin();
   const apiError = useApiError();
 
@@ -56,25 +58,25 @@ function LoginForm({ onSuccess }: LoginFormProps) {
         <FormTextField
           control={form.control}
           name="email"
-          label="Email"
+          label={t('login.email')}
           type="email"
-          placeholder="you@example.com"
+          placeholder={t('login.emailPlaceholder')}
           autoComplete="email"
         />
         <FormPasswordField
           control={form.control}
           name="password"
-          label="Password"
+          label={t('login.password')}
           autoComplete="current-password"
         />
         <Button type="submit" className="w-full" disabled={isPending}>
-          {isPending ? 'Signing in…' : 'Sign in'}
+          {isPending ? t('login.submitting') : t('login.submit')}
         </Button>
       </FormContainer>
       <div className="relative">
         <Separator />
         <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-popover px-2 text-xs text-muted-foreground">
-          or
+          {t('login.or')}
         </span>
       </div>
       <GoogleButton />
@@ -89,6 +91,7 @@ interface RegisterFormProps {
 }
 
 function RegisterForm({ onSuccess }: RegisterFormProps) {
+  const { t } = useTranslation('auth');
   const { mutate: register, isPending } = useRegister();
   const apiError = useApiError();
 
@@ -110,39 +113,39 @@ function RegisterForm({ onSuccess }: RegisterFormProps) {
         <FormTextField
           control={form.control}
           name="name"
-          label="Full name"
-          placeholder="John Doe"
+          label={t('register.name')}
+          placeholder={t('register.namePlaceholder')}
           autoComplete="name"
         />
         <FormTextField
           control={form.control}
           name="email"
-          label="Email"
+          label={t('register.email')}
           type="email"
-          placeholder="you@example.com"
+          placeholder={t('register.emailPlaceholder')}
           autoComplete="email"
         />
         <FormTextField
           control={form.control}
           name="username"
-          label="Username"
-          placeholder="yourhandle"
+          label={t('register.username')}
+          placeholder={t('register.usernamePlaceholder')}
           autoComplete="username"
         />
         <FormPasswordField
           control={form.control}
           name="password"
-          label="Password"
+          label={t('register.password')}
           autoComplete="new-password"
         />
         <Button type="submit" className="w-full" disabled={isPending}>
-          {isPending ? 'Creating account…' : 'Create account'}
+          {isPending ? t('register.submitting') : t('register.submit')}
         </Button>
       </FormContainer>
       <div className="relative">
         <Separator />
         <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-popover px-2 text-xs text-muted-foreground">
-          or
+          {t('register.or')}
         </span>
       </div>
       <GoogleButton />
@@ -171,6 +174,8 @@ export function AuthModal({
   defaultTab = 'login',
   onSuccess,
 }: AuthModalProps) {
+  const { t } = useTranslation('auth');
+
   const handleSuccess = () => {
     onOpenChange(false);
     onSuccess?.();
@@ -188,20 +193,20 @@ export function AuthModal({
       <DialogContent className="sm:max-w-md" showCloseButton>
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
-            Welcome to {env.VITE_APP_NAME}
+            {t('modal.welcome', { appName: env.VITE_APP_NAME })}
           </DialogTitle>
           <DialogDescription>
-            Sign in or create an account to get started
+            {t('modal.subtitle')}
           </DialogDescription>
         </DialogHeader>
 
         <Tabs key={defaultTab} defaultValue={defaultTab} className="mt-2">
           <TabsList className="w-full">
             <TabsTrigger value="login" className="flex-1">
-              Sign in
+              {t('login.title')}
             </TabsTrigger>
             <TabsTrigger value="register" className="flex-1">
-              Create account
+              {t('register.title')}
             </TabsTrigger>
           </TabsList>
 

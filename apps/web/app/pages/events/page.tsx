@@ -1,73 +1,40 @@
 import { Link } from '@tanstack/react-router';
-import { CalendarDays, MapPin, Plus, Settings } from 'lucide-react';
+import { CalendarDays, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useMyEvents } from '~/hooks/api/use-events';
 import { Button } from '~/components/ui/button';
-import { Badge } from '~/components/ui/badge';
-import { Card, CardContent } from '~/components/ui/card';
 import { Skeleton } from '~/components/ui/skeleton';
-import { STATUS_META } from '~/lib/event-state-machine';
-import { formatDate, formatDateTime } from '~/lib/datetime';
+import { EventCard } from '~/components/events/event-card';
 import type { Event } from '~/api/events/events.types';
 
-function EventCard({ event }: { event: Event }) {
-  const { t } = useTranslation(['common', 'events']);
+function EventsSection({ title, events, count }: { title: string; events: Event[]; count: number }) {
   return (
-    <Card className="overflow-hidden hover:shadow-md transition-shadow group flex flex-col">
-      <div className="relative h-40 bg-muted shrink-0">
-        {event.coverImage ? (
-          <img
-            src={event.coverImage}
-            alt={event.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <CalendarDays className="h-10 w-10 text-muted-foreground/30" />
-          </div>
-        )}
-        <Badge
-          className={`absolute top-2 right-2 text-xs ${STATUS_META[event.status].colorClass}`}
-        >
-          {t(`common:status.${event.status}`)}
-        </Badge>
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide shrink-0">
+          {title}
+        </h2>
+        <div className="flex-1 h-px bg-border" />
+        <span className="text-sm text-muted-foreground shrink-0">{count}</span>
       </div>
-
-      <CardContent className="p-4 flex flex-col flex-1">
-        <p className="font-semibold line-clamp-1">{event.title}</p>
-
-        <div className="flex items-center gap-1.5 mt-2 text-sm text-muted-foreground">
-          <CalendarDays className="h-3.5 w-3.5 shrink-0" />
-          <span>{formatDateTime(event.startAt)}</span>
-        </div>
-
-        {event.location && (
-          <div className="flex items-center gap-1.5 mt-1 text-sm text-muted-foreground">
-            <MapPin className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">{event.location}</span>
-          </div>
-        )}
-
-        <div className="flex gap-2 mt-auto pt-3">
-          <Button size="sm" variant="outline" className="flex-1" asChild>
-            <Link to="/events/$id" params={{ id: event.id }}>
-              {t('common:actions.view')}
-            </Link>
-          </Button>
-          <Button size="sm" variant="ghost" asChild>
-            <Link to="/events/$id/manage" params={{ id: event.id }}>
-              <Settings className="h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {events.map((event) => (
+          <EventCard key={event.id} event={event} />
+        ))}
+      </div>
+    </div>
   );
 }
 
 export default function EventsPage() {
   const { t } = useTranslation(['events', 'common']);
   const { data: events, isLoading } = useMyEvents();
+
+  const organizingEvents = events?.filter(
+    (e) => e.myRole === 'OWNER' || e.myRole === 'ORGANIZER',
+  ) ?? [];
+  const attendingEvents = events?.filter((e) => e.myRole === 'ATTENDEE') ?? [];
+  const hasEvents = organizingEvents.length > 0 || attendingEvents.length > 0;
 
   return (
     <div className="space-y-6">
@@ -86,16 +53,40 @@ export default function EventsPage() {
       </div>
 
       {isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-64 rounded-xl" />
-          ))}
+        <div className="space-y-8">
+          <div className="space-y-4">
+            <Skeleton className="h-5 w-32" />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-64 rounded-xl" />
+              ))}
+            </div>
+          </div>
+          <div className="space-y-4">
+            <Skeleton className="h-5 w-32" />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-64 rounded-xl" />
+              ))}
+            </div>
+          </div>
         </div>
-      ) : events && events.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {events.map((event) => (
-            <EventCard key={event.id} event={event} />
-          ))}
+      ) : hasEvents ? (
+        <div className="space-y-10">
+          {organizingEvents.length > 0 && (
+            <EventsSection
+              title={t('events:list.sections.organizing')}
+              events={organizingEvents}
+              count={organizingEvents.length}
+            />
+          )}
+          {attendingEvents.length > 0 && (
+            <EventsSection
+              title={t('events:list.sections.attending')}
+              events={attendingEvents}
+              count={attendingEvents.length}
+            />
+          )}
         </div>
       ) : (
         <div className="rounded-xl border border-dashed p-16 text-center">

@@ -35,26 +35,27 @@ function Navbar() {
   const navigate = useNavigate();
 
   return (
-    <header className="fixed inset-x-0 top-0 z-40 flex items-center justify-between px-6 py-4 backdrop-blur-md">
+    <header className="fixed inset-x-0 top-0 z-40 flex items-center justify-between gap-2 px-3 py-2 backdrop-blur-md sm:px-6 sm:py-4">
       <div className="flex items-center gap-2">
         <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-primary-foreground">
           <Sparkles className="h-4 w-4" />
         </div>
-        <span className="text-base font-bold tracking-tight">
+        <span className="text-sm font-bold tracking-tight sm:text-base">
           {env.VITE_APP_NAME}
         </span>
       </div>
 
-      <nav className="flex items-center gap-2">
+      <nav className="flex items-center gap-1.5 sm:gap-2">
         <LanguageSwitcher />
         <ThemeToggle />
         {isAuthenticated ? (
           <>
-            <span className="hidden text-sm text-muted-foreground sm:block">
+            <span className="hidden text-sm text-muted-foreground md:block">
               {t('nav.greeting', { name: user?.name?.split(' ')[0] })}
             </span>
             <Button size="sm" onClick={() => navigate({ to: '/dashboard' })}>
-              {t('nav.dashboard')}
+              <span className="hidden sm:inline">{t('nav.dashboard')}</span>
+              <span className="sm:hidden">{t('nav.dashboard')}</span>
             </Button>
           </>
         ) : (
@@ -63,10 +64,11 @@ function Navbar() {
               variant="ghost"
               size="sm"
               onClick={() => openAuthModal('login')}
+              className="px-2 text-xs sm:px-3 sm:text-sm"
             >
               {t('nav.signIn')}
             </Button>
-            <Button size="sm" onClick={() => openAuthModal('register')}>
+            <Button size="sm" onClick={() => openAuthModal('register')} className="px-2 text-xs sm:px-3 sm:text-sm">
               {t('nav.getStarted')}
             </Button>
           </>

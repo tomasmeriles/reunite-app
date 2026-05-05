@@ -1,25 +1,35 @@
-import { cn } from '~/lib/utils';
-
 interface SectionHeaderProps {
   title: string;
   description?: string;
-  align?: 'left' | 'center';
-  className?: string;
+  count?: number;
+  size?: 'sm' | 'default';
+  children?: React.ReactNode;
 }
 
-export function SectionHeader({
-  title,
-  description,
-  align = 'center',
-  className,
-}: SectionHeaderProps) {
+export function SectionHeader({ title, description, count, size = 'default', children }: SectionHeaderProps) {
+  const textSize = size === 'sm' ? 'text-xs' : 'text-sm';
+  const headingElement = size === 'sm' ? 'h3' : 'h2';
+
   return (
-    <div
-      className={cn('mb-14', align === 'center' && 'text-center', className)}
-    >
-      <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">{title}</h2>
+    <div className="space-y-1">
+      <div className="flex items-center gap-3">
+        {headingElement === 'h2' ? (
+          <h2 className={`${textSize} font-semibold text-muted-foreground uppercase tracking-wide shrink-0`}>
+            {title}
+          </h2>
+        ) : (
+          <h3 className={`${textSize} font-semibold text-muted-foreground uppercase tracking-wide shrink-0`}>
+            {title}
+          </h3>
+        )}
+        <div className="flex-1 h-px bg-border" />
+        {count !== undefined && (
+          <span className={`${textSize} text-muted-foreground shrink-0`}>{count}</span>
+        )}
+        {children}
+      </div>
       {description && (
-        <p className="mt-3 text-muted-foreground">{description}</p>
+        <p className="text-sm text-muted-foreground">{description}</p>
       )}
     </div>
   );

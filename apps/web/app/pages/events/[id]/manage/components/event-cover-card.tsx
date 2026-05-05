@@ -32,7 +32,7 @@ export function EventCoverCard({ event }: EventCoverCardProps) {
       <ImageWithFallback
         src={event.coverImage}
         alt={event.title}
-        className="aspect-3/1 w-full object-cover"
+        className="w-full h-auto block"
         fallback={
           <EventCoverPlaceholder
             title={event.title}

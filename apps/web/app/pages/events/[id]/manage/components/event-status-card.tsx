@@ -23,7 +23,7 @@ import {
 } from '~/lib/event-state-machine';
 import type { Event, EventStatus } from '~/api/events/events.types';
 
-const PUBLISH_STATUSES: EventStatus[] = ['DRAFT', 'RESCHEDULED'];
+const PUBLISH_STATUSES: EventStatus[] = ['DRAFT'];
 
 interface EventStatusCardProps {
   event: Event;

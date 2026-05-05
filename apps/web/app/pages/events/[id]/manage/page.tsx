@@ -85,16 +85,16 @@ export default function EventManagePage() {
 
         <Tabs value={tab} onValueChange={(v) => void setTab(v as TabValue)}>
           <TabsList className="w-full">
-            <TabsTrigger value="overview" className="flex-1 gap-1.5">
-              <LayoutDashboard className="h-3.5 w-3.5" />
+            <TabsTrigger value="overview" className="flex-1 gap-1 px-1 text-xs sm:text-sm">
+              <LayoutDashboard className="h-3.5 w-3.5 sm:inline hidden" />
               {t('events:manage.tabs.settings')}
             </TabsTrigger>
-            <TabsTrigger value="config" className="flex-1 gap-1.5">
-              <Settings2 className="h-3.5 w-3.5" />
+            <TabsTrigger value="config" className="flex-1 gap-1 px-1 text-xs sm:text-sm">
+              <Settings2 className="h-3.5 w-3.5 sm:inline hidden" />
               {t('events:manage.tabs.guestList')}
             </TabsTrigger>
-            <TabsTrigger value="attendees" className="flex-1 gap-1.5">
-              <Users className="h-3.5 w-3.5" />
+            <TabsTrigger value="attendees" className="flex-1 gap-1 px-1 text-xs sm:text-sm">
+              <Users className="h-3.5 w-3.5 sm:inline hidden" />
               {t('events:manage.tabs.attendees')}
             </TabsTrigger>
           </TabsList>

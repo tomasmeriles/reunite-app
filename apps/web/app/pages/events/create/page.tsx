@@ -58,7 +58,7 @@ export default function EventCreatePage() {
   const { t } = useTranslation('events');
   const apiError = useApiError();
   const navigate = useNavigate();
-  const { mutate: createEvent, isPending } = useCreateEvent();
+  const { mutateAsync: createEvent, isPending } = useCreateEvent();
   const picker = useLocationPicker();
 
   const EVENT_TYPE_OPTIONS: CardSelectOption<EventType>[] = [
@@ -116,14 +116,14 @@ export default function EventCreatePage() {
     },
   });
 
-  const onSubmit = (values: CreateEventFormValues) => {
-    createEvent(toApiPayload(values), {
-      onSuccess: (event) => {
-        toast.success(t('create.success'));
-        void navigate({ to: '/events/$id/manage', params: { id: event.id } });
-      },
-      onError: (err) => toast.error(apiError(err)),
-    });
+  const onSubmit = async (values: CreateEventFormValues) => {
+    try {
+      const event = await createEvent(toApiPayload(values));
+      toast.success(t('create.success'));
+      await navigate({ to: '/events/$id/manage', params: { id: event.id } });
+    } catch (err) {
+      toast.error(apiError(err));
+    }
   };
 
   const watched = form.watch();

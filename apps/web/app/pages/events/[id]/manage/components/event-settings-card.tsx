@@ -23,9 +23,9 @@ import type { AttendeeAccess, Event, MediaAccess, UpdateEventConfigDto } from '~
 
 const TOGGLE_FIELDS: { field: keyof UpdateEventConfigDto; labelKey: string; descriptionKey: string }[] = [
   {
-    field: 'chatEnabled',
-    labelKey: 'manage.settings.config.chat',
-    descriptionKey: 'manage.settings.chatDescription',
+    field: 'registrationsEnabled',
+    labelKey: 'manage.settings.config.registrations',
+    descriptionKey: 'manage.settings.registrationsDescription',
   },
   {
     field: 'prizesEnabled',
@@ -36,6 +36,10 @@ const TOGGLE_FIELDS: { field: keyof UpdateEventConfigDto; labelKey: string; desc
 
 const ACCESS_VALUES: AttendeeAccess[] = ['ANYONE', 'ATTENDEES_ONLY', 'ORGANIZERS_ONLY', 'DISABLED'];
 const MEDIA_VALUES: MediaAccess[] = ['ANYONE', 'ATTENDEES_ONLY', 'ORGANIZERS_ONLY', 'DISABLED'];
+const TOGGLE_DEFAULTS: Record<Extract<keyof UpdateEventConfigDto, 'registrationsEnabled' | 'prizesEnabled'>, boolean> = {
+  registrationsEnabled: true,
+  prizesEnabled: true,
+};
 
 interface EventSettingsCardProps {
   event: Event;
@@ -103,7 +107,7 @@ export function EventSettingsCard({ event }: EventSettingsCardProps) {
             </div>
 
             <Switch
-              checked={event.config?.[field] as boolean ?? false}
+              checked={event.config?.[field] as boolean ?? TOGGLE_DEFAULTS[field as keyof typeof TOGGLE_DEFAULTS]}
               onCheckedChange={(v) => handleToggle(field, v)}
               disabled={isPending || !canManageConfig}
             />

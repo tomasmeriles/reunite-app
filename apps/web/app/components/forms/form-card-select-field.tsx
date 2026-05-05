@@ -29,6 +29,7 @@ interface FormCardSelectFieldProps<
   label: string;
   options: CardSelectOption[];
   columns?: 1 | 2 | 3 | 4;
+  disabled?: boolean;
 }
 
 const COLS_CLASS: Record<
@@ -50,6 +51,7 @@ export function FormCardSelectField<
   label,
   options,
   columns = 3,
+  disabled = false,
 }: FormCardSelectFieldProps<TFieldValues, TName>) {
   return (
     <FormField
@@ -68,9 +70,13 @@ export function FormCardSelectField<
                 <button
                   key={opt.value}
                   type="button"
-                  onClick={() => field.onChange(opt.value)}
+                  onClick={() => {
+                    if (!disabled) field.onChange(opt.value);
+                  }}
+                  disabled={disabled}
                   className={cn(
-                    'relative flex cursor-pointer flex-col items-start gap-1.5 rounded-xl border p-3 text-left transition-all duration-200',
+                    'relative flex flex-col items-start gap-1.5 rounded-xl border p-3 text-left transition-all duration-200',
+                    disabled && 'cursor-not-allowed opacity-60',
                     selected
                       ? 'border-primary bg-primary/5 shadow-sm outline outline-primary'
                       : 'border-border bg-card hover:border-primary/40 hover:bg-muted/50',

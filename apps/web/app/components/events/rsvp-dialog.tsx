@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
 import { Button } from '~/components/ui/button';
+import { Separator } from '~/components/ui/separator';
 import { Modal, ModalFooter } from '~/components/ui/modal';
 import { FormContainer, FormTextField } from '~/components/forms';
 import { LoadingButton } from '~/components/buttons/loading-button';
@@ -17,6 +19,8 @@ interface RsvpDialogProps {
   isLoading: boolean;
   /** "self" (default) = joining yourself; "guest" = adding someone else */
   mode?: 'self' | 'guest';
+  /** Called when the unauthenticated user clicks "Sign in" */
+  onLoginRequest?: () => void;
 }
 
 export function RsvpDialog({
@@ -25,9 +29,12 @@ export function RsvpDialog({
   onSubmit,
   isLoading,
   mode = 'self',
+  onLoginRequest,
 }: RsvpDialogProps) {
+  const { t } = useTranslation('events');
   const { user } = useAuth();
   const addingForSelf = mode === 'self';
+  const showLoginPrompt = addingForSelf && !user && !!onLoginRequest;
 
   const form = useForm<JoinFormValues>({
     resolver: zodResolver(joinSchema),
@@ -46,13 +53,13 @@ export function RsvpDialog({
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title={addingForSelf ? 'Join this event' : 'Bring a guest'}
+      title={addingForSelf ? t('rsvp.joinTitle') : t('rsvp.bringGuestTitle')}
       description={
         addingForSelf
           ? user
-            ? 'You can use a different name just for this event.'
-            : "You'll join as a guest. No account needed!"
-          : "Enter the name of the person you're bringing."
+            ? t('rsvp.joinDescLoggedIn')
+            : t('rsvp.joinDescGuest')
+          : t('rsvp.bringGuestDesc')
       }
       size="sm"
     >
@@ -60,12 +67,33 @@ export function RsvpDialog({
         <FormTextField
           control={form.control}
           name="name"
-          label={addingForSelf ? 'Your name' : "Guest's name"}
+          label={addingForSelf ? t('rsvp.yourName') : t('rsvp.guestName')}
           placeholder={
-            addingForSelf ? (user?.name ?? 'Enter your name') : 'Jane Smith'
+            addingForSelf
+              ? (user?.name ?? t('rsvp.yourNamePlaceholder'))
+              : t('rsvp.guestNamePlaceholder')
           }
           autoFocus
         />
+
+        {showLoginPrompt && (
+          <div className="space-y-3">
+            <div className="relative">
+              <Separator />
+              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-popover px-2 text-xs text-muted-foreground">
+                {t('rsvp.signInPrompt')}
+              </span>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={onLoginRequest}
+            >
+              {t('rsvp.signIn')}
+            </Button>
+          </div>
+        )}
 
         <ModalFooter>
           <Button
@@ -73,10 +101,14 @@ export function RsvpDialog({
             variant="ghost"
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {t('rsvp.cancel')}
           </Button>
-          <LoadingButton type="submit" isLoading={isLoading} loadingText="Adding…">
-            {addingForSelf ? 'Count me in! 🎉' : 'Add guest'}
+          <LoadingButton
+            type="submit"
+            isLoading={isLoading}
+            loadingText={t('rsvp.loading')}
+          >
+            {addingForSelf ? t('rsvp.confirm') : t('rsvp.confirmGuest')}
           </LoadingButton>
         </ModalFooter>
       </FormContainer>

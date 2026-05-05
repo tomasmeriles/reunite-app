@@ -93,12 +93,6 @@ const TRANSITIONS: Record<EventStatus, StatusTransition[]> = {
       isPrimary: true,
     },
     {
-      to: 'DRAFT',
-      labelKey: 'transitions.toDraft.label',
-      descriptionKey: 'transitions.toDraft.description',
-      variant: 'secondary',
-    },
-    {
       to: 'CANCELLED',
       labelKey: 'transitions.toCancelled.label',
       descriptionKey: 'transitions.toCancelled.description',
@@ -134,17 +128,11 @@ const TRANSITIONS: Record<EventStatus, StatusTransition[]> = {
   ],
   RESCHEDULED: [
     {
-      to: 'PUBLISHED',
-      labelKey: 'transitions.toPublishedAgain.label',
-      descriptionKey: 'transitions.toPublishedAgain.description',
+      to: 'ACTIVE',
+      labelKey: 'transitions.toActiveFromRescheduled.label',
+      descriptionKey: 'transitions.toActiveFromRescheduled.description',
       variant: 'default',
       isPrimary: true,
-    },
-    {
-      to: 'ACTIVE',
-      labelKey: 'transitions.toActive.label',
-      descriptionKey: 'transitions.toActive.description',
-      variant: 'default',
     },
     {
       to: 'CANCELLED',
@@ -158,19 +146,7 @@ const TRANSITIONS: Record<EventStatus, StatusTransition[]> = {
     },
   ],
   ENDED: [],
-  CANCELLED: [
-    {
-      to: 'DRAFT',
-      labelKey: 'transitions.toRestored.label',
-      descriptionKey: 'transitions.toRestored.description',
-      variant: 'outline',
-      isPrimary: true,
-      requiresConfirmation: {
-        titleKey: 'transitions.confirms.restoreFromCancelled.title',
-        descriptionKey: 'transitions.confirms.restoreFromCancelled.description',
-      },
-    },
-  ],
+  CANCELLED: [],
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -204,4 +180,8 @@ export const READ_ONLY_STATUSES: EventStatus[] = ['ACTIVE', 'ENDED', 'CANCELLED'
 
 export function isEventEditable(status: EventStatus): boolean {
   return EDITABLE_STATUSES.includes(status);
+}
+
+export function canEditEventAccess(status: EventStatus): boolean {
+  return status === 'DRAFT';
 }

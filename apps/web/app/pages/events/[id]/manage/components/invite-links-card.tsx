@@ -3,6 +3,7 @@ import { Clock, Copy, Link, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
 import { Button } from '~/components/ui/button';
 import { EmptyState } from '~/components/ui/empty-state';
 import { Spinner } from '~/components/ui/spinner';
@@ -45,15 +46,12 @@ function joinUrl(token: string) {
 }
 
 function UsageBadge({
-  useCount,
-  maxUses,
+  label,
+  isNearLimit,
 }: {
-  useCount: number;
-  maxUses: number | null;
+  label: string;
+  isNearLimit: boolean;
 }) {
-  const label =
-    maxUses === null ? `${useCount} uses` : `${useCount} / ${maxUses} uses`;
-  const isNearLimit = maxUses !== null && useCount >= maxUses * 0.8;
   return (
     <Badge
       variant={isNearLimit ? 'destructive' : 'secondary'}
@@ -65,6 +63,7 @@ function UsageBadge({
 }
 
 export function InviteLinksCard({ event }: InviteLinksCardProps) {
+  const { t } = useTranslation(['events', 'common']);
   const apiError = useApiError();
   const { data: links, isLoading } = useInviteLinks(event.id);
   const { mutate: createLink, isPending: creating } = useCreateInviteLink(
@@ -94,7 +93,7 @@ export function InviteLinksCard({ event }: InviteLinksCardProps) {
 
     createLink(payload, {
       onSuccess: () => {
-        toast.success('Invite link created');
+        toast.success(t('events:manage.inviteLinks.createSuccess'));
         handleOpenChange(false);
       },
       onError: (err) =>
@@ -104,12 +103,12 @@ export function InviteLinksCard({ event }: InviteLinksCardProps) {
 
   const handleCopy = (token: string) => {
     void navigator.clipboard.writeText(joinUrl(token));
-    toast.success('Link copied!');
+    toast.success(t('events:manage.inviteLinks.copied'));
   };
 
   const handleDelete = (linkId: string) => {
     deleteLink(linkId, {
-      onSuccess: () => toast.success('Link deleted'),
+      onSuccess: () => toast.success(t('events:manage.inviteLinks.deleteSuccess')),
       onError: (err) =>
         toast.error(apiError(err)),
     });
@@ -121,15 +120,14 @@ export function InviteLinksCard({ event }: InviteLinksCardProps) {
         <CardHeader>
           <div className="flex items-center justify-between gap-2">
             <div>
-              <CardTitle>Invite links</CardTitle>
+              <CardTitle>{t('events:manage.tabs.inviteLinks')}</CardTitle>
               <CardDescription>
-                Anyone with a link can join. Create multiple links to track
-                different groups.
+                {t('events:manage.inviteLinks.description')}
               </CardDescription>
             </div>
             <Button size="sm" variant="outline" onClick={() => setOpen(true)}>
               <Plus className="mr-1.5 h-3.5 w-3.5" />
-              Create link
+              {t('events:manage.inviteLinks.create')}
             </Button>
           </div>
         </CardHeader>
@@ -141,14 +139,23 @@ export function InviteLinksCard({ event }: InviteLinksCardProps) {
           ) : !links?.length ? (
             <EmptyState
               icon={Link}
-              message="No invite links yet."
-              description="Create one to start inviting people."
+              message={t('events:manage.inviteLinks.empty')}
+              description={t('events:manage.inviteLinks.emptyDescription')}
             />
           ) : (
             <ul className="space-y-3">
               {links.map((link, i) => {
                 const isExpired =
                   !!link.expiresAt && new Date(link.expiresAt) < new Date();
+                const usageLabel =
+                  link.maxUses === null
+                    ? t('events:manage.inviteLinks.useCount', { count: link.useCount })
+                    : t('events:manage.inviteLinks.useCountOfMax', {
+                        count: link.useCount,
+                        max: link.maxUses,
+                      });
+                const isNearLimit =
+                  link.maxUses !== null && link.useCount >= link.maxUses * 0.8;
                 return (
                   <li key={link.id}>
                     {i > 0 && <Separator className="mb-3" />}
@@ -160,7 +167,7 @@ export function InviteLinksCard({ event }: InviteLinksCardProps) {
                           <p className="text-sm font-medium">{link.label}</p>
                         ) : (
                           <p className="text-sm italic text-muted-foreground">
-                            Unnamed link
+                            {t('events:manage.inviteLinks.unnamed')}
                           </p>
                         )}
                         <p className="truncate font-mono text-xs text-muted-foreground">
@@ -168,8 +175,8 @@ export function InviteLinksCard({ event }: InviteLinksCardProps) {
                         </p>
                         <div className="flex flex-wrap gap-1.5">
                           <UsageBadge
-                            useCount={link.useCount}
-                            maxUses={link.maxUses}
+                            label={usageLabel}
+                            isNearLimit={isNearLimit}
                           />
                           {link.expiresAt &&
                             (isExpired ? (
@@ -178,7 +185,7 @@ export function InviteLinksCard({ event }: InviteLinksCardProps) {
                                 className="gap-1 text-xs"
                               >
                                 <Clock className="h-3 w-3" />
-                                Expired{' '}
+                                {t('events:manage.inviteLinks.expired')}{' '}
                                 {formatDateTime(
                                   link.expiresAt,
                                   'd LLL yyyy, HH:mm',
@@ -187,7 +194,7 @@ export function InviteLinksCard({ event }: InviteLinksCardProps) {
                               </Badge>
                             ) : (
                               <Badge variant="outline" className="text-xs">
-                                Expires{' '}
+                                {t('events:manage.inviteLinks.expires')}{' '}
                                 {formatDateTime(
                                   link.expiresAt,
                                   'd LLL yyyy, HH:mm',
@@ -205,7 +212,7 @@ export function InviteLinksCard({ event }: InviteLinksCardProps) {
                           onClick={() => handleCopy(link.token)}
                         >
                           <Copy className="h-3.5 w-3.5" />
-                          <span className="sr-only">Copy link</span>
+                          <span className="sr-only">{t('events:manage.inviteLinks.copy')}</span>
                         </Button>
                         <Button
                           size="icon"
@@ -214,7 +221,7 @@ export function InviteLinksCard({ event }: InviteLinksCardProps) {
                           onClick={() => handleDelete(link.id)}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
-                          <span className="sr-only">Delete link</span>
+                          <span className="sr-only">{t('events:manage.inviteLinks.delete')}</span>
                         </Button>
                       </div>
                     </div>
@@ -229,24 +236,24 @@ export function InviteLinksCard({ event }: InviteLinksCardProps) {
       <Modal
         open={open}
         onOpenChange={handleOpenChange}
-        title="Create invite link"
-        description="All fields are optional. Leave them blank to create a simple unlimited link."
+        title={t('events:manage.inviteLinks.create')}
+        description={t('events:manage.inviteLinks.createDescription')}
         size="sm"
       >
         <FormContainer form={form} onSubmit={onSubmit} className="space-y-4">
           <FormTextField
             control={form.control}
             name="label"
-            label="Label"
+            label={t('events:manage.inviteLinks.label')}
             optional
-            placeholder="e.g. Friends from work"
+            placeholder={t('events:manage.inviteLinks.labelPlaceholder')}
           />
 
           <FormNumberField
             control={form.control}
             name="maxUses"
-            label="Max uses"
-            placeholder="Unlimited"
+            label={t('events:manage.inviteLinks.maxUses')}
+            placeholder={t('events:manage.inviteLinks.unlimited')}
             optional
             min={1}
           />
@@ -254,7 +261,7 @@ export function InviteLinksCard({ event }: InviteLinksCardProps) {
           <FormDateTimeField
             control={form.control}
             name="expiresAt"
-            label="Expires at"
+            label={t('events:manage.inviteLinks.expiresAt')}
             optional
             disablePast
           />
@@ -265,10 +272,10 @@ export function InviteLinksCard({ event }: InviteLinksCardProps) {
               variant="ghost"
               onClick={() => handleOpenChange(false)}
             >
-              Cancel
+              {t('common:actions.cancel')}
             </Button>
             <LoadingButton type="submit" isLoading={creating}>
-              Create link
+              {t('events:manage.inviteLinks.create')}
             </LoadingButton>
           </ModalFooter>
         </FormContainer>

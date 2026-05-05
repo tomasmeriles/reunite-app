@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { Dialog as RadixDialog } from 'radix-ui';
 import { DateTime } from 'luxon';
+import { useTranslation } from 'react-i18next';
 import {
   DownloadIcon,
   Trash2Icon,
@@ -33,6 +34,7 @@ export function ImageLightbox({
   onDownload,
   isStaff = false,
 }: ImageLightboxProps) {
+  const { t } = useTranslation(['events', 'common']);
   const [direction, setDirection] = useState<'next' | 'prev'>('next');
   const touchStartX = useRef<number | null>(null);
 
@@ -100,7 +102,7 @@ export function ImageLightbox({
                     variant="ghost"
                     className="text-white hover:bg-white/10 hover:text-white"
                     onClick={() => onDownload(selected)}
-                    title="Download"
+                    title={t('events:detail.lightbox.download')}
                   >
                     <DownloadIcon />
                   </Button>
@@ -110,7 +112,7 @@ export function ImageLightbox({
                       variant="ghost"
                       className="text-white hover:bg-destructive/80 hover:text-white"
                       onClick={() => onDelete(selected.id)}
-                      title="Delete"
+                      title={t('events:detail.lightbox.delete')}
                     >
                       <Trash2Icon />
                     </Button>
@@ -162,25 +164,28 @@ export function ImageLightbox({
 
               {/* Bottom info bar */}
               <div
-                className="absolute bottom-0 left-0 right-0 flex flex-col gap-1.5 bg-linear-to-t from-black/80 to-transparent px-5 pb-4 pt-8"
+                className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-sm px-5 py-3"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                  {selected.uploaderName && (
-                    <span className="flex items-center gap-1.5 text-xs text-white/80">
-                      <UserIcon className="size-3 shrink-0" />
-                      {selected.isOwn ? 'You' : selected.uploaderName}
-                    </span>
-                  )}
+                <div className="flex items-center gap-3">
                   {formattedDate && (
-                    <span className="flex items-center gap-1.5 text-xs text-white/60">
+                    <span className="flex items-center gap-1.5 text-xs text-white/80">
                       <CalendarIcon className="size-3 shrink-0" />
                       {formattedDate}
                     </span>
                   )}
+                  {selected.uploaderName && (
+                    <>
+                      <span className="text-white/30">·</span>
+                      <span className="flex items-center gap-1.5 text-xs text-white/80">
+                        <UserIcon className="size-3 shrink-0" />
+                        {selected.isOwn ? t('common:labels.you') : selected.uploaderName}
+                      </span>
+                    </>
+                  )}
                 </div>
                 {selected.caption && (
-                  <p className="text-sm text-white/90">{selected.caption}</p>
+                  <p className="mt-1 text-sm text-white/90">{selected.caption}</p>
                 )}
               </div>
             </>

@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { CalendarDays, MapPin, Plus } from 'lucide-react';
+import { CalendarDays, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '~/contexts/auth';
 import { useMyEvents } from '~/hooks/api/use-events';
@@ -8,48 +8,32 @@ import { Badge } from '~/components/ui/badge';
 import { Card, CardContent } from '~/components/ui/card';
 import { Skeleton } from '~/components/ui/skeleton';
 import { GLOBAL_ROLE_COLORS } from '~/lib/colors';
-import { STATUS_META } from '~/lib/event-state-machine';
-import { formatDate } from '~/lib/datetime';
+import { EventCard } from '~/components/events/event-card';
 import type { Event } from '~/api/events/events.types';
 
-function EventCard({ event }: { event: Event }) {
-  const { t } = useTranslation('common');
+function UpcomingSection({
+  title,
+  events,
+}: {
+  title: string;
+  events: Event[];
+}) {
+  if (events.length === 0) return null;
   return (
-    <Link to="/events/$id" params={{ id: event.id }}>
-      <Card className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer group">
-        <div className="relative h-28 bg-muted">
-          {event.coverImage ? (
-            <img
-              src={event.coverImage}
-              alt={event.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <CalendarDays className="h-7 w-7 text-muted-foreground/30" />
-            </div>
-          )}
-          <Badge
-            className={`absolute top-2 right-2 text-xs ${STATUS_META[event.status].colorClass}`}
-          >
-            {t(`status.${event.status}`)}
-          </Badge>
-        </div>
-        <CardContent className="p-3">
-          <p className="font-semibold text-sm line-clamp-1">{event.title}</p>
-          <div className="flex items-center gap-1 mt-1.5 text-xs text-muted-foreground">
-            <CalendarDays className="h-3 w-3 shrink-0" />
-            <span>{formatDate(event.startAt)}</span>
-          </div>
-          {event.location && (
-            <div className="flex items-center gap-1 mt-0.5 text-xs text-muted-foreground">
-              <MapPin className="h-3 w-3 shrink-0" />
-              <span className="truncate">{event.location}</span>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </Link>
+    <div className="space-y-3">
+      <div className="flex items-center gap-3">
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide shrink-0">
+          {title}
+        </h3>
+        <div className="flex-1 h-px bg-border" />
+        <span className="text-xs text-muted-foreground shrink-0">{events.length}</span>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {events.map((event) => (
+          <EventCard key={event.id} event={event} variant="compact" />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -66,16 +50,16 @@ export default function DashboardPage() {
             e.startAt > now && e.status !== 'CANCELLED' && e.status !== 'ENDED',
         )
         .sort((a, b) => a.startAt.localeCompare(b.startAt))
-        .slice(0, 4)
     : [];
 
+  const upcomingOrganizing = upcomingEvents.filter(
+    (e) => e.myRole === 'OWNER' || e.myRole === 'ORGANIZER',
+  );
+  const upcomingAttending = upcomingEvents.filter((e) => e.myRole === 'ATTENDEE');
+
   const totalEvents = events?.length ?? 0;
-  const upcomingCount = events
-    ? events.filter(
-        (e) =>
-          e.startAt > now && e.status !== 'CANCELLED' && e.status !== 'ENDED',
-      ).length
-    : 0;
+  const upcomingCount = upcomingEvents.length;
+  const hasUpcoming = upcomingOrganizing.length > 0 || upcomingAttending.length > 0;
 
   return (
     <div className="space-y-8">
@@ -139,11 +123,16 @@ export default function DashboardPage() {
               <Skeleton key={i} className="h-48 rounded-xl" />
             ))}
           </div>
-        ) : upcomingEvents.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {upcomingEvents.map((event) => (
-              <EventCard key={event.id} event={event} />
-            ))}
+        ) : hasUpcoming ? (
+          <div className="space-y-6">
+            <UpcomingSection
+              title={t('events:list.sections.organizing')}
+              events={upcomingOrganizing}
+            />
+            <UpcomingSection
+              title={t('events:list.sections.attending')}
+              events={upcomingAttending}
+            />
           </div>
         ) : (
           <div className="rounded-xl border border-dashed p-10 text-center">

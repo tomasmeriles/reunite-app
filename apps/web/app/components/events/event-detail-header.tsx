@@ -24,6 +24,7 @@ interface EventDetailHeaderProps {
   canJoin: boolean;
   canAddGuest: boolean;
   canAddSelf: boolean;
+  registrationsClosed: boolean;
   inviteLinkRemaining: number | null;
   registering: boolean;
   addingGuest: boolean;
@@ -41,6 +42,7 @@ export function EventDetailHeader({
   canJoin,
   canAddGuest,
   canAddSelf,
+  registrationsClosed,
   inviteLinkRemaining,
   registering,
   addingGuest,
@@ -76,6 +78,41 @@ export function EventDetailHeader({
 
   function renderActions() {
     if (isAttending) {
+      if (registrationsClosed && event.eventType !== 'INVITE_ACCOUNT') {
+        return (
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled
+              title={t('events:detail.registrationsClosedDesc')}
+            >
+              <UserPlus className="mr-1.5 h-3.5 w-3.5" />
+              {t('events:detail.bringAFriend')}
+            </Button>
+            {showManage && (
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/events/$id/manage" params={{ id: event.id }}>
+                  <ManageIcon />
+                  <span className="ml-1.5">{t('events:detail.manage')}</span>
+                </Link>
+              </Button>
+            )}
+            {canUnregisterSelf && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onLeave}
+                className="text-destructive hover:text-destructive"
+              >
+                <LogOut className="mr-1.5 h-3.5 w-3.5" />
+                {t('events:detail.leaveEvent')}
+              </Button>
+            )}
+          </>
+        );
+      }
+
       if (canAddGuest && showManage) {
         return (
           <SplitButton
@@ -139,7 +176,7 @@ export function EventDetailHeader({
             {t('events:detail.bringAFriend')}
             {inviteLinkRemaining !== null && (
               <Badge variant="secondary" className="ml-1.5 text-xs">
-                {inviteLinkRemaining} left
+                {inviteLinkRemaining} {t('events:detail.inviteLinkLeft')}
               </Badge>
             )}
           </Button>
@@ -228,6 +265,25 @@ export function EventDetailHeader({
       return (
         <>
           <Button onClick={onJoin} disabled={registering}>
+            <Zap className="mr-1.5 h-4 w-4" />
+            {t('events:detail.jumpIn')}
+          </Button>
+          {showManage && (
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/events/$id/manage" params={{ id: event.id }}>
+                {<ManageIcon />}
+                <span className="ml-1.5">{t('events:detail.manage')}</span>
+              </Link>
+            </Button>
+          )}
+        </>
+      );
+    }
+
+    if (registrationsClosed) {
+      return (
+        <>
+          <Button disabled title={t('events:detail.registrationsClosedDesc')}>
             <Zap className="mr-1.5 h-4 w-4" />
             {t('events:detail.jumpIn')}
           </Button>

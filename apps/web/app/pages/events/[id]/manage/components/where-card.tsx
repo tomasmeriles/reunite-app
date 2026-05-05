@@ -3,6 +3,7 @@ import { MapPin, Clock, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
 import { Button } from '~/components/ui/button';
 import {
   Card,
@@ -31,6 +32,7 @@ interface EditFormProps {
 }
 
 function WhereEditForm({ event, onSuccess, onCancel }: EditFormProps) {
+  const { t } = useTranslation(['events', 'common']);
   const apiError = useApiError();
   const { mutate: updateEvent, isPending } = useUpdateEvent(event.id);
   const picker = useLocationPicker();
@@ -51,7 +53,7 @@ function WhereEditForm({ event, onSuccess, onCancel }: EditFormProps) {
   const onSubmit = (values: UpdateEventFormValues) => {
     updateEvent(toApiPayload(values), {
       onSuccess: () => {
-        toast.success('Event location updated');
+        toast.success(t('events:manage.where.updateSuccess'));
         onSuccess();
       },
       onError: (err) => toast.error(apiError(err)),
@@ -68,7 +70,7 @@ function WhereEditForm({ event, onSuccess, onCancel }: EditFormProps) {
           latName="latitude"
           lngName="longitude"
           timezoneName="timezone"
-          label="Location"
+          label={t('events:create.fields.location')}
           optional
         />
         {picker.selected && (
@@ -95,15 +97,15 @@ function WhereEditForm({ event, onSuccess, onCancel }: EditFormProps) {
       </div>
       <ModalFooter>
         <Button variant="outline" type="button" onClick={onCancel}>
-          Cancel
+          {t('common:actions.cancel')}
         </Button>
         <LoadingButton
           type="submit"
           isLoading={isPending}
-          loadingText="Saving…"
+          loadingText={t('common:actions.saving')}
           disabled={!isDirty}
         >
-          Save changes
+          {t('common:actions.save')}
         </LoadingButton>
       </ModalFooter>
     </FormContainer>
@@ -117,24 +119,25 @@ interface WhereCardProps {
 }
 
 export function WhereCard({ event }: WhereCardProps) {
+  const { t } = useTranslation('events');
   const { canEdit } = useEventAccess(event.id);
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-3">
         <div className="min-w-0">
-          <CardTitle>Where</CardTitle>
-          <CardDescription>Venue or address</CardDescription>
+          <CardTitle>{t('manage.where.title')}</CardTitle>
+          <CardDescription>{t('manage.where.description')}</CardDescription>
         </div>
         {canEdit && (
           <Modal
-            title="Where"
-            description="Update the event location"
+            title={t('manage.where.title')}
+            description={t('manage.where.editDescription')}
             size="md"
             trigger={
               <Button variant="ghost" size="icon-sm" className="shrink-0">
                 <Pencil className="h-3.5 w-3.5" />
-                <span className="sr-only">Edit location</span>
+                <span className="sr-only">{t('manage.where.editLocation')}</span>
               </Button>
             }
           >
@@ -151,7 +154,7 @@ export function WhereCard({ event }: WhereCardProps) {
             <span>{event.location}</span>
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">No location set</p>
+          <p className="text-sm text-muted-foreground">{t('manage.where.noLocation')}</p>
         )}
       </CardContent>
     </Card>

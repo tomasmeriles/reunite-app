@@ -15,7 +15,6 @@ export type Subject =
   | 'InviteLink'
   | 'EventWhitelistEntry'
   | 'EventAttendee'
-  | 'ChatMessage'
   | 'MediaItem'
   | 'Prize'
   | 'all';
