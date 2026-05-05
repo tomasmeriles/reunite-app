@@ -39,7 +39,9 @@ export class RefreshTokensService extends TransactionalService {
     });
 
     if (!record) {
-      throw new UnauthorizedException({ code: ErrorCode.INVALID_REFRESH_TOKEN });
+      throw new UnauthorizedException({
+        code: ErrorCode.INVALID_REFRESH_TOKEN,
+      });
     }
 
     if (record.revokedAt) {
@@ -54,7 +56,9 @@ export class RefreshTokensService extends TransactionalService {
     if (
       DateTime.fromJSDate(record.expiresAt, { zone: 'utc' }) < DateTime.utc()
     ) {
-      throw new UnauthorizedException({ code: ErrorCode.REFRESH_TOKEN_EXPIRED });
+      throw new UnauthorizedException({
+        code: ErrorCode.REFRESH_TOKEN_EXPIRED,
+      });
     }
 
     return record;

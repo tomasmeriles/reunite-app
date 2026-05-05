@@ -11,7 +11,7 @@ export interface WebPOptions {
 @Injectable()
 export class ImageProcessingService {
   async toWebP(input: Buffer | Readable, opts?: WebPOptions): Promise<Buffer> {
-    const pipeline = sharp(await this.toBuffer(input));
+    const pipeline = sharp(await this.toBuffer(input)).rotate();
 
     if (opts?.width || opts?.height) {
       pipeline.resize(opts.width, opts.height, {

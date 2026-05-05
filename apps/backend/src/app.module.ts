@@ -22,10 +22,9 @@ import { EventsModule } from './modules/events/events.module';
 import { AttendanceModule } from './modules/attendance/attendance.module';
 import { InviteLinksModule } from './modules/invite-links/invite-links.module';
 import { WhitelistModule } from './modules/whitelist/whitelist.module';
-import { ChatModule } from './modules/chat/chat.module';
 import { MediaModule } from './modules/media/media.module';
 import { PrizesModule } from './modules/prizes/prizes.module';
-import { RtcModule } from './rtc/rtc.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { GeoModule } from './modules/geo/geo.module';
 
 @Module({
@@ -60,15 +59,14 @@ import { GeoModule } from './modules/geo/geo.module';
     CaslModule,
     QueueModule,
     HealthModule,
-    RtcModule,
     GeoModule,
     EventsModule,
     AttendanceModule,
     InviteLinksModule,
     WhitelistModule,
-    ChatModule,
     MediaModule,
     PrizesModule,
+    NotificationsModule,
     ThrottlerModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({

@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ErrorCode } from '../../../common/errors/error-codes.enum';
-import { EventRole, EventStatus } from '@prisma/client';
+import { AttendeeStatus, EventRole, EventStatus } from '@prisma/client';
 import { TransactionalService } from '../../../common/base/transactional-service.base';
 import { Transactional } from '../../../common/decorators/transactional.decorator';
 import { defined } from '../../../common/helpers/prisma.helpers';
@@ -21,7 +21,12 @@ import type { UpdateEventDto } from '../dto/update-event.dto';
 import type { UpdateEventConfigDto } from '../dto/update-event-config.dto';
 import type { UpdateEventStatusDto } from '../dto/update-event-status.dto';
 import { eventDefaultOrderBy } from '../constants/event.constants';
-import { assertValidTransition } from '../helpers/event-state-machine.helper';
+import {
+  assertValidTransition,
+  CONFIG_EDITABLE_STATUSES,
+  isContentEditableStatus,
+  isFullyEditableStatus,
+} from '../helpers/event-state-machine.helper';
 import { EventTransitionsQueueService } from '../queue/event-transitions.queue';
 import {
   eventDetailInclude,
@@ -34,6 +39,9 @@ import {
   type EventWithMembersPayload,
 } from '../selects/event.select';
 import { DateTime } from 'luxon';
+import { AttendeeAccess, EventType, MediaAccess } from '@prisma/client';
+import { NotificationsService } from '../../notifications/services/notifications.service';
+import { NotificationType } from '@prisma/client';
 
 type JobAction =
   | 'schedule-auto-active'
@@ -60,10 +68,34 @@ export class EventsService extends TransactionalService {
   @Inject(EventTransitionsQueueService)
   private readonly transitionsQueue!: EventTransitionsQueueService;
 
+  @Inject(NotificationsService)
+  private readonly notificationsService!: NotificationsService;
+
   private computeEndAt(startAt: Date, durationMinutes: number): Date {
     return DateTime.fromJSDate(startAt)
       .plus({ minutes: durationMinutes })
       .toJSDate();
+  }
+
+  private normalizePrivateEventAccess<
+    T extends {
+      attendeeAccess?: AttendeeAccess;
+      mediaAccess?: MediaAccess;
+    },
+  >(eventType: EventType, config: T): T {
+    if (eventType === EventType.PUBLIC) {
+      return config;
+    }
+
+    return {
+      ...config,
+      ...(config.attendeeAccess === AttendeeAccess.ANYONE
+        ? { attendeeAccess: AttendeeAccess.ATTENDEES_ONLY }
+        : {}),
+      ...(config.mediaAccess === MediaAccess.ANYONE
+        ? { mediaAccess: MediaAccess.ATTENDEES_ONLY }
+        : {}),
+    };
   }
 
   /** Creates an Event + EventMember (OWNER) + EventConfig in one transaction. */
@@ -94,8 +126,8 @@ export class EventsService extends TransactionalService {
         config: {
           create: {
             attendeeAccess: 'ATTENDEES_ONLY',
-            chatEnabled: true,
             mediaAccess: 'ATTENDEES_ONLY',
+            registrationsEnabled: true,
             prizesEnabled: true,
           },
         },
@@ -134,36 +166,107 @@ export class EventsService extends TransactionalService {
     return event;
   }
 
-  async findMine(userId: string): Promise<EventListPayload[]> {
-    return this.db.event.findMany({
+  async findMine(userId: string) {
+    const events = await this.db.event.findMany({
       where: {
-        staff: {
-          some: {
-            userId,
-            role: { in: [EventRole.OWNER, EventRole.ORGANIZER] },
+        OR: [
+          {
+            staff: {
+              some: {
+                userId,
+                role: { in: [EventRole.OWNER, EventRole.ORGANIZER] },
+              },
+            },
           },
-        },
+          {
+            attendees: {
+              some: { userId, status: AttendeeStatus.CONFIRMED },
+            },
+          },
+        ],
       },
-      include: eventListInclude,
+      include: {
+        config: true,
+        _count: { select: { attendees: true } },
+        staff: { where: { userId }, select: { role: true } },
+      },
       orderBy: eventDefaultOrderBy,
     });
+
+    return events.map(({ staff, ...event }) => ({
+      ...event,
+      myRole: (staff[0]?.role as EventRole) ?? 'ATTENDEE',
+    }));
   }
 
   @Transactional()
   async update(id: string, dto: UpdateEventDto): Promise<EventDetailPayload> {
     const existing = await this.db.event.findUnique({
       where: { id },
-      select: { startAt: true, duration: true, status: true },
+      select: {
+        startAt: true,
+        duration: true,
+        status: true,
+        title: true,
+        eventType: true,
+        maxAttendees: true,
+        config: {
+          select: {
+            attendeeAccess: true,
+            mediaAccess: true,
+          },
+        },
+      },
     });
 
-    if (!existing) throw new NotFoundException('Event not found');
+    if (!existing) {
+      throw new NotFoundException({ code: ErrorCode.EVENT_NOT_FOUND });
+    }
 
-    assertEventStatus(
-      existing.status,
-      EventStatus.DRAFT,
-      EventStatus.PUBLISHED,
-      EventStatus.RESCHEDULED,
-    );
+    assertEventStatus(existing.status, ...CONFIG_EDITABLE_STATUSES);
+
+    const isFullyEditable = isFullyEditableStatus(existing.status);
+
+    // Build a clean DTO that only includes fields allowed for the current status.
+    // This prevents 400 errors when the frontend sends unchanged values.
+    const cleanDto: UpdateEventDto = {};
+
+    // Fields allowed in all CONTENT_EDITABLE_STATUSES (DRAFT, PUBLISHED, RESCHEDULED)
+    if (dto.title !== undefined) cleanDto.title = dto.title;
+    if (dto.description !== undefined) cleanDto.description = dto.description;
+    if (dto.location !== undefined) cleanDto.location = dto.location;
+    if (dto.latitude !== undefined) cleanDto.latitude = dto.latitude;
+    if (dto.longitude !== undefined) cleanDto.longitude = dto.longitude;
+    if (dto.timezone !== undefined) cleanDto.timezone = dto.timezone;
+    if (dto.startAt !== undefined) cleanDto.startAt = dto.startAt;
+    if (dto.duration !== undefined) cleanDto.duration = dto.duration;
+
+    // Fields only allowed in FULLY_EDITABLE_STATUSES (DRAFT)
+    if (isFullyEditable) {
+      if (dto.eventType !== undefined) cleanDto.eventType = dto.eventType;
+      if (dto.maxAttendees !== undefined) {
+        const confirmedCount = await this.db.eventAttendee.count({
+          where: { eventId: id, status: AttendeeStatus.CONFIRMED },
+        });
+        if (dto.maxAttendees !== null && dto.maxAttendees < confirmedCount) {
+          throw new BadRequestException({
+            code: ErrorCode.EVENT_STATUS_NOT_ALLOWED,
+          });
+        }
+        cleanDto.maxAttendees = dto.maxAttendees;
+      }
+    }
+
+    dto = cleanDto;
+
+    // After cleaning, check if there's actually anything to update
+    if (Object.keys(dto).length === 0) {
+      // Nothing to update, return existing event
+      return this.db.event.findUnique({
+        where: { id },
+        include: eventDetailInclude,
+      }) as Promise<EventDetailPayload>;
+    }
 
     const startAtChanged =
       dto.startAt && dto.startAt.getTime() !== existing.startAt.getTime();
@@ -172,6 +275,7 @@ export class EventsService extends TransactionalService {
 
     const newStartAt = dto.startAt ?? existing.startAt;
     const newDuration = dto.duration ?? existing.duration;
+    const nextEventType = dto.eventType ?? existing.eventType;
     const endAt =
       startAtChanged || durationChanged
         ? this.computeEndAt(newStartAt, newDuration)
@@ -179,9 +283,19 @@ export class EventsService extends TransactionalService {
 
     // Auto-set RESCHEDULED when date changes on a published event
     let status = existing.status;
-    if (startAtChanged && existing.status === EventStatus.PUBLISHED) {
+    const wasRescheduled = startAtChanged && existing.status === EventStatus.PUBLISHED;
+    if (wasRescheduled) {
       status = EventStatus.RESCHEDULED;
     }
+
+    const normalizedConfig = this.normalizePrivateEventAccess(nextEventType, {
+      attendeeAccess: existing.config?.attendeeAccess,
+      mediaAccess: existing.config?.mediaAccess,
+    });
+
+    const shouldNormalizeConfig =
+      normalizedConfig.attendeeAccess !== existing.config?.attendeeAccess ||
+      normalizedConfig.mediaAccess !== existing.config?.mediaAccess;
 
     const updated = await this.db.event.update({
       where: { id },
@@ -189,6 +303,16 @@ export class EventsService extends TransactionalService {
         ...defined(dto),
         ...(endAt ? { endAt } : {}),
         status,
+        ...(shouldNormalizeConfig
+          ? {
+              config: {
+                update: defined({
+                  attendeeAccess: normalizedConfig.attendeeAccess,
+                  mediaAccess: normalizedConfig.mediaAccess,
+                }),
+              },
+            }
+          : {}),
       },
       include: eventDetailInclude,
     });
@@ -212,6 +336,22 @@ export class EventsService extends TransactionalService {
       endAt
     ) {
       await this.transitionsQueue.scheduleAutoEnded(id, endAt);
+    }
+
+    // Send notification to attendees if event was rescheduled
+    if (wasRescheduled) {
+      await this.notificationsService.createForAttendees(
+        id,
+        NotificationType.EVENT_RESCHEDULED,
+        'notifications:types.EVENT_RESCHEDULED',
+        'notifications:messages.eventRescheduled',
+        {
+          eventId: id,
+          eventTitle: existing.title,
+          oldDate: existing.startAt.toISOString(),
+          newDate: newStartAt.toISOString(),
+        },
+      );
     }
 
     return updated;
@@ -253,6 +393,13 @@ export class EventsService extends TransactionalService {
       data: { status: dto.status, ...extra },
     });
 
+    // Invalidate abilities for all staff — status change affects CASL rules
+    const members = await this.db.eventStaff.findMany({
+      where: { eventId: id },
+      select: { userId: true },
+    });
+    await this.abilityCache.delMany(members.map((m) => m.userId));
+
     // Schedule / cancel BullMQ jobs based on the new status
     await this.syncJobsAfterStatusChange(id, dto.status, event);
 
@@ -283,17 +430,24 @@ export class EventsService extends TransactionalService {
   }
 
   async updateConfig(id: string, dto: UpdateEventConfigDto) {
-    await requireEventStatus(
-      this.db,
-      id,
-      EventStatus.DRAFT,
-      EventStatus.PUBLISHED,
-      EventStatus.RESCHEDULED,
-      EventStatus.ACTIVE,
+    await requireEventStatus(this.db, id, ...CONFIG_EDITABLE_STATUSES);
+
+    const event = await this.db.event.findUnique({
+      where: { id },
+      select: { eventType: true },
+    });
+    if (!event) {
+      throw new NotFoundException({ code: ErrorCode.EVENT_NOT_FOUND });
+    }
+
+    const normalizedDto = this.normalizePrivateEventAccess(
+      event.eventType,
+      dto,
     );
+
     const result = await this.db.eventConfig.update({
       where: { eventId: id },
-      data: defined(dto),
+      data: defined(normalizedDto),
     });
     // Invalidate abilities for all event staff - config gates affect ORGANIZER rules
     const members = await this.db.eventStaff.findMany({
@@ -308,13 +462,7 @@ export class EventsService extends TransactionalService {
 
   @Transactional()
   async setCoverImage(id: string, s3Key: string) {
-    await requireEventStatus(
-      this.db,
-      id,
-      EventStatus.DRAFT,
-      EventStatus.PUBLISHED,
-      EventStatus.RESCHEDULED,
-    );
+    await requireEventStatus(this.db, id, ...CONFIG_EDITABLE_STATUSES);
     return this.db.event.update({ where: { id }, data: { coverImage: s3Key } });
   }
 

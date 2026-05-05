@@ -1,4 +1,4 @@
-import { AttendeeStatus, Prisma } from '@prisma/client';
+import { AttendeeStatus, EventRole, Prisma } from '@prisma/client';
 
 export const eventListInclude = {
   config: true,
@@ -8,6 +8,10 @@ export const eventListInclude = {
 export type EventListPayload = Prisma.EventGetPayload<{
   include: typeof eventListInclude;
 }>;
+
+export type MyEventPayload = EventListPayload & {
+  myRole: EventRole | 'ATTENDEE';
+};
 
 export const eventDetailInclude = {
   config: true,

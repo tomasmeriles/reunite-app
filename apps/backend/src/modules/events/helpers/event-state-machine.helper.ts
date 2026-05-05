@@ -6,19 +6,43 @@ const VALID_TRANSITIONS: Record<EventStatus, EventStatus[]> = {
   [EventStatus.DRAFT]: [EventStatus.PUBLISHED, EventStatus.CANCELLED],
   [EventStatus.PUBLISHED]: [
     EventStatus.ACTIVE,
-    EventStatus.DRAFT,
     EventStatus.RESCHEDULED,
     EventStatus.CANCELLED,
   ],
   [EventStatus.ACTIVE]: [EventStatus.ENDED, EventStatus.CANCELLED],
   [EventStatus.RESCHEDULED]: [
-    EventStatus.PUBLISHED,
     EventStatus.ACTIVE,
     EventStatus.CANCELLED,
   ],
   [EventStatus.ENDED]: [],
-  [EventStatus.CANCELLED]: [EventStatus.DRAFT],
+  [EventStatus.CANCELLED]: [],
 };
+
+export const FULLY_EDITABLE_STATUSES: EventStatus[] = [EventStatus.DRAFT];
+
+export const PARTIALLY_EDITABLE_STATUSES: EventStatus[] = [
+  EventStatus.PUBLISHED,
+  EventStatus.RESCHEDULED,
+];
+
+export const CONTENT_EDITABLE_STATUSES: EventStatus[] = [
+  ...FULLY_EDITABLE_STATUSES,
+  ...PARTIALLY_EDITABLE_STATUSES,
+];
+
+export const CONFIG_EDITABLE_STATUSES: EventStatus[] = [
+  EventStatus.DRAFT,
+  EventStatus.PUBLISHED,
+  EventStatus.RESCHEDULED,
+];
+
+export function isContentEditableStatus(status: EventStatus): boolean {
+  return CONTENT_EDITABLE_STATUSES.includes(status);
+}
+
+export function isFullyEditableStatus(status: EventStatus): boolean {
+  return FULLY_EDITABLE_STATUSES.includes(status);
+}
 
 /**
  * Returns the allowed next statuses from the given status.
@@ -38,6 +62,8 @@ export function assertValidTransition(
   if (from === to) return;
   const allowed = getValidTransitions(from);
   if (!allowed.includes(to)) {
-    throw new BadRequestException({ code: ErrorCode.INVALID_STATUS_TRANSITION });
+    throw new BadRequestException({
+      code: ErrorCode.INVALID_STATUS_TRANSITION,
+    });
   }
 }

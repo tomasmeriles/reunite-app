@@ -7,12 +7,12 @@ export class UpdateEventConfigDto {
   attendeeAccess?: AttendeeAccess;
 
   @IsOptional()
-  @IsBoolean()
-  chatEnabled?: boolean;
-
-  @IsOptional()
   @IsEnum(MediaAccess)
   mediaAccess?: MediaAccess;
+
+  @IsOptional()
+  @IsBoolean()
+  registrationsEnabled?: boolean;
 
   @IsOptional()
   @IsBoolean()

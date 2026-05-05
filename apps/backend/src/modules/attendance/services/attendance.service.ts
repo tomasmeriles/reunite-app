@@ -46,6 +46,12 @@ export class AttendanceService extends TransactionalService {
       throw new BadRequestException({ code: ErrorCode.EVENT_ENDED });
     }
 
+    if (event.config?.registrationsEnabled === false) {
+      throw new BadRequestException({
+        code: ErrorCode.REGISTRATIONS_DISABLED,
+      });
+    }
+
     // Check capacity
     if (event.maxAttendees !== null) {
       const count = await this.db.eventAttendee.count({
@@ -95,7 +101,7 @@ export class AttendanceService extends TransactionalService {
       });
     }
 
-    // ORGANIZER cannot remove other staff members (OWNER or ORGANIZER).
+    // ORGANIZER cannot remove other staff members (OWNER or ORGANIZER)
     // Only the event OWNER can remove staff attendees.
     if (attendee.userId && requestingUserId) {
       const targetStaff = await this.db.eventStaff.findUnique({
@@ -321,12 +327,20 @@ export class AttendanceService extends TransactionalService {
       throw new ForbiddenException({ code: ErrorCode.NO_IDENTITY_PROVIDED });
     }
 
-    const event = await this.db.event.findUnique({ where: { id: eventId } });
+    const event = await this.db.event.findUnique({
+      where: { id: eventId },
+      include: { config: true },
+    });
     if (!event)
       throw new NotFoundException({ code: ErrorCode.EVENT_NOT_FOUND });
 
     if (event.eventType === EventType.INVITE_ACCOUNT) {
       throw new ForbiddenException({ code: ErrorCode.GUESTS_NOT_ALLOWED });
+    }
+    if (event.config?.registrationsEnabled === false) {
+      throw new BadRequestException({
+        code: ErrorCode.REGISTRATIONS_DISABLED,
+      });
     }
 
     let myAttendee = userId
@@ -457,6 +471,16 @@ export class AttendanceService extends TransactionalService {
 
     if (!link || link.eventId !== eventId) {
       throw new BadRequestException({ code: ErrorCode.INVITE_LINK_INVALID });
+    }
+    const event = await this.db.event.findUnique({
+      where: { id: eventId },
+      select: { eventType: true },
+    });
+    if (!event) {
+      throw new NotFoundException({ code: ErrorCode.EVENT_NOT_FOUND });
+    }
+    if (event.eventType !== EventType.INVITE_LINK) {
+      throw new BadRequestException({ code: ErrorCode.INVITE_LINK_INACTIVE });
     }
     if (link.expiresAt && link.expiresAt < new Date()) {
       throw new BadRequestException({ code: ErrorCode.INVITE_LINK_EXPIRED });

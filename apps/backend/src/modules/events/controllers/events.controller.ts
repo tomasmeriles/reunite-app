@@ -36,6 +36,7 @@ import {
   type EventListPayload,
   type EventPublicPayload,
   type EventWithMembersPayload,
+  type MyEventPayload,
 } from '../selects/event.select';
 import { randomUUID } from 'crypto';
 
@@ -51,7 +52,10 @@ export class EventsController {
     event: T,
   ): Promise<T> {
     if (!event.coverImage) return event;
-    return { ...event, coverImage: await this.storage.getPresignedUrl(event.coverImage) };
+    return {
+      ...event,
+      coverImage: await this.storage.getPresignedUrl(event.coverImage),
+    };
   }
 
   @Post()
@@ -66,7 +70,7 @@ export class EventsController {
   }
 
   @Get('mine')
-  async getMine(@CurrentUser() user: SafeUser): Promise<EventListPayload[]> {
+  async getMine(@CurrentUser() user: SafeUser): Promise<MyEventPayload[]> {
     const events = await this.events.findMine(user.id);
     return Promise.all(events.map((e) => this.withCoverUrl(e)));
   }
@@ -96,7 +100,10 @@ export class EventsController {
   @CheckPolicies((ability, req: Request) =>
     ability.can('update', subject('Event', { id: req.params['id'] })),
   )
-  async updateStatus(@Param('id') id: string, @Body() dto: UpdateEventStatusDto) {
+  async updateStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateEventStatusDto,
+  ) {
     return this.withCoverUrl(await this.events.updateStatus(id, dto));
   }
 
@@ -125,7 +132,8 @@ export class EventsController {
     @UploadedFile() file: Express.Multer.File | undefined,
   ) {
     // TODO: Check this logic
-    if (!file) throw new BadRequestException({ code: ErrorCode.NO_FILE_PROVIDED });
+    if (!file)
+      throw new BadRequestException({ code: ErrorCode.NO_FILE_PROVIDED });
     const processed = await this.imageProcessing.toWebP(file.buffer, {
       width: 1920,
       quality: 85,

@@ -7,6 +7,7 @@ import { PrismaModule } from '../../prisma/prisma.module';
 import { StorageModule } from '../../storage/storage.module';
 import { GeoModule } from '../geo/geo.module';
 import { CaslModule } from '../../casl/casl.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import {
   EVENT_TRANSITIONS_QUEUE,
   EventTransitionsQueueService,
@@ -19,11 +20,16 @@ import { EventTransitionsProcessor } from './queue/event-transitions.processor';
     StorageModule,
     GeoModule,
     CaslModule,
+    NotificationsModule,
     MulterModule.register({ limits: { fileSize: 10 * 1024 * 1024 } }), // 10 MB
     BullModule.registerQueue({ name: EVENT_TRANSITIONS_QUEUE }),
   ],
   controllers: [EventsController],
-  providers: [EventsService, EventTransitionsQueueService, EventTransitionsProcessor],
+  providers: [
+    EventsService,
+    EventTransitionsQueueService,
+    EventTransitionsProcessor,
+  ],
   exports: [EventsService],
 })
 export class EventsModule {}

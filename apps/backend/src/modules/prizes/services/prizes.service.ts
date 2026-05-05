@@ -52,15 +52,23 @@ export class PrizesService {
     dto: AssignWinnerDto,
     userId: string,
   ) {
-    await requireEventStatus(this.prisma, eventId, EventStatus.ACTIVE, EventStatus.ENDED);
+    await requireEventStatus(
+      this.prisma,
+      eventId,
+      EventStatus.ACTIVE,
+      EventStatus.ENDED,
+    );
     await this.assertOrganizer(eventId, userId);
 
     const prize = await this.prisma.prize.findFirst({
       where: { id: prizeId, eventId },
     });
-    if (!prize) throw new NotFoundException({ code: ErrorCode.PRIZE_NOT_FOUND });
+    if (!prize)
+      throw new NotFoundException({ code: ErrorCode.PRIZE_NOT_FOUND });
     if (prize.winnerId)
-      throw new BadRequestException({ code: ErrorCode.WINNER_ALREADY_ASSIGNED });
+      throw new BadRequestException({
+        code: ErrorCode.WINNER_ALREADY_ASSIGNED,
+      });
 
     let attendeeId = dto.attendeeId;
 
@@ -103,7 +111,8 @@ export class PrizesService {
     const prize = await this.prisma.prize.findFirst({
       where: { id: prizeId, eventId },
     });
-    if (!prize) throw new NotFoundException({ code: ErrorCode.PRIZE_NOT_FOUND });
+    if (!prize)
+      throw new NotFoundException({ code: ErrorCode.PRIZE_NOT_FOUND });
     await this.prisma.prize.delete({ where: { id: prizeId } });
   }
 

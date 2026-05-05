@@ -47,7 +47,9 @@ export class UsersService extends TransactionalService {
       where: { id },
       select: {
         ...userSelect,
-        memberships: { include: { event: { select: { config: true, status: true } } } },
+        memberships: {
+          include: { event: { select: { config: true, status: true } } },
+        },
       },
     }) as Promise<UserWithMemberships | null>;
   }

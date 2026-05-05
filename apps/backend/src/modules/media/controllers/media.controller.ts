@@ -38,8 +38,10 @@ export class MediaController {
     @CurrentUser() user: SafeUser | undefined,
     @Headers('x-guest-token') guestToken: string | undefined,
   ) {
-    if (!file) throw new BadRequestException({ code: ErrorCode.NO_FILE_PROVIDED });
-    if (file.size > MAX_FILE_SIZE) throw new BadRequestException({ code: ErrorCode.FILE_TOO_LARGE });
+    if (!file)
+      throw new BadRequestException({ code: ErrorCode.NO_FILE_PROVIDED });
+    if (file.size > MAX_FILE_SIZE)
+      throw new BadRequestException({ code: ErrorCode.FILE_TOO_LARGE });
     const requester = user ? { userId: user.id } : { guestToken };
     return this.media.upload(eventId, requester, file, caption);
   }
@@ -52,7 +54,11 @@ export class MediaController {
     @Headers('x-guest-token') guestToken: string | undefined,
     @Query() query: PaginationQueryDto,
   ) {
-    return this.media.findByEvent(eventId, { userId: user?.id, guestToken }, query);
+    return this.media.findByEvent(
+      eventId,
+      { userId: user?.id, guestToken },
+      query,
+    );
   }
 
   @Public()
@@ -64,7 +70,8 @@ export class MediaController {
     @CurrentUser() user: SafeUser | undefined,
     @Headers('x-guest-token') guestToken: string | undefined,
   ) {
-    if (!user && !guestToken) throw new ForbiddenException({ code: ErrorCode.FORBIDDEN });
+    if (!user && !guestToken)
+      throw new ForbiddenException({ code: ErrorCode.FORBIDDEN });
     return this.media.delete(eventId, itemId, { userId: user?.id, guestToken });
   }
 }
