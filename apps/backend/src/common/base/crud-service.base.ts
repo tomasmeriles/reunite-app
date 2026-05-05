@@ -161,7 +161,8 @@ export abstract class CrudService<
   /** Returns a single record by `id`. Throws `NotFoundException` if not found. */
   async findByIdOrFail(id: string): Promise<TDetail> {
     const record = await this.findById(id);
-    if (!record) throw new NotFoundException({ code: ErrorCode.RESOURCE_NOT_FOUND });
+    if (!record)
+      throw new NotFoundException({ code: ErrorCode.RESOURCE_NOT_FOUND });
     return record;
   }
 

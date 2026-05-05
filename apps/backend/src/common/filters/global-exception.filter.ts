@@ -113,7 +113,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       }
 
       if (typeof raw === 'string') {
-        res.status(status).json({ statusCode: status, message: raw, requestId });
+        res
+          .status(status)
+          .json({ statusCode: status, message: raw, requestId });
       } else {
         const body = raw as Record<string, unknown>;
         res.status(status).json({ statusCode: status, requestId, ...body });

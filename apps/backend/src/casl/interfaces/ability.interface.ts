@@ -22,7 +22,6 @@ type SubjectStr =
   | 'InviteLink'
   | 'EventWhitelistEntry'
   | 'EventAttendee'
-  | 'ChatMessage'
   | 'MediaItem'
   | 'Prize';
 export type Subject = SubjectStr | ForcedSubject<SubjectStr> | 'all';

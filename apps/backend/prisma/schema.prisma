@@ -28,6 +28,7 @@ model User {
   whitelistEntries EventWhitelistEntry[]
   attendees        EventAttendee[]
   uploadedMedia    MediaItem[]
+  notifications    Notification[]
 
   @@map("users")
 }
@@ -264,7 +265,6 @@ model Event {
   inviteLinks   InviteLink[]
   whitelist     EventWhitelistEntry[]
   attendees     EventAttendee[]
-  chatMessages  ChatMessage[]
   mediaItems    MediaItem[]
   prizes        Prize[]
 
@@ -278,8 +278,8 @@ model EventConfig {
   id              String  @id @default(cuid())
   eventId         String  @unique
   attendeeAccess  AttendeeAccess @default(ATTENDEES_ONLY)
-  chatEnabled     Boolean     @default(true)
   mediaAccess     MediaAccess @default(ATTENDEES_ONLY)
+  registrationsEnabled Boolean   @default(true)
   prizesEnabled   Boolean     @default(true)
 
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
@@ -355,7 +355,6 @@ model EventAttendee {
   inviteLink      InviteLink?    @relation(fields: [inviteLinkId], references: [id], onDelete: SetNull)
   sponsoredBy     EventAttendee? @relation("SponsoredGuests", fields: [addedById], references: [id], onDelete: SetNull)
   sponsoredGuests EventAttendee[] @relation("SponsoredGuests")
-  chatMessages    ChatMessage[]
   mediaItems      MediaItem[]
   prizes          Prize[]        @relation("PrizeWinner")
 
@@ -366,23 +365,8 @@ model EventAttendee {
 }
 
 // ---------------------------------------------------------------------------
-// Modules — Chat, Media, Prizes
+// Modules — Media, Prizes
 // ---------------------------------------------------------------------------
-
-/// A single chat message in an event's chat room.
-model ChatMessage {
-  id         String   @id @default(cuid())
-  eventId    String
-  attendeeId String
-  content    String
-  createdAt  DateTime @default(now())
-
-  event    Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  attendee EventAttendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
-
-  @@index([eventId, createdAt])
-  @@map("chat_messages")
-}
 
 /// An image or media item uploaded to an event's gallery.
 model MediaItem {
@@ -419,4 +403,29 @@ model Prize {
 
   @@index([eventId])
   @@map("prizes")
+}
+
+// ---------------------------------------------------------------------------
+// Notification - in-app notifications for users
+// ---------------------------------------------------------------------------
+
+enum NotificationType {
+  EVENT_RESCHEDULED
+  EVENT_CANCELLED
+  EVENT_LIVE
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String
+  data      Json? // metadata: { eventId, eventTitle, oldDate, newDate }
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, readAt])
+  @@map("notifications")
 }
