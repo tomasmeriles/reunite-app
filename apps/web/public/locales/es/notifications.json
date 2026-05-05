@@ -1,0 +1,17 @@
+{
+  "title": "Notificaciones",
+  "empty": "No hay notificaciones aún",
+  "markAllRead": "Marcar todas como leídas",
+  "types": {
+    "EVENT_RESCHEDULED": "Evento Reagendado",
+    "EVENT_CANCELLED": "Evento Cancelado",
+    "EVENT_LIVE": "¡Evento en Vivo!"
+  },
+  "messages": {
+    "eventRescheduled": "{{eventTitle}} ha sido reagendado de {{oldDate}} a {{newDate}}",
+    "eventCancelled": "{{eventTitle}} ha sido cancelado",
+    "eventLive": "{{eventTitle}} está transmitiendo!"
+  },
+  "types.EVENT_RESCHEDULED": "{{eventTitle}}",
+  "messages.eventRescheduled": "{{eventTitle}} ha sido reagendado de {{oldDate}} a {{newDate}}"
+}
