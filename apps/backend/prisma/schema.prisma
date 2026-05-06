@@ -240,6 +240,11 @@ model Event {
   description     String?
   coverImage      String? // S3 key or public URL
   location        String?
+  address         String? // formatted address from Google Places
+  city            String?
+  state           String?
+  country         String?
+  placeId         String? // Google Place ID
   latitude        Float? // WGS-84 decimal degrees
   longitude       Float? // WGS-84 decimal degrees
   timezone        String // IANA timezone, e.g. "America/New_York"

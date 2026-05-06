@@ -361,7 +361,7 @@ export class EventsService extends TransactionalService {
   async updateStatus(id: string, dto: UpdateEventStatusDto) {
     const event = await this.db.event.findUnique({
       where: { id },
-      select: { status: true, startAt: true, endAt: true, timezone: true },
+      select: { status: true, startAt: true, endAt: true, timezone: true, title: true },
     });
 
     if (!event)
@@ -402,6 +402,16 @@ export class EventsService extends TransactionalService {
 
     // Schedule / cancel BullMQ jobs based on the new status
     await this.syncJobsAfterStatusChange(id, dto.status, event);
+
+    if (dto.status === EventStatus.CANCELLED) {
+      await this.notificationsService.createForAttendees(
+        id,
+        NotificationType.EVENT_CANCELLED,
+        'notifications:types.EVENT_CANCELLED',
+        'notifications:messages.eventCancelled',
+        { eventId: id, eventTitle: event.title },
+      );
+    }
 
     return updated;
   }

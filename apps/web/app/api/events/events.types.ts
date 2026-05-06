@@ -27,6 +27,11 @@ export interface Event {
   status: EventStatus;
   coverImage: string | null;
   location: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  placeId: string | null;
   latitude: number | null;
   longitude: number | null;
   timezone: string;
@@ -51,6 +56,11 @@ export interface CreateEventDto {
   description?: string;
   eventType?: EventType;
   location?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  placeId?: string;
   latitude?: number;
   longitude?: number;
   timezone?: string;
@@ -63,6 +73,11 @@ export interface UpdateEventDto {
   description?: string;
   eventType?: EventType;
   location?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  placeId?: string;
   latitude?: number;
   longitude?: number;
   timezone?: string;

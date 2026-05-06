@@ -11,9 +11,11 @@ export interface LocationPrediction {
   description: string;
   lat: number;
   lng: number;
+  address?: string;
   city?: string;
   state?: string;
   country?: string;
+  placeId: string;
 }
 
 export interface SelectedLocation {
@@ -21,9 +23,11 @@ export interface SelectedLocation {
   description: string;
   lat: number;
   lng: number;
+  address?: string;
   city?: string;
   state?: string;
   country?: string;
+  placeId: string;
 }
 
 export interface UseLocationPickerReturn {
@@ -61,9 +65,11 @@ function buildShortName(p: PhotonProperties): string {
 }
 
 function buildDescription(p: PhotonProperties): string {
-  return [p.name, p.street, p.city, p.state, p.country]
-    .filter(Boolean)
-    .join(', ');
+  return [p.name, p.street, p.city, p.state, p.country].filter(Boolean).join(', ');
+}
+
+function buildAddress(p: PhotonProperties): string {
+  return [p.street, p.city, p.state, p.country].filter(Boolean).join(', ');
 }
 
 export function useLocationPicker(debounceMs = 300): UseLocationPickerReturn {
@@ -101,10 +107,12 @@ export function useLocationPicker(debounceMs = 300): UseLocationPickerReturn {
           seen.add(description);
           unique.push({
             id,
+            placeId: id,
             shortName: buildShortName(f.properties),
             description,
             lat: f.geometry.coordinates[1],
             lng: f.geometry.coordinates[0],
+            address: buildAddress(f.properties),
             city: f.properties.city,
             state: f.properties.state,
             country: f.properties.country,
@@ -137,9 +145,11 @@ export function useLocationPicker(debounceMs = 300): UseLocationPickerReturn {
       description: prediction.description,
       lat: prediction.lat,
       lng: prediction.lng,
+      address: prediction.address,
       city: prediction.city,
       state: prediction.state,
       country: prediction.country,
+      placeId: prediction.placeId,
     });
     setQueryRaw(prediction.shortName);
     setLocked(true);
