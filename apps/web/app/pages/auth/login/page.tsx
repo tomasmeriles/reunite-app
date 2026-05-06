@@ -18,7 +18,8 @@ import {
   FormTextField,
   FormPasswordField,
 } from '~/components/forms';
-import { GoogleButton, LoadingButton } from '~/components/buttons';
+// import { GoogleButton } from '~/components/buttons'; // [GOOGLE_OAUTH_DISABLED]
+import { LoadingButton } from '~/components/buttons';
 import { useLogin } from '~/hooks/api/use-auth';
 import { loginSchema, type LoginFormValues } from '~/lib/schemas/auth.schema';
 import { useApiError } from '~/hooks/use-api-error';
@@ -90,13 +91,7 @@ export default function LoginPage() {
             {t('login.submit')}
           </LoadingButton>
         </FormContainer>
-        <div className="relative my-4">
-          <Separator />
-          <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card/70 px-2 text-xs text-muted-foreground">
-            {t('login.orContinueWith')}
-          </span>
-        </div>
-        <GoogleButton />
+        {/* [GOOGLE_OAUTH_DISABLED] — separator + GoogleButton removed */}
         <div className="mt-4 flex flex-col gap-2 text-center text-sm text-muted-foreground">
           <Link
             to="/forgot-password"

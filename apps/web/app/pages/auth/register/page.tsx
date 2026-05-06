@@ -16,7 +16,8 @@ import {
   FormTextField,
   FormPasswordField,
 } from '~/components/forms';
-import { GoogleButton, LoadingButton } from '~/components/buttons';
+// import { GoogleButton } from '~/components/buttons'; // [GOOGLE_OAUTH_DISABLED]
+import { LoadingButton } from '~/components/buttons';
 import { useRegister } from '~/hooks/api/use-auth';
 import {
   registerSchema,
@@ -51,13 +52,7 @@ export default function RegisterPage() {
         <CardDescription>{t('register.subtitle')}</CardDescription>
       </CardHeader>
       <CardContent>
-        <GoogleButton />
-        <div className="relative my-4">
-          <Separator />
-          <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card/70 px-2 text-xs text-muted-foreground">
-            {t('register.or')}
-          </span>
-        </div>
+        {/* [GOOGLE_OAUTH_DISABLED] — GoogleButton removed */}
         <FormContainer form={form} onSubmit={onSubmit}>
           <FormTextField
             control={form.control}
