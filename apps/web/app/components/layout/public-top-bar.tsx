@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router';
 import { ChevronLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from '~/components/layout/language-switcher';
+import { NotificationBell } from '~/components/layout/notification-bell';
 import { ThemeToggle } from '~/components/theme-toggle';
 import { Button } from '~/components/ui/button';
 import { useBreakpoint } from '~/hooks/use-breakpoint';
@@ -30,6 +31,7 @@ export function PublicTopBar({ user }: PublicTopBarProps) {
         <div className="flex items-center gap-1">
           <LanguageSwitcher />
           <ThemeToggle />
+          {user && <NotificationBell />}
           <Button variant="ghost" size="sm" asChild>
             <Link to={user ? '/dashboard' : '/'}>
               <ChevronLeft className="mr-1 h-4 w-4" />

@@ -6,6 +6,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 
 @WebSocketGateway({
   namespace: '/notifications',
@@ -23,6 +24,8 @@ export class NotificationsGateway
   private readonly logger = new Logger(NotificationsGateway.name);
   private userSockets = new Map<string, Set<string>>(); // userId -> socket ids
 
+  constructor(private readonly jwt: JwtService) {}
+
   async handleConnection(client: Socket): Promise<void> {
     try {
       const token =
@@ -34,14 +37,7 @@ export class NotificationsGateway
         return;
       }
 
-      // Verify JWT token
-      const parts = token.split('.');
-      if (parts.length !== 3) {
-        throw new Error('Invalid token format');
-      }
-
-      // Decode JWT payload (client-side decoded, just for extracting userId)
-      const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+      const payload = this.jwt.verify<{ sub: string }>(token as string);
       const userId = payload.sub;
 
       if (!userId) {
@@ -50,13 +46,11 @@ export class NotificationsGateway
 
       client.data.userId = userId;
 
-      // Track socket
       if (!this.userSockets.has(userId)) {
         this.userSockets.set(userId, new Set());
       }
       this.userSockets.get(userId)!.add(client.id);
 
-      // Join user room
       client.join(`user:${userId}`);
 
       this.logger.debug(`Client connected: ${client.id} for user: ${userId}`);
@@ -67,7 +61,7 @@ export class NotificationsGateway
   }
 
   handleDisconnect(client: Socket): void {
-    const userId = client.data.userId;
+    const userId = client.data.userId as string | undefined;
     if (userId) {
       const sockets = this.userSockets.get(userId);
       if (sockets) {
@@ -80,7 +74,7 @@ export class NotificationsGateway
     this.logger.debug(`Client disconnected: ${client.id}`);
   }
 
-  sendToUser(userId: string, notification: any): void {
+  sendToUser(userId: string, notification: unknown): void {
     this.server.to(`user:${userId}`).emit('notification', notification);
   }
 

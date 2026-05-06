@@ -2,6 +2,7 @@ import { Link, useLocation } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
 import { cn } from '~/lib/utils';
 import { UserMenu } from '~/components/layout/user-menu';
+import { NotificationBell } from '~/components/layout/notification-bell';
 import { useAuth } from '~/contexts/auth';
 import {
   adminNavItems,
@@ -68,6 +69,10 @@ export function BottomNav() {
           isActive={isNavItemActive(item, pathname)}
         />
       ))}
+
+      <div className="flex flex-1 flex-col items-center justify-center gap-0.5">
+        <NotificationBell />
+      </div>
 
       <div className="flex flex-1 flex-col items-center justify-center gap-0.5">
         <UserMenu />

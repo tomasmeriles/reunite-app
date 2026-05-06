@@ -6,41 +6,33 @@ import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import type { AppNotification } from '~/api/notifications/notifications.types';
 
-let socket: Socket | null = null;
-
 export function useNotificationSocket() {
   const queryClient = useQueryClient();
   const { t } = useTranslation('notifications');
-  const initialized = useRef(false);
+  const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
+    if (socketRef.current) return;
 
     const token = getAuthToken();
     if (!token) return;
 
-    socket = io(`${window.location.origin}/notifications`, {
+    const socket = io(`${window.location.origin}/notifications`, {
       auth: { token },
       transports: ['websocket'],
     });
+    socketRef.current = socket;
 
     socket.on('notification', (notification: AppNotification) => {
-      // Update cache
-      queryClient.invalidateQueries({
-        queryKey: notificationKeys(),
-      });
+      void queryClient.invalidateQueries({ queryKey: notificationKeys() });
 
-      // Show toast with translated content
-      const title = notification.title.includes(':') 
-        ? String(t(notification.title, notification.data || {}))
+      const title = notification.title.includes(':')
+        ? String(t(notification.title, notification.data ?? {}))
         : notification.title;
-      const message = notification.message.includes(':') 
-        ? String(t(notification.message, notification.data || {}))
+      const message = notification.message.includes(':')
+        ? String(t(notification.message, notification.data ?? {}))
         : notification.message;
-      toast(title, {
-        description: message,
-      });
+      toast(title, { description: message });
     });
 
     socket.on('connect_error', (err) => {
@@ -48,15 +40,13 @@ export function useNotificationSocket() {
     });
 
     return () => {
-      socket?.disconnect();
-      socket = null;
-      initialized.current = false;
+      socket.disconnect();
+      socketRef.current = null;
     };
-  }, []);
+  }, [queryClient, t]);
 }
 
 function getAuthToken(): string {
-  // Get token from cookie or localStorage (same as axios interceptor)
   const match = document.cookie.match(/(?:^|; )access_token=([^;]*)/);
   return match && match[1] ? decodeURIComponent(match[1]) : '';
 }
