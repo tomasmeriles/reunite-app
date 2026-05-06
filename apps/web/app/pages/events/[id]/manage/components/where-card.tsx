@@ -70,6 +70,11 @@ function WhereEditForm({ event, onSuccess, onCancel }: EditFormProps) {
           latName="latitude"
           lngName="longitude"
           timezoneName="timezone"
+          addressName="address"
+          cityName="city"
+          stateName="state"
+          countryName="country"
+          placeIdName="placeId"
           label={t('events:create.fields.location')}
           optional
         />
@@ -151,7 +156,28 @@ export function WhereCard({ event }: WhereCardProps) {
         {event.location ? (
           <div className="flex items-start gap-2 text-sm">
             <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <span>{event.location}</span>
+            <div>
+              {event.latitude && event.longitude ? (
+                <a
+                  href={`https://maps.google.com/?q=${event.latitude},${event.longitude}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium underline underline-offset-2 decoration-muted-foreground hover:decoration-foreground transition-colors"
+                >
+                  {event.location}
+                </a>
+              ) : (
+                <span className="font-medium">{event.location}</span>
+              )}
+              {event.address && event.address !== event.location && (
+                <p className="text-xs text-muted-foreground mt-0.5">{event.address}</p>
+              )}
+              {!event.address && (event.city || event.country) && (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {[event.city, event.state, event.country].filter(Boolean).join(', ')}
+                </p>
+              )}
+            </div>
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">{t('manage.where.noLocation')}</p>

@@ -36,6 +36,31 @@ export class UpdateEventDto {
   @IsString()
   location?: string;
 
+  @ApiPropertyOptional({ description: 'Formatted address from Google Places' })
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  city?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  state?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  country?: string;
+
+  @ApiPropertyOptional({ description: 'Google Place ID' })
+  @IsOptional()
+  @IsString()
+  placeId?: string;
+
   @ApiPropertyOptional({ description: 'WGS-84 latitude', example: 40.7128 })
   @IsOptional()
   @Type(() => Number)

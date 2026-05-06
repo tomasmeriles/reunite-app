@@ -31,9 +31,9 @@ import { AuthService } from '../services/auth.service';
 import { Cookie } from '../decorators/cookie.decorator';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { Public } from '../decorators/public.decorator';
-import { GoogleOAuthGuard } from '../guards/google-oauth.guard';
+// import { GoogleOAuthGuard } from '../guards/google-oauth.guard'; // [GOOGLE_OAUTH_DISABLED]
 import { LocalAuthGuard } from '../guards/local-auth.guard';
-import { OAuthUser } from '../interfaces/oauth-user.interface';
+// import { OAuthUser } from '../interfaces/oauth-user.interface'; // [GOOGLE_OAUTH_DISABLED]
 import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
 import { ClaimGuestSessionsDto } from '../dto/claim-guest-sessions.dto';
@@ -123,20 +123,19 @@ export class AuthController {
   }
 
   // -----------------------------------------------------------------------
-  // Google OAuth flow
+  // Google OAuth flow — [GOOGLE_OAUTH_DISABLED]
+  // Uncomment to re-enable. Requires GoogleStrategy in AuthModule providers
+  // and valid GOOGLE_CLIENT_ID/SECRET/CALLBACK_URL env vars.
   // -----------------------------------------------------------------------
 
-  /** Redirects the browser to Google's consent screen */
+  /*
   @Get('google')
   @ApiOperation({ summary: 'Initiate Google OAuth flow' })
   @Public()
   @Throttle({ default: THROTTLE.AUTH })
   @UseGuards(GoogleOAuthGuard)
-  googleLogin(): void {
-    // Guard handles the redirect; this body never executes.
-  }
+  googleLogin(): void {}
 
-  /** Handles the OAuth callback, issues JWT pair, and sets cookies */
   @Get('google/callback')
   @ApiOperation({ summary: 'Google OAuth callback - sets auth cookies' })
   @Public()
@@ -149,23 +148,12 @@ export class AuthController {
   ): Promise<void> {
     const { tokens, user } = await this.auth.handleOAuthLogin(req.user);
     req._audit = { userId: user.id, metadata: { provider: req.user.provider } };
-    res.cookie(
-      ACCESS_COOKIE,
-      tokens.accessToken,
-      this.auth.accessCookieOptions(),
-    );
-    res.cookie(
-      REFRESH_COOKIE,
-      tokens.refreshToken,
-      this.auth.refreshCookieOptions(tokens.refreshMaxAge),
-    );
-    res.cookie(
-      CSRF_COOKIE,
-      this.auth.generateCsrfToken(),
-      this.auth.csrfCookieOptions(tokens.refreshMaxAge),
-    );
+    res.cookie(ACCESS_COOKIE, tokens.accessToken, this.auth.accessCookieOptions());
+    res.cookie(REFRESH_COOKIE, tokens.refreshToken, this.auth.refreshCookieOptions(tokens.refreshMaxAge));
+    res.cookie(CSRF_COOKIE, this.auth.generateCsrfToken(), this.auth.csrfCookieOptions(tokens.refreshMaxAge));
     res.redirect(this.auth.frontendUrl());
   }
+  */
 
   /** Issues a new access + refresh token pair using the refresh token cookie */
   @Post('refresh')

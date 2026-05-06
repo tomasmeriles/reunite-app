@@ -64,21 +64,18 @@ export class NotificationsService extends TransactionalService {
         })),
       });
 
-      // Send real-time notifications
-      const recentNotifications = await this.db.notification.findMany({
-        where: {
-          userId: { in: userIds },
+      // Send real-time notifications using data we already have — no second DB query
+      const now = new Date().toISOString();
+      for (const userId of userIds) {
+        this.gateway.sendToUser(userId, {
+          userId,
           type,
           title,
-          createdAt: { gte: new Date(Date.now() - 5000) }, // Get recently created
-        },
-        select: notificationSelect,
-      });
-
-      for (const notification of recentNotifications) {
-        if (notification.userId) {
-          this.gateway.sendToUser(notification.userId, notification);
-        }
+          message,
+          data: data ?? null,
+          readAt: null,
+          createdAt: now,
+        });
       }
     }
   }

@@ -1,9 +1,8 @@
-import { Controller, Get, Patch, Query, Param, Body, HttpCode } from '@nestjs/common';
+import { Controller, Get, Patch, Query, Param, HttpCode } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { CurrentUser } from '../../../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
 import { UseGuards } from '@nestjs/common';
-import { MarkReadDto } from '../dto/mark-read.dto';
 import { NotificationsService } from '../services/notifications.service';
 import { notificationSelect, type NotificationPayload } from '../selects/notification.select';
 

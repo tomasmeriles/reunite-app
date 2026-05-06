@@ -8,7 +8,7 @@ import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
 import { RefreshTokensService } from './services/refresh-tokens.service';
 import { PasswordService } from './services/password.service';
-import { GoogleStrategy } from './strategies/google.strategy';
+// import { GoogleStrategy } from './strategies/google.strategy'; // [GOOGLE_OAUTH_DISABLED]
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 
@@ -31,7 +31,7 @@ import { LocalStrategy } from './strategies/local.strategy';
     AuthService,
     RefreshTokensService,
     PasswordService,
-    GoogleStrategy,
+    // GoogleStrategy, // [GOOGLE_OAUTH_DISABLED]
     JwtStrategy,
     LocalStrategy,
   ],

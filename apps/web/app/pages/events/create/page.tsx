@@ -107,6 +107,11 @@ export default function EventCreatePage() {
       description: '',
       eventType: 'PUBLIC',
       location: '',
+      address: '',
+      city: '',
+      state: '',
+      country: '',
+      placeId: '',
       latitude: undefined,
       longitude: undefined,
       startAt: '',
@@ -263,6 +268,11 @@ export default function EventCreatePage() {
                   latName="latitude"
                   lngName="longitude"
                   timezoneName="timezone"
+                  addressName="address"
+                  cityName="city"
+                  stateName="state"
+                  countryName="country"
+                  placeIdName="placeId"
                   label={t('create.fields.location')}
                   optional
                 />

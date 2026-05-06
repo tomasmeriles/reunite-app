@@ -20,10 +20,10 @@ export const configSchema = z.object({
     z.string().startsWith('.').optional(),
   ),
 
-  // Google OAuth
-  GOOGLE_CLIENT_ID: z.string().min(1),
-  GOOGLE_CLIENT_SECRET: z.string().min(1),
-  GOOGLE_CALLBACK_URL: z.string().url(),
+  // Google OAuth — disabled (kept for future re-enablement)
+  GOOGLE_CLIENT_ID: z.string().min(1).optional(),
+  GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
+  GOOGLE_CALLBACK_URL: z.string().url().optional(),
 
   // JWT
   JWT_SECRET: z.string().min(32),

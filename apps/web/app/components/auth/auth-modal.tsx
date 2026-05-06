@@ -12,7 +12,6 @@ import {
 } from '~/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { Button } from '~/components/ui/button';
-import { Separator } from '~/components/ui/separator';
 import {
   FormContainer,
   FormTextField,
@@ -27,7 +26,7 @@ import {
 } from '~/lib/schemas/auth.schema';
 import { useApiError } from '~/hooks/use-api-error';
 import env from '~/env';
-import { GoogleButton } from '~/components/buttons';
+// import { GoogleButton } from '~/components/buttons'; // [GOOGLE_OAUTH_DISABLED]
 
 // ─── Login form ───────────────────────────────────────────────────────────────
 
@@ -73,13 +72,7 @@ function LoginForm({ onSuccess }: LoginFormProps) {
           {isPending ? t('login.submitting') : t('login.submit')}
         </Button>
       </FormContainer>
-      <div className="relative">
-        <Separator />
-        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-popover px-2 text-xs text-muted-foreground">
-          {t('login.or')}
-        </span>
-      </div>
-      <GoogleButton />
+      {/* [GOOGLE_OAUTH_DISABLED] — separator + GoogleButton removed */}
     </div>
   );
 }
@@ -142,13 +135,7 @@ function RegisterForm({ onSuccess }: RegisterFormProps) {
           {isPending ? t('register.submitting') : t('register.submit')}
         </Button>
       </FormContainer>
-      <div className="relative">
-        <Separator />
-        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-popover px-2 text-xs text-muted-foreground">
-          {t('register.or')}
-        </span>
-      </div>
-      <GoogleButton />
+      {/* [GOOGLE_OAUTH_DISABLED] — separator + GoogleButton removed */}
     </div>
   );
 }

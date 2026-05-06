@@ -46,7 +46,25 @@ export function EventOverview({ event }: EventOverviewProps) {
       {event.location && (
         <div className="flex items-start gap-2 text-sm text-muted-foreground">
           <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>{event.location}</span>
+          <span>
+            {event.latitude && event.longitude ? (
+              <a
+                href={`https://maps.google.com/?q=${event.latitude},${event.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground font-medium underline underline-offset-2 decoration-muted-foreground hover:decoration-foreground transition-colors"
+              >
+                {event.location}
+              </a>
+            ) : (
+              event.location
+            )}
+            {(event.city || event.country) && (
+              <span className="ml-1 text-xs opacity-75">
+                · {[event.city, event.country].filter(Boolean).join(', ')}
+              </span>
+            )}
+          </span>
         </div>
       )}
     </div>

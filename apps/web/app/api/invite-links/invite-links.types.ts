@@ -21,6 +21,10 @@ export interface ResolveInviteLinkEvent {
   description: string | null;
   coverImage: string | null;
   location: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  city: string | null;
+  country: string | null;
   timezone: string;
   startDate: string;
   endDate: string;

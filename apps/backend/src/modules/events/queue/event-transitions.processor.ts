@@ -1,10 +1,11 @@
 import { Logger } from '@nestjs/common';
 import { Processor } from '@nestjs/bullmq';
 import type { Job } from 'bullmq';
-import { EventStatus } from '@prisma/client';
+import { EventStatus, NotificationType } from '@prisma/client';
 import { BaseProcessor } from '../../../queue/base/base.processor';
 import { PrismaService } from '../../../prisma/services/prisma.service';
 import { AbilityCacheService } from '../../../casl/services/ability-cache.service';
+import { NotificationsService } from '../../notifications/services/notifications.service';
 import {
   EVENT_TRANSITIONS_QUEUE,
   EventTransitionsQueueService,
@@ -20,6 +21,7 @@ export class EventTransitionsProcessor extends BaseProcessor<EventTransitionJobD
     private readonly prisma: PrismaService,
     private readonly transitions: EventTransitionsQueueService,
     private readonly abilityCache: AbilityCacheService,
+    private readonly notificationsService: NotificationsService,
   ) {
     super();
   }
@@ -38,7 +40,7 @@ export class EventTransitionsProcessor extends BaseProcessor<EventTransitionJobD
   private async handleAutoActive(eventId: string): Promise<void> {
     const event = await this.prisma.event.findUnique({
       where: { id: eventId },
-      select: { status: true, endAt: true },
+      select: { status: true, endAt: true, title: true },
     });
 
     if (!event || event.status === EventStatus.ACTIVE) return;
@@ -67,6 +69,14 @@ export class EventTransitionsProcessor extends BaseProcessor<EventTransitionJobD
       select: { userId: true },
     });
     await this.abilityCache.delMany(staff.map((s) => s.userId));
+
+    await this.notificationsService.createForAttendees(
+      eventId,
+      NotificationType.EVENT_LIVE,
+      'notifications:types.EVENT_LIVE',
+      'notifications:messages.eventLive',
+      { eventId, eventTitle: event.title },
+    );
 
     this.logger.log(`Event ${eventId} auto-transitioned to ACTIVE`);
   }

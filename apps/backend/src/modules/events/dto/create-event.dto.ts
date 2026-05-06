@@ -38,6 +38,36 @@ export class CreateEventDto {
   @EmptyToUndefined()
   location?: string;
 
+  @ApiPropertyOptional({ description: 'Formatted address from Google Places' })
+  @IsOptional()
+  @IsString()
+  @EmptyToUndefined()
+  address?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @EmptyToUndefined()
+  city?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @EmptyToUndefined()
+  state?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @EmptyToUndefined()
+  country?: string;
+
+  @ApiPropertyOptional({ description: 'Google Place ID' })
+  @IsOptional()
+  @IsString()
+  @EmptyToUndefined()
+  placeId?: string;
+
   @ApiPropertyOptional({ description: 'WGS-84 latitude', example: 40.7128 })
   @IsOptional()
   @Type(() => Number)
